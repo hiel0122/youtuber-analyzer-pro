@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 }
 
-// YouTube API utilities (inline)
+// YouTube API utilities
 const YT_BASE = 'https://www.googleapis.com/youtube/v3';
 
 async function resolveChannelId(input: string, apiKey: string): Promise<{ channelId: string; title: string } | null> {
@@ -142,8 +142,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Check all required environment variables
-    const SUPABASE_URL = Deno.env.get('SUPABASE_URL'); // Auto-injected by Supabase
+    // Check environment variables
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SERVICE_ROLE_KEY =
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? Deno.env.get('SERVICE_ROLE_KEY');
     const YOUTUBE_API_KEY = Deno.env.get('YOUTUBE_API_KEY');
@@ -152,30 +152,33 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({
           ok: false,
-          error: 'Missing env: SUPABASE_URL / SERVICE_ROLE_KEY(or SUPABASE_SERVICE_ROLE_KEY) / YOUTUBE_API_KEY',
+          error: 'Missing env: SUPABASE_URL / SERVICE_ROLE_KEY / YOUTUBE_API_KEY',
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.debug('Environment variables loaded successfully');
+    console.log('Environment variables loaded successfully');
 
-    const { channelKey, channelId: rawId } = await req.json().catch(() => ({}));
+    // Parse request - support both channelKey and channel
+    const { channelKey, channel, channelId: rawId } = await req.json().catch(() => ({}));
     
-    if (!channelKey && !rawId) {
+    const channelInput = channelKey || channel;
+    
+    if (!channelInput && !rawId) {
       return new Response(
         JSON.stringify({ ok: false, error: 'channelKey or channelId is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Sync request:', { channelKey, rawId });
+    console.log('Sync request:', { channelKey: channelInput, rawId });
 
     // 1) Resolve channel ID
     let channelId = rawId as string | undefined;
     let resolvedTitle = "";
     if (!channelId) {
-      const resolved = await resolveChannelId(channelKey, YOUTUBE_API_KEY);
+      const resolved = await resolveChannelId(channelInput, YOUTUBE_API_KEY);
       if (!resolved) {
         return new Response(
           JSON.stringify({ error: 'Cannot resolve channel id' }),
@@ -188,12 +191,12 @@ Deno.serve(async (req) => {
 
     console.log('Resolved channel:', { channelId, resolvedTitle });
 
-    // 2) Create Supabase client (already validated above)
+    // 2) Create Supabase client
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    // 3) Get last upload date for this channel
+    // 3) Get last upload date
     const { data: lastRow, error: lastErr } = await supabase
       .from('youtube_videos')
       .select('upload_date')
@@ -218,7 +221,7 @@ Deno.serve(async (req) => {
 
     console.log('Uploads playlist:', uploadsId);
 
-    // 5) Fetch new videos only
+    // 5) Fetch new videos
     const newItems = await listNewUploads(uploadsId, YOUTUBE_API_KEY, sinceISO);
     console.log('New videos found:', newItems.length);
 
@@ -235,11 +238,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 6) Fetch stats for new videos
+    // 6) Fetch stats
     const stats = await fetchVideosStats(newItems.map(v => v.videoId), YOUTUBE_API_KEY);
     const statsMap = new Map(stats.map(x => [x.id, x]));
 
-    // 7) Prepare RPC payload
+    // 7) Prepare data
     const rows = newItems.map(v => {
       const s = statsMap.get(v.videoId);
       return {
@@ -251,7 +254,7 @@ Deno.serve(async (req) => {
         views: s?.viewCount ?? 0,
         likes: s?.likeCount ?? null,
         dislikes: null,
-        upload_date: v.publishedAt.slice(0, 10), // YYYY-MM-DD
+        upload_date: v.publishedAt.slice(0, 10),
         duration: s?.duration ?? '',
         url: `https://www.youtube.com/watch?v=${v.videoId}`,
       };
@@ -259,7 +262,7 @@ Deno.serve(async (req) => {
 
     console.log('Upserting rows:', rows.length);
 
-    // 8) Call RPC to upsert videos
+    // 8) Upsert to database
     const { data: affected, error: rpcErr } = await supabase.rpc('upsert_videos', { p_rows: rows });
     if (rpcErr) {
       console.error('RPC error:', rpcErr);
