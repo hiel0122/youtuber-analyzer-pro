@@ -6,9 +6,10 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 }
 
-// YouTube API utilities
+// YouTube API base URL
 const YT_BASE = 'https://www.googleapis.com/youtube/v3';
 
+// Resolve channel URL/handle/@handle to channel ID
 async function resolveChannelId(input: string, apiKey: string): Promise<{ channelId: string; title: string } | null> {
   const v = input.trim();
   
@@ -50,6 +51,7 @@ async function resolveChannelId(input: string, apiKey: string): Promise<{ channe
   return item ? { channelId: item.snippet.channelId, title: item.snippet.title ?? '' } : null;
 }
 
+// Get uploads playlist ID for a channel
 async function getUploadsPlaylistId(channelId: string, apiKey: string): Promise<string | null> {
   const url = `${YT_BASE}/channels?part=contentDetails&id=${channelId}&key=${apiKey}`;
   const res = await fetch(url);
@@ -58,6 +60,7 @@ async function getUploadsPlaylistId(channelId: string, apiKey: string): Promise<
   return item?.contentDetails?.relatedPlaylists?.uploads || null;
 }
 
+// Convert ISO 8601 duration to H:MM:SS or M:SS
 function iso8601ToHMS(iso?: string): string {
   if (!iso) return "";
   const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
@@ -68,6 +71,7 @@ function iso8601ToHMS(iso?: string): string {
   return h ? `${h}:${pad(min)}:${pad(s)}` : `${min}:${pad(s)}`;
 }
 
+// List new uploads from a playlist
 async function listNewUploads(
   uploadsPlaylistId: string,
   apiKey: string,
@@ -108,6 +112,7 @@ async function listNewUploads(
   return items;
 }
 
+// Fetch video statistics
 async function fetchVideosStats(
   videoIds: string[],
   apiKey: string
@@ -149,6 +154,7 @@ Deno.serve(async (req) => {
     const YOUTUBE_API_KEY = Deno.env.get('YOUTUBE_API_KEY');
 
     if (!SUPABASE_URL || !SERVICE_ROLE_KEY || !YOUTUBE_API_KEY) {
+      console.error('Missing environment variables');
       return new Response(
         JSON.stringify({
           ok: false,
@@ -160,26 +166,32 @@ Deno.serve(async (req) => {
 
     console.log('Environment variables loaded successfully');
 
-    // Parse request - support both channelKey and channel
-    const { channelKey, channel, channelId: rawId } = await req.json().catch(() => ({}));
+    // Parse request - support both channelKey and channel for compatibility
+    const body = await req.json().catch(() => ({}));
+    const channelKey = body?.channelKey || body?.channel;
+    const rawId = body?.channelId;
     
-    const channelInput = channelKey || channel;
-    
-    if (!channelInput && !rawId) {
+    if (!channelKey && !rawId) {
+      console.error('Missing required parameters');
       return new Response(
-        JSON.stringify({ ok: false, error: 'channelKey or channelId is required' }),
+        JSON.stringify({ 
+          ok: false, 
+          error: 'channelKey or channelId is required',
+          received: { channelKey, rawId, bodyKeys: Object.keys(body) }
+        }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Sync request:', { channelKey: channelInput, rawId });
+    console.log('Sync request:', { channelKey, rawId });
 
     // 1) Resolve channel ID
     let channelId = rawId as string | undefined;
     let resolvedTitle = "";
     if (!channelId) {
-      const resolved = await resolveChannelId(channelInput, YOUTUBE_API_KEY);
+      const resolved = await resolveChannelId(channelKey, YOUTUBE_API_KEY);
       if (!resolved) {
+        console.error('Cannot resolve channel id for:', channelKey);
         return new Response(
           JSON.stringify({ error: 'Cannot resolve channel id' }),
           { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -196,7 +208,7 @@ Deno.serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    // 3) Get last upload date
+    // 3) Get last upload date for this channel
     const { data: lastRow, error: lastErr } = await supabase
       .from('youtube_videos')
       .select('upload_date')
@@ -205,7 +217,10 @@ Deno.serve(async (req) => {
       .limit(1)
       .maybeSingle();
 
-    if (lastErr) throw lastErr;
+    if (lastErr) {
+      console.error('Error fetching last upload:', lastErr);
+      throw lastErr;
+    }
     
     const sinceISO = lastRow?.upload_date ? new Date(lastRow.upload_date).toISOString() : undefined;
     console.log('Last upload:', { sinceISO });
@@ -213,6 +228,7 @@ Deno.serve(async (req) => {
     // 4) Get uploads playlist
     const uploadsId = await getUploadsPlaylistId(channelId, YOUTUBE_API_KEY);
     if (!uploadsId) {
+      console.error('No uploads playlist found for channel:', channelId);
       return new Response(
         JSON.stringify({ error: 'No uploads playlist found' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -221,7 +237,7 @@ Deno.serve(async (req) => {
 
     console.log('Uploads playlist:', uploadsId);
 
-    // 5) Fetch new videos
+    // 5) Fetch new videos only
     const newItems = await listNewUploads(uploadsId, YOUTUBE_API_KEY, sinceISO);
     console.log('New videos found:', newItems.length);
 
@@ -238,11 +254,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 6) Fetch stats
+    // 6) Fetch stats for new videos
     const stats = await fetchVideosStats(newItems.map(v => v.videoId), YOUTUBE_API_KEY);
     const statsMap = new Map(stats.map(x => [x.id, x]));
 
-    // 7) Prepare data
+    // 7) Prepare RPC payload
     const rows = newItems.map(v => {
       const s = statsMap.get(v.videoId);
       return {
@@ -254,7 +270,7 @@ Deno.serve(async (req) => {
         views: s?.viewCount ?? 0,
         likes: s?.likeCount ?? null,
         dislikes: null,
-        upload_date: v.publishedAt.slice(0, 10),
+        upload_date: v.publishedAt.slice(0, 10), // YYYY-MM-DD
         duration: s?.duration ?? '',
         url: `https://www.youtube.com/watch?v=${v.videoId}`,
       };
@@ -262,7 +278,7 @@ Deno.serve(async (req) => {
 
     console.log('Upserting rows:', rows.length);
 
-    // 8) Upsert to database
+    // 8) Call RPC to upsert videos
     const { data: affected, error: rpcErr } = await supabase.rpc('upsert_videos', { p_rows: rows });
     if (rpcErr) {
       console.error('RPC error:', rpcErr);
@@ -284,7 +300,11 @@ Deno.serve(async (req) => {
   } catch (e: any) {
     console.error('Error:', e);
     return new Response(
-      JSON.stringify({ error: e?.message ?? 'unknown error' }),
+      JSON.stringify({ 
+        ok: false,
+        error: e?.message ?? 'unknown error',
+        stack: e?.stack 
+      }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
