@@ -1,80 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChannelInput } from "@/components/ChannelInput";
 import { MetricsCard } from "@/components/MetricsCard";
 import { VideoTable } from "@/components/VideoTable";
-import { ViewsChart } from "@/components/ViewsChart";
 import { TopicChart } from "@/components/TopicChart";
 import { SettingsModal } from "@/components/SettingsModal";
 import { YouTubeVideo } from "@/lib/youtubeApi";
+import { VideoRow } from "@/lib/types";
 import { getSupabaseClient, hasSupabaseCredentials } from "@/lib/supabaseClient";
 import { syncNewVideos } from "@/lib/edge";
-import { Video, Eye, ThumbsUp, Calendar, Users, Clock, Zap, TrendingUp } from "lucide-react";
+import { Video, Eye, Calendar, Users } from "lucide-react";
 import { toast } from "sonner";
 import { formatInt } from "@/utils/format";
 import { Badge } from "@/components/ui/badge";
+import { useSync } from "@/hooks/useSync";
+import SyncProgress from "@/components/SyncProgress";
+import QuantityQuality from "@/components/QuantityQuality";
+import ViewsTrend from "@/components/ViewsTrend";
+import SkeletonCard from "@/components/SkeletonCard";
 
 const Index = () => {
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
+  const [videoRows, setVideoRows] = useState<VideoRow[]>([]);
   const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [channelStats, setChannelStats] = useState<{
     subscriberCount: number;
     totalViews: number;
     hiddenSubscriber: boolean;
   } | null>(null);
+  const [currentChannelId, setCurrentChannelId] = useState<string>("");
+  const { isSyncing, progress: syncProgress, error: syncError, startSync } = useSync();
 
-  const handleAnalyze = async (url: string) => {
+  const loadVideos = async (channelId: string) => {
     setLoading(true);
-    setProgress({ current: 0, total: 0 });
-
     try {
-      if (!hasSupabaseCredentials()) {
-        toast.error('Settings에서 Supabase URL/Anon Key를 설정하세요');
-        return;
-      }
-
-      // Call Edge Function using absolute URL
-      const data = await syncNewVideos(url);
-
-      console.log('Edge Function response:', data);
-
-      // Check for error in response
-      if (data?.error) {
-        throw new Error(data.error);
-      }
-
-      const result = data as {
-        ok: boolean;
-        channelId: string;
-        title: string;
-        inserted_or_updated?: number;
-        inserted?: number;
-        newest_uploaded_at?: string;
-        message?: string;
-      };
-
       const supabase = getSupabaseClient();
-
-      // Refresh channel stats from database
-      const { data: channelData, error: channelError } = await supabase
-        .from('channels')
-        .select('subscriber_count, view_count, hidden_subscriber')
-        .eq('id', result.channelId)
-        .maybeSingle();
-
-      if (!channelError && channelData) {
-        setChannelStats({
-          subscriberCount: channelData.hidden_subscriber ? 0 : channelData.subscriber_count || 0,
-          totalViews: channelData.view_count || 0,
-          hiddenSubscriber: channelData.hidden_subscriber || false,
-        });
-      }
-
-      // Refresh videos from database
       const { data: videosData, error: videosError } = await supabase
         .from('youtube_videos')
         .select('*')
-        .eq('channel_id', result.channelId)
+        .eq('channel_id', channelId)
         .order('upload_date', { ascending: false });
 
       if (videosError) {
@@ -93,7 +56,73 @@ const Index = () => {
           url: v.url,
         }));
         setVideos(mappedVideos);
+
+        const mappedRows: VideoRow[] = (videosData || []).map((v: any) => ({
+          id: v.id,
+          channel_id: v.channel_id,
+          topic: v.topic,
+          title: v.title,
+          presenter: v.presenter,
+          views: v.views,
+          likes: v.likes,
+          upload_date: v.upload_date,
+          duration: v.duration,
+          url: v.url,
+        }));
+        setVideoRows(mappedRows);
       }
+    } catch (error) {
+      console.error('Load videos error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAnalyze = async (url: string) => {
+    try {
+      if (!hasSupabaseCredentials()) {
+        toast.error('Settings에서 Supabase URL/Anon Key를 설정하세요');
+        return;
+      }
+
+      await startSync(url);
+
+      // After sync completes, fetch data
+      const supabase = getSupabaseClient();
+      const data = await syncNewVideos(url);
+      
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      const result = data as {
+        ok: boolean;
+        channelId: string;
+        title: string;
+        inserted_or_updated?: number;
+        inserted?: number;
+        newest_uploaded_at?: string;
+        message?: string;
+      };
+
+      setCurrentChannelId(result.channelId);
+
+      // Refresh channel stats from database
+      const { data: channelData, error: channelError } = await supabase
+        .from('youtube_channels')
+        .select('subscriber_count, total_views, channel_name')
+        .eq('channel_id', result.channelId)
+        .maybeSingle();
+
+      if (!channelError && channelData) {
+        setChannelStats({
+          subscriberCount: channelData.subscriber_count || 0,
+          totalViews: channelData.total_views || 0,
+          hiddenSubscriber: false,
+        });
+      }
+
+      await loadVideos(result.channelId);
 
       const insertedCount = result.inserted_or_updated || result.inserted || 0;
       if (insertedCount > 0) {
@@ -104,37 +133,29 @@ const Index = () => {
     } catch (error: any) {
       console.error('Analysis error:', error);
       toast.error(error.message || '채널 분석 중 오류가 발생했습니다');
-    } finally {
-      setLoading(false);
-      setProgress({ current: 0, total: 0 });
     }
   };
+
+  useEffect(() => {
+    if (!isSyncing && currentChannelId) {
+      loadVideos(currentChannelId);
+    }
+  }, [isSyncing]);
 
   // Basic metrics
   const totalVideos = videos.length;
   const totalViews = videos.reduce((sum, v) => sum + v.views, 0);
-  const avgViews = videos.length > 0 ? Math.round(totalViews / videos.length) : 0;
-  const avgLikes = videos.length > 0 ? Math.round(videos.reduce((sum, v) => sum + v.likes, 0) / videos.length) : 0;
   const latestUpload =
     videos.length > 0
       ? videos.sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime())[0].uploadDate
       : "없음";
 
-  // Quality metrics (longform/shortform based on duration)
-  const parseDurationToSeconds = (duration: string): number => {
-    const parts = duration.split(":").map(Number);
-    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
-    if (parts.length === 2) return parts[0] * 60 + parts[1];
-    return 0;
-  };
-
-  const longformCount = videos.filter((v) => parseDurationToSeconds(v.duration) >= 60).length;
-  const shortformCount = videos.filter((v) => parseDurationToSeconds(v.duration) < 60).length;
-
   // Use channel stats from state
   const subscriberCount = channelStats?.subscriberCount || 0;
   const channelTotalViews = channelStats?.totalViews || 0;
   const hiddenSubscriber = channelStats?.hiddenSubscriber || false;
+  
+  const isLoading = loading || isSyncing;
 
   return (
     <div className="min-h-screen bg-background">
@@ -151,60 +172,76 @@ const Index = () => {
 
         {/* Channel Input */}
         <div className="flex flex-col items-center mb-12">
-          <ChannelInput onAnalyze={handleAnalyze} loading={loading} />
-          {loading && progress.total > 0 && (
-            <p className="text-sm text-muted-foreground mt-2">
-              동기화 중... {progress.current}/{progress.total}
-            </p>
+          <ChannelInput onAnalyze={handleAnalyze} loading={isLoading} />
+          
+          {/* Sync Progress Bar */}
+          {isSyncing && (
+            <div className="w-full max-w-3xl mt-4">
+              <div className="flex flex-col gap-2">
+                <div className="text-sm text-muted-foreground">동기화 중...</div>
+                <SyncProgress progress={syncProgress} />
+              </div>
+            </div>
+          )}
+          
+          {syncError && (
+            <div className="text-red-400 text-sm mt-2">{syncError}</div>
           )}
         </div>
 
         {/* Quantity Section */}
         <section className="mb-8">
           <h3 className="text-sm font-semibold mb-3 text-foreground">Quantity</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <MetricsCard
-              title="총 구독자 수"
-              value={
-                <div className="flex items-center gap-2">
-                  <span>{formatInt(subscriberCount)}</span>
-                  {hiddenSubscriber && (
-                    <Badge variant="secondary" className="text-xs">
-                      숨김
-                    </Badge>
-                  )}
-                </div>
-              }
-              icon={Users}
-              description="채널 구독자"
-            />
-            <MetricsCard title="총 영상 수" value={formatInt(totalVideos)} icon={Video} description="분석된 영상" />
-            <MetricsCard
-              title="총 조회수"
-              value={formatInt(channelTotalViews || totalViews)}
-              icon={Eye}
-              description="전체 조회수"
-            />
-            <MetricsCard title="최근 업로드" value={latestUpload} icon={Calendar} description="마지막 업로드일" />
-          </div>
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => <SkeletonCard key={`qty-${i}`} className="h-32" />)}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <MetricsCard
+                title="총 구독자 수"
+                value={
+                  <div className="flex items-center gap-2">
+                    <span>{formatInt(subscriberCount)}</span>
+                    {hiddenSubscriber && (
+                      <Badge variant="secondary" className="text-xs">
+                        숨김
+                      </Badge>
+                    )}
+                  </div>
+                }
+                icon={Users}
+                description="채널 구독자"
+              />
+              <MetricsCard title="총 영상 수" value={formatInt(totalVideos)} icon={Video} description="분석된 영상" />
+              <MetricsCard
+                title="총 조회수"
+                value={formatInt(channelTotalViews || totalViews)}
+                icon={Eye}
+                description="전체 조회수"
+              />
+              <MetricsCard title="최근 업로드" value={latestUpload} icon={Calendar} description="마지막 업로드일" />
+            </div>
+          )}
         </section>
 
-        {/* Quality Section */}
+        {/* Quality Section - 2 Rows */}
         <section className="mb-12">
           <h3 className="text-sm font-semibold mb-3 text-foreground">Quality</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <MetricsCard title="롱폼 개수" value={formatInt(longformCount)} icon={Clock} description="60초 이상" />
-            <MetricsCard title="숏폼 개수" value={formatInt(shortformCount)} icon={Zap} description="60초 미만" />
-            <MetricsCard title="평균 조회수" value={formatInt(avgViews)} icon={TrendingUp} description="영상당 평균" />
-            <MetricsCard title="평균 좋아요" value={formatInt(avgLikes)} icon={ThumbsUp} description="영상당 평균" />
-          </div>
+          <QuantityQuality videos={videoRows} loading={isLoading} />
         </section>
 
-        {/* Charts */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-          <ViewsChart videos={videos} />
+        {/* Views Trend Chart */}
+        <section className="mb-12">
+          <h3 className="text-sm font-semibold mb-3 text-foreground">조회수 추이</h3>
+          <ViewsTrend videos={videoRows} loading={isLoading} />
+        </section>
+
+        {/* Topic Chart */}
+        <section className="mb-12">
+          <h3 className="text-sm font-semibold mb-3 text-foreground">주제별 분포</h3>
           <TopicChart videos={videos} />
-        </div>
+        </section>
 
         {/* Video Table */}
         <VideoTable videos={videos} />
