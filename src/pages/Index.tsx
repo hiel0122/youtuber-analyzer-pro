@@ -5,29 +5,81 @@ import { VideoTable } from '@/components/VideoTable';
 import { ViewsChart } from '@/components/ViewsChart';
 import { TopicChart } from '@/components/TopicChart';
 import { SettingsModal } from '@/components/SettingsModal';
-import { fetchChannelVideos, YouTubeVideo } from '@/lib/youtubeApi';
+import { fetchChannelVideos, YouTubeVideo, fetchChannelStats } from '@/lib/youtubeApi';
 import { getSupabaseClient, hasSupabaseCredentials } from '@/lib/supabaseClient';
 import { Video, Eye, ThumbsUp, Calendar, Users, Clock, Zap, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatInt } from '@/utils/format';
+import { Badge } from '@/components/ui/badge';
 
 const Index = () => {
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
+  const [channelStats, setChannelStats] = useState<{
+    subscriberCount: number;
+    totalViews: number;
+    hiddenSubscriber: boolean;
+  } | null>(null);
 
   const handleAnalyze = async (url: string) => {
     setLoading(true);
     setProgress({ current: 0, total: 0 });
 
     try {
+      // First, fetch channel stats and upsert to Supabase
+      if (hasSupabaseCredentials()) {
+        try {
+          const stats = await fetchChannelStats(url);
+          if (!stats) {
+            toast.error('채널을 찾을 수 없습니다');
+            return;
+          }
+
+          const supabase = getSupabaseClient();
+          
+          // Call RPC to upsert channel stats
+          const { error: rpcError } = await supabase.rpc('upsert_channel_stats', {
+            p_channel_input: url,
+            p_title: stats.title,
+            p_subscribers: stats.subscriberCount,
+            p_views: stats.viewCount,
+            p_hidden: stats.hiddenSubscriberCount,
+          });
+
+          if (rpcError) {
+            console.error('RPC error:', rpcError);
+            toast.error('채널 통계 저장 중 오류가 발생했습니다');
+          } else {
+            // Fetch updated channel data
+            const { data: channelData } = await supabase
+              .from('channels')
+              .select('subscriber_count, view_count, hidden_subscriber')
+              .eq('id', url)
+              .single();
+
+            if (channelData) {
+              setChannelStats({
+                subscriberCount: channelData.hidden_subscriber ? 0 : (channelData.subscriber_count || 0),
+                totalViews: channelData.view_count || 0,
+                hiddenSubscriber: channelData.hidden_subscriber || false,
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Channel stats error:', error);
+          toast.error('채널 통계 조회 중 오류가 발생했습니다');
+        }
+      }
+
+      // Then fetch videos
       const fetchedVideos = await fetchChannelVideos(url, (current, total) => {
         setProgress({ current, total });
       });
       
       setVideos(fetchedVideos);
 
-      // Save to Supabase if configured
+      // Save videos to Supabase if configured
       if (hasSupabaseCredentials()) {
         try {
           const supabase = getSupabaseClient();
@@ -96,8 +148,10 @@ const Index = () => {
   const longformCount = videos.filter(v => parseDurationToSeconds(v.duration) >= 60).length;
   const shortformCount = videos.filter(v => parseDurationToSeconds(v.duration) < 60).length;
   
-  // Placeholder for subscriber count (would come from channels_latest table)
-  const subscriberCount = 0;
+  // Use channel stats from state
+  const subscriberCount = channelStats?.subscriberCount || 0;
+  const channelTotalViews = channelStats?.totalViews || 0;
+  const hiddenSubscriber = channelStats?.hiddenSubscriber || false;
 
   return (
     <div className="min-h-screen bg-background">
@@ -130,7 +184,14 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <MetricsCard
               title="총 구독자 수"
-              value={formatInt(subscriberCount)}
+              value={
+                <div className="flex items-center gap-2">
+                  <span>{formatInt(subscriberCount)}</span>
+                  {hiddenSubscriber && (
+                    <Badge variant="secondary" className="text-xs">숨김</Badge>
+                  )}
+                </div>
+              }
               icon={Users}
               description="채널 구독자"
             />
@@ -142,7 +203,7 @@ const Index = () => {
             />
             <MetricsCard
               title="총 조회수"
-              value={formatInt(totalViews)}
+              value={formatInt(channelTotalViews || totalViews)}
               icon={Eye}
               description="전체 조회수"
             />

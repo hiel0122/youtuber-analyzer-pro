@@ -23,6 +23,69 @@ export const hasYouTubeApiKey = () => {
   return !!localStorage.getItem('ya_youtube_key');
 };
 
+const YT_BASE = 'https://www.googleapis.com/youtube/v3';
+
+export async function resolveChannelId(input: string): Promise<string | null> {
+  const apiKey = getYouTubeApiKey();
+  const v = input.trim();
+
+  // 1) Already a channel ID (UC...)
+  const mUC = v.match(/(UC[0-9A-Za-z_-]{22})/);
+  if (mUC) return mUC[1];
+
+  // 2) Handle (@handle) or URL with handle
+  const mHandle = v.match(/@([a-zA-Z0-9._-]+)/);
+  if (mHandle) {
+    const url = `${YT_BASE}/search?part=snippet&type=channel&q=%40${mHandle[1]}&maxResults=1&key=${apiKey}`;
+    const res = await fetch(url);
+    const json = await res.json();
+    const item = json?.items?.[0];
+    return item?.snippet?.channelId ?? null;
+  }
+
+  // 3) Legacy /channel/ URL
+  const mChan = v.match(/\/channel\/(UC[0-9A-Za-z_-]{22})/);
+  if (mChan) return mChan[1];
+
+  // 4) Last resort: search query
+  const url = `${YT_BASE}/search?part=snippet&type=channel&q=${encodeURIComponent(v)}&maxResults=1&key=${apiKey}`;
+  const res = await fetch(url);
+  const json = await res.json();
+  const item = json?.items?.[0];
+  return item?.snippet?.channelId ?? null;
+}
+
+export type ChannelStats = {
+  channelId: string;
+  title: string;
+  viewCount: number;
+  subscriberCount: number | null;
+  hiddenSubscriberCount: boolean;
+};
+
+export async function fetchChannelStats(input: string): Promise<ChannelStats | null> {
+  const apiKey = getYouTubeApiKey();
+  const channelId = await resolveChannelId(input);
+  if (!channelId) return null;
+
+  const url = `${YT_BASE}/channels?part=snippet,statistics&id=${channelId}&key=${apiKey}`;
+  const res = await fetch(url);
+  const json = await res.json();
+  const item = json?.items?.[0];
+  if (!item) return null;
+
+  const s = item.statistics || {};
+  const hidden = !!s.hiddenSubscriberCount;
+
+  return {
+    channelId,
+    title: item.snippet?.title ?? '',
+    viewCount: Number(s.viewCount ?? 0),
+    subscriberCount: hidden ? null : Number(s.subscriberCount ?? 0),
+    hiddenSubscriberCount: hidden,
+  };
+}
+
 export const testYouTubeConnection = async (key: string): Promise<boolean> => {
   try {
     const response = await fetch(
