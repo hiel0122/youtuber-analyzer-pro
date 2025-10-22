@@ -173,6 +173,112 @@ const extractPresenter = (title: string): string => {
   return '미정';
 };
 
+export async function getUploadsPlaylistId(channelId: string): Promise<string | null> {
+  const apiKey = getYouTubeApiKey();
+  const url = `${YT_BASE}/channels?part=contentDetails&id=${channelId}&key=${apiKey}`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    const item = data?.items?.[0];
+    return item?.contentDetails?.relatedPlaylists?.uploads || null;
+  } catch {
+    return null;
+  }
+}
+
+export function iso8601ToHMS(iso?: string): string {
+  if (!iso) return "";
+  const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  const h = Number(m?.[1] || 0);
+  const min = Number(m?.[2] || 0);
+  const s = Number(m?.[3] || 0);
+  const pad = (x: number) => x.toString().padStart(2, "0");
+  return h ? `${h}:${pad(min)}:${pad(s)}` : `${min}:${pad(s)}`;
+}
+
+/**
+ * 업로드 플레이리스트에서 새 영상만 수집
+ * sinceISO가 제공되면 그 이후의 영상만 반환하고, 과거 시점이 나오면 페이지네이션을 중단한다.
+ */
+export async function listNewUploads(
+  uploadsPlaylistId: string,
+  sinceISO?: string
+): Promise<Array<{ videoId: string; title: string; publishedAt: string }>> {
+  const apiKey = getYouTubeApiKey();
+  const endpoint = `${YT_BASE}/playlistItems`;
+  const items: Array<{ videoId: string; title: string; publishedAt: string }> = [];
+  let pageToken = "";
+  let keep = true;
+
+  while (keep) {
+    const url = new URL(endpoint);
+    url.searchParams.set("part", "contentDetails,snippet");
+    url.searchParams.set("playlistId", uploadsPlaylistId);
+    url.searchParams.set("maxResults", "50");
+    if (pageToken) url.searchParams.set("pageToken", pageToken);
+    url.searchParams.set("key", apiKey);
+
+    try {
+      const res = await fetch(url.toString());
+      const data = await res.json();
+      
+      for (const it of data?.items ?? []) {
+        const vid = it?.contentDetails?.videoId;
+        const publishedAt = it?.contentDetails?.videoPublishedAt || it?.snippet?.publishedAt;
+        if (!vid || !publishedAt) continue;
+
+        if (sinceISO && new Date(publishedAt) <= new Date(sinceISO)) {
+          keep = false;
+          break;
+        }
+        items.push({ videoId: vid, title: it?.snippet?.title ?? "", publishedAt });
+      }
+
+      pageToken = data?.nextPageToken ?? "";
+      if (!pageToken) break;
+    } catch {
+      break;
+    }
+  }
+
+  return items; // 최신→오래된 순서 유지
+}
+
+/**
+ * videos.list로 통계/길이/제목을 묶음 조회(50개 배치)
+ */
+export async function fetchVideosStats(
+  videoIds: string[]
+): Promise<Array<{ id: string; title: string; duration: string; viewCount: number; likeCount?: number }>> {
+  if (videoIds.length === 0) return [];
+  const apiKey = getYouTubeApiKey();
+  const endpoint = `${YT_BASE}/videos`;
+  const chunks: string[][] = [];
+  for (let i = 0; i < videoIds.length; i += 50) chunks.push(videoIds.slice(i, i + 50));
+
+  const out: Array<{ id: string; title: string; duration: string; viewCount: number; likeCount?: number }> = [];
+  for (const chunk of chunks) {
+    const url = `${endpoint}?part=snippet,contentDetails,statistics&id=${chunk.join(",")}&key=${apiKey}`;
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      for (const v of data?.items ?? []) {
+        out.push({
+          id: v.id,
+          title: v?.snippet?.title ?? "",
+          duration: iso8601ToHMS(v?.contentDetails?.duration),
+          viewCount: Number(v?.statistics?.viewCount ?? 0),
+          likeCount: v?.statistics?.likeCount ? Number(v.statistics.likeCount) : undefined,
+        });
+      }
+    } catch {
+      // 배치 실패 시 계속 진행
+      continue;
+    }
+  }
+  return out;
+}
+
 export const fetchChannelVideos = async (
   channelUrl: string,
   onProgress?: (current: number, total: number) => void
