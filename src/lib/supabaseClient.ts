@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 // These will be set via the settings modal
-let supabaseUrl = localStorage.getItem('supabase_url') || '';
-let supabaseKey = localStorage.getItem('supabase_key') || '';
+let supabaseUrl = localStorage.getItem('ya_supabase_url') || '';
+let supabaseKey = localStorage.getItem('ya_supabase_anon') || '';
 
 export const getSupabaseClient = () => {
   if (!supabaseUrl || !supabaseKey) {
@@ -12,12 +12,22 @@ export const getSupabaseClient = () => {
 };
 
 export const setSupabaseCredentials = (url: string, key: string) => {
-  localStorage.setItem('supabase_url', url);
-  localStorage.setItem('supabase_key', key);
+  localStorage.setItem('ya_supabase_url', url);
+  localStorage.setItem('ya_supabase_anon', key);
   supabaseUrl = url;
   supabaseKey = key;
 };
 
 export const hasSupabaseCredentials = () => {
-  return !!(localStorage.getItem('supabase_url') && localStorage.getItem('supabase_key'));
+  return !!(localStorage.getItem('ya_supabase_url') && localStorage.getItem('ya_supabase_anon'));
+};
+
+export const testSupabaseConnection = async (url: string, key: string): Promise<boolean> => {
+  try {
+    const testClient = createClient(url, key);
+    const { error } = await testClient.from('youtube_videos').select('id').limit(1);
+    return !error;
+  } catch {
+    return false;
+  }
 };

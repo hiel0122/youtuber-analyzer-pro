@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ChannelInput } from '@/components/ChannelInput';
 import { MetricsCard } from '@/components/MetricsCard';
 import { VideoTable } from '@/components/VideoTable';
-import { ChartPlaceholder } from '@/components/ChartPlaceholder';
+import { ViewsChart } from '@/components/ViewsChart';
+import { TopicChart } from '@/components/TopicChart';
 import { SettingsModal } from '@/components/SettingsModal';
 import { fetchChannelVideos, YouTubeVideo } from '@/lib/youtubeApi';
 import { getSupabaseClient, hasSupabaseCredentials } from '@/lib/supabaseClient';
@@ -12,21 +13,30 @@ import { toast } from 'sonner';
 const Index = () => {
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState({ current: 0, total: 0 });
 
   const handleAnalyze = async (url: string) => {
     setLoading(true);
+    setProgress({ current: 0, total: 0 });
+
     try {
-      const fetchedVideos = await fetchChannelVideos(url);
+      const fetchedVideos = await fetchChannelVideos(url, (current, total) => {
+        setProgress({ current, total });
+      });
+      
       setVideos(fetchedVideos);
 
       // Save to Supabase if configured
       if (hasSupabaseCredentials()) {
         try {
           const supabase = getSupabaseClient();
+          
+          // Upsert videos (update if exists, insert if not)
           const { error } = await supabase
             .from('youtube_videos')
-            .insert(
+            .upsert(
               fetchedVideos.map(video => ({
+                video_id: video.videoId,
                 channel_id: url,
                 title: video.title,
                 topic: video.topic,
@@ -37,7 +47,8 @@ const Index = () => {
                 upload_date: video.uploadDate,
                 duration: video.duration,
                 url: video.url
-              }))
+              })),
+              { onConflict: 'video_id' }
             );
 
           if (error) {
@@ -58,6 +69,7 @@ const Index = () => {
       toast.error('채널 분석 중 오류가 발생했습니다');
     } finally {
       setLoading(false);
+      setProgress({ current: 0, total: 0 });
     }
   };
 
@@ -86,8 +98,13 @@ const Index = () => {
         </header>
 
         {/* Channel Input */}
-        <div className="flex justify-center mb-12">
+        <div className="flex flex-col items-center mb-12">
           <ChannelInput onAnalyze={handleAnalyze} loading={loading} />
+          {loading && progress.total > 0 && (
+            <p className="text-sm text-muted-foreground mt-2">
+              동기화 중... {progress.current}/{progress.total}
+            </p>
+          )}
         </div>
 
         {/* Metrics Cards */}
@@ -118,9 +135,10 @@ const Index = () => {
           />
         </div>
 
-        {/* Charts Placeholder */}
-        <div className="mb-12">
-          <ChartPlaceholder />
+        {/* Charts */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+          <ViewsChart videos={videos} />
+          <TopicChart videos={videos} />
         </div>
 
         {/* Video Table */}
