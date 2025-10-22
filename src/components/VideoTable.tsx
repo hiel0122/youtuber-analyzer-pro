@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
 import { YouTubeVideo } from '@/lib/youtubeApi';
+import { formatInt } from '@/utils/format';
 
 interface VideoTableProps {
   videos: YouTubeVideo[];
@@ -25,9 +26,6 @@ export const VideoTable = ({ videos }: VideoTableProps) => {
   const endIdx = startIdx + pageSize;
   const currentVideos = videos.slice(startIdx, endIdx);
 
-  const formatNumber = (num: number) => {
-    return new Intl.NumberFormat('ko-KR').format(num);
-  };
 
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
@@ -66,47 +64,43 @@ export const VideoTable = ({ videos }: VideoTableProps) => {
           <Table>
             <TableHeader>
               <TableRow className="bg-secondary/50">
-                <TableHead className="w-[100px]">주제</TableHead>
-                <TableHead className="min-w-[300px]">제목</TableHead>
-                <TableHead>출연자</TableHead>
-                <TableHead className="text-right">조회수</TableHead>
-                <TableHead className="text-right">좋아요</TableHead>
-                <TableHead className="text-right">싫어요</TableHead>
-                <TableHead>업로드 날짜</TableHead>
-                <TableHead>영상 길이</TableHead>
-                <TableHead className="w-[50px]">링크</TableHead>
+                <TableHead className="text-center whitespace-nowrap">주제</TableHead>
+                <TableHead className="text-center whitespace-nowrap min-w-[300px]">제목</TableHead>
+                <TableHead className="text-center whitespace-nowrap">출연자</TableHead>
+                <TableHead className="text-center whitespace-nowrap">조회수</TableHead>
+                <TableHead className="text-center whitespace-nowrap">좋아요</TableHead>
+                <TableHead className="text-center whitespace-nowrap">업로드 날짜</TableHead>
+                <TableHead className="text-center whitespace-nowrap">영상 길이</TableHead>
+                <TableHead className="text-center whitespace-nowrap">링크</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {videos.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                     채널 URL을 입력하고 분석하기를 클릭하세요
                   </TableCell>
                 </TableRow>
               ) : (
                 currentVideos.map((video) => (
                   <TableRow key={video.videoId} className="hover:bg-secondary/30 transition-colors">
-                    <TableCell className="font-medium">{video.topic}</TableCell>
+                    <TableCell className="text-center whitespace-nowrap">{video.topic}</TableCell>
                     <TableCell className="max-w-[400px] truncate" title={video.title}>
                       {video.title}
                     </TableCell>
-                    <TableCell>{video.presenter}</TableCell>
-                    <TableCell className="text-right">{formatNumber(video.views)}</TableCell>
-                    <TableCell className="text-right">{formatNumber(video.likes)}</TableCell>
-                    <TableCell className="text-right">
-                      {video.dislikes !== null ? formatNumber(video.dislikes) : '미공개'}
-                    </TableCell>
-                    <TableCell>{video.uploadDate}</TableCell>
-                    <TableCell>{video.duration}</TableCell>
-                    <TableCell>
+                    <TableCell className="text-center whitespace-nowrap">{video.presenter}</TableCell>
+                    <TableCell className="text-center whitespace-nowrap">{formatInt(video.views)}</TableCell>
+                    <TableCell className="text-center whitespace-nowrap">{formatInt(video.likes)}</TableCell>
+                    <TableCell className="text-center whitespace-nowrap">{video.uploadDate}</TableCell>
+                    <TableCell className="text-center whitespace-nowrap">{video.duration}</TableCell>
+                    <TableCell className="text-center whitespace-nowrap">
                       <a
                         href={video.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-primary hover:text-primary/80 transition-colors"
+                        className="text-primary hover:text-primary/80 transition-colors underline decoration-dotted"
                       >
-                        <ExternalLink className="h-4 w-4" />
+                        열기
                       </a>
                     </TableCell>
                   </TableRow>

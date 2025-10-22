@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart3 } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { YouTubeVideo } from '@/lib/youtubeApi';
+import { formatMMDD, yTicks200kTo2M, yTickLabel, formatInt } from '@/utils/format';
 
 interface ViewsChartProps {
   videos: YouTubeVideo[];
@@ -46,22 +47,22 @@ export const ViewsChart = ({ videos }: ViewsChartProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={250}>
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+        <ResponsiveContainer width="100%" height={300}>
+          <ComposedChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.2} />
             <XAxis 
               dataKey="date" 
+              tickFormatter={formatMMDD}
+              minTickGap={20}
               stroke="hsl(var(--muted-foreground))"
-              tick={{ fill: 'hsl(var(--muted-foreground))' }}
+              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
             />
             <YAxis 
+              domain={[0, 2_000_000]}
+              ticks={yTicks200kTo2M}
+              tickFormatter={yTickLabel}
               stroke="hsl(var(--muted-foreground))"
-              tick={{ fill: 'hsl(var(--muted-foreground))' }}
-              tickFormatter={(value) => {
-                if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
-                if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
-                return value.toString();
-              }}
+              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
             />
             <Tooltip 
               contentStyle={{
@@ -70,18 +71,24 @@ export const ViewsChart = ({ videos }: ViewsChartProps) => {
                 borderRadius: '8px'
               }}
               labelStyle={{ color: 'hsl(var(--foreground))' }}
-              formatter={(value: number) => [value.toLocaleString('ko-KR'), '조회수']}
+              labelFormatter={(v) => `업로드: ${formatMMDD(v as string)}`}
+              formatter={(value: number) => [formatInt(value), '조회수']}
             />
-            <Legend />
+            <Bar 
+              dataKey="views" 
+              barSize={6} 
+              radius={[3, 3, 0, 0]} 
+              fill="hsl(var(--primary))" 
+              opacity={0.3}
+            />
             <Line 
               type="monotone" 
               dataKey="views" 
               stroke="hsl(var(--primary))" 
               strokeWidth={2}
-              dot={{ fill: 'hsl(var(--primary))' }}
-              name="조회수"
+              dot={false}
             />
-          </LineChart>
+          </ComposedChart>
         </ResponsiveContainer>
       </CardContent>
     </Card>

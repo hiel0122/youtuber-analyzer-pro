@@ -7,8 +7,9 @@ import { TopicChart } from '@/components/TopicChart';
 import { SettingsModal } from '@/components/SettingsModal';
 import { fetchChannelVideos, YouTubeVideo } from '@/lib/youtubeApi';
 import { getSupabaseClient, hasSupabaseCredentials } from '@/lib/supabaseClient';
-import { Video, Eye, ThumbsUp, Calendar } from 'lucide-react';
+import { Video, Eye, ThumbsUp, Calendar, Users, Clock, Zap, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatInt } from '@/utils/format';
 
 const Index = () => {
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
@@ -73,14 +74,30 @@ const Index = () => {
     }
   };
 
+  // Basic metrics
   const totalVideos = videos.length;
   const totalViews = videos.reduce((sum, v) => sum + v.views, 0);
+  const avgViews = videos.length > 0 ? Math.round(totalViews / videos.length) : 0;
   const avgLikes = videos.length > 0 
     ? Math.round(videos.reduce((sum, v) => sum + v.likes, 0) / videos.length)
     : 0;
   const latestUpload = videos.length > 0
     ? videos.sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime())[0].uploadDate
     : '없음';
+
+  // Quality metrics (longform/shortform based on duration)
+  const parseDurationToSeconds = (duration: string): number => {
+    const parts = duration.split(':').map(Number);
+    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    if (parts.length === 2) return parts[0] * 60 + parts[1];
+    return 0;
+  };
+
+  const longformCount = videos.filter(v => parseDurationToSeconds(v.duration) >= 60).length;
+  const shortformCount = videos.filter(v => parseDurationToSeconds(v.duration) < 60).length;
+  
+  // Placeholder for subscriber count (would come from channels_latest table)
+  const subscriberCount = 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -107,33 +124,67 @@ const Index = () => {
           )}
         </div>
 
-        {/* Metrics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          <MetricsCard
-            title="총 영상 수"
-            value={totalVideos}
-            icon={Video}
-            description="분석된 영상"
-          />
-          <MetricsCard
-            title="총 조회수"
-            value={totalViews.toLocaleString('ko-KR')}
-            icon={Eye}
-            description="전체 조회수"
-          />
-          <MetricsCard
-            title="평균 좋아요"
-            value={avgLikes.toLocaleString('ko-KR')}
-            icon={ThumbsUp}
-            description="영상당 평균"
-          />
-          <MetricsCard
-            title="최근 업로드"
-            value={latestUpload}
-            icon={Calendar}
-            description="마지막 업로드일"
-          />
-        </div>
+        {/* Quantity Section */}
+        <section className="mb-8">
+          <h3 className="text-sm font-semibold mb-3 text-foreground">Quantity</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <MetricsCard
+              title="총 구독자 수"
+              value={formatInt(subscriberCount)}
+              icon={Users}
+              description="채널 구독자"
+            />
+            <MetricsCard
+              title="총 영상 수"
+              value={formatInt(totalVideos)}
+              icon={Video}
+              description="분석된 영상"
+            />
+            <MetricsCard
+              title="총 조회수"
+              value={formatInt(totalViews)}
+              icon={Eye}
+              description="전체 조회수"
+            />
+            <MetricsCard
+              title="최근 업로드"
+              value={latestUpload}
+              icon={Calendar}
+              description="마지막 업로드일"
+            />
+          </div>
+        </section>
+
+        {/* Quality Section */}
+        <section className="mb-12">
+          <h3 className="text-sm font-semibold mb-3 text-foreground">Quality</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <MetricsCard
+              title="롱폼 개수(≥60s)"
+              value={formatInt(longformCount)}
+              icon={Clock}
+              description="60초 이상"
+            />
+            <MetricsCard
+              title="숏폼 개수(≤60s)"
+              value={formatInt(shortformCount)}
+              icon={Zap}
+              description="60초 미만"
+            />
+            <MetricsCard
+              title="평균 조회수"
+              value={formatInt(avgViews)}
+              icon={TrendingUp}
+              description="영상당 평균"
+            />
+            <MetricsCard
+              title="평균 좋아요"
+              value={formatInt(avgLikes)}
+              icon={ThumbsUp}
+              description="영상당 평균"
+            />
+          </div>
+        </section>
 
         {/* Charts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
