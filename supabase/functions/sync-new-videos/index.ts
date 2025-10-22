@@ -143,19 +143,22 @@ Deno.serve(async (req) => {
 
   try {
     // Check all required environment variables
-    const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
-    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL'); // Auto-injected by Supabase
+    const SERVICE_ROLE_KEY =
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? Deno.env.get('SERVICE_ROLE_KEY');
     const YOUTUBE_API_KEY = Deno.env.get('YOUTUBE_API_KEY');
 
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !YOUTUBE_API_KEY) {
+    if (!SUPABASE_URL || !SERVICE_ROLE_KEY || !YOUTUBE_API_KEY) {
       return new Response(
         JSON.stringify({
           ok: false,
-          error: 'Missing env: SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY / YOUTUBE_API_KEY',
+          error: 'Missing env: SUPABASE_URL / SERVICE_ROLE_KEY(or SUPABASE_SERVICE_ROLE_KEY) / YOUTUBE_API_KEY',
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.debug('Environment variables loaded successfully');
 
     const { channelKey, channelId: rawId } = await req.json().catch(() => ({}));
     
@@ -186,7 +189,9 @@ Deno.serve(async (req) => {
     console.log('Resolved channel:', { channelId, resolvedTitle });
 
     // 2) Create Supabase client (already validated above)
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
 
     // 3) Get last upload date for this channel
     const { data: lastRow, error: lastErr } = await supabase

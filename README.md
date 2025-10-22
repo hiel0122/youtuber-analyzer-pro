@@ -71,3 +71,38 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
+## Edge Function Secrets Setup
+
+This project uses Supabase Edge Functions that require certain secrets to be configured in your Supabase project.
+
+### Required Secrets
+
+| Key name | Required | Note |
+|----------|----------|------|
+| `YOUTUBE_API_KEY` | Yes | YouTube Data API v3 key ([Get it here](https://console.cloud.google.com/apis/credentials)) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes* | Service role key from Supabase Dashboard > Settings > API |
+| `SERVICE_ROLE_KEY` | Yes* | Alternative name for above; code recognizes both |
+| `SUPABASE_URL` | No | Auto-injected by Supabase runtime - **do not add to Secrets** |
+
+*Only one of `SUPABASE_SERVICE_ROLE_KEY` or `SERVICE_ROLE_KEY` is needed.
+
+### How to Add Secrets
+
+1. Go to your Supabase Dashboard
+2. Navigate to Project Settings > Edge Functions > Secrets
+3. Add the required secrets listed above
+4. Redeploy your edge functions:
+   - Via Dashboard: Functions > sync-new-videos > Redeploy
+   - Via CLI: `supabase functions deploy sync-new-videos`
+
+### Testing the Edge Function
+
+```bash
+curl -X POST https://YOUR_PROJECT_REF.supabase.co/functions/v1/sync-new-videos \
+  -H "Authorization: Bearer YOUR_ANON_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"channelKey": "https://www.youtube.com/@yourchannelname"}'
+```
+
+Replace `YOUR_PROJECT_REF` and `YOUR_ANON_KEY` with your actual values from Supabase Dashboard.
