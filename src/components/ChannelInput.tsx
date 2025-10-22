@@ -21,6 +21,8 @@ export const ChannelInput = ({ onAnalyze, loading }: ChannelInputProps) => {
     await onAnalyze(url);
   };
 
+  console.log("SUPABASE_URL?", import.meta.env.VITE_SUPABASE_URL);
+
   return (
     <form onSubmit={handleSubmit} className="flex gap-4 w-full max-w-3xl">
       <Input
