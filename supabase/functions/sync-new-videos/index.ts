@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
 // YouTube API utilities (inline)
@@ -137,16 +138,33 @@ async function fetchVideosStats(
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
+    // Check all required environment variables
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     const YOUTUBE_API_KEY = Deno.env.get('YOUTUBE_API_KEY');
-    if (!YOUTUBE_API_KEY) {
-      throw new Error('YOUTUBE_API_KEY not configured');
+
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !YOUTUBE_API_KEY) {
+      return new Response(
+        JSON.stringify({
+          ok: false,
+          error: 'Missing env: SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY / YOUTUBE_API_KEY',
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    const { channelKey, channelId: rawId } = await req.json();
+    const { channelKey, channelId: rawId } = await req.json().catch(() => ({}));
+    
+    if (!channelKey && !rawId) {
+      return new Response(
+        JSON.stringify({ ok: false, error: 'channelKey or channelId is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     console.log('Sync request:', { channelKey, rawId });
 
@@ -167,10 +185,8 @@ Deno.serve(async (req) => {
 
     console.log('Resolved channel:', { channelId, resolvedTitle });
 
-    // 2) Create Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // 2) Create Supabase client (already validated above)
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     // 3) Get last upload date for this channel
     const { data: lastRow, error: lastErr } = await supabase
