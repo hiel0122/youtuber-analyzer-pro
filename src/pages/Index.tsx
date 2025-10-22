@@ -5,7 +5,7 @@ import { VideoTable } from "@/components/VideoTable";
 import { ViewsChart } from "@/components/ViewsChart";
 import { TopicChart } from "@/components/TopicChart";
 import { SettingsModal } from "@/components/SettingsModal";
-import { fetchChannelVideos, YouTubeVideo, fetchChannelStats } from "@/lib/youtubeApi";
+import { YouTubeVideo } from "@/lib/youtubeApi";
 import { getSupabaseClient, hasSupabaseCredentials } from "@/lib/supabaseClient";
 import { Video, Eye, ThumbsUp, Calendar, Users, Clock, Zap, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
@@ -27,97 +27,104 @@ const Index = () => {
     setProgress({ current: 0, total: 0 });
 
     try {
-      // First, fetch channel stats and upsert to Supabase
-      if (hasSupabaseCredentials()) {
-        try {
-          const stats = await fetchChannelStats(url);
-          if (!stats) {
-            toast.error("채널을 찾을 수 없습니다");
-            return;
-          }
-
-          const supabase = getSupabaseClient();
-
-          // Call RPC to upsert channel stats
-          const { error: rpcError } = await supabase.rpc("upsert_channel_stats", {
-            p_channel_input: url,
-            p_title: stats.title,
-            p_subscribers: stats.subscriberCount,
-            p_views: stats.viewCount,
-            p_hidden: stats.hiddenSubscriberCount,
-          });
-
-          if (rpcError) {
-            console.error("RPC error:", rpcError);
-            toast.error("채널 통계 저장 중 오류가 발생했습니다");
-          } else {
-            // Fetch updated channel data
-            const { data: channelData } = await supabase
-              .from("channels")
-              .select("subscriber_count, view_count, hidden_subscriber")
-              .eq("id", url)
-              .single();
-
-            if (channelData) {
-              setChannelStats({
-                subscriberCount: channelData.hidden_subscriber ? 0 : channelData.subscriber_count || 0,
-                totalViews: channelData.view_count || 0,
-                hiddenSubscriber: channelData.hidden_subscriber || false,
-              });
-            }
-          }
-        } catch (error) {
-          console.error("Channel stats error:", error);
-          toast.error("채널 통계 조회 중 오류가 발생했습니다");
-        }
+      if (!hasSupabaseCredentials()) {
+        toast.error('Settings에서 Supabase URL/Anon Key를 설정하세요');
+        return;
       }
 
-      // Then fetch videos
-      const fetchedVideos = await fetchChannelVideos(url, (current, total) => {
-        setProgress({ current, total });
+      const supabase = getSupabaseClient();
+
+      // Call Edge Function to sync new videos
+      const { data, error: edgeError } = await supabase.functions.invoke('sync-new-videos', {
+        body: { channelKey: url }
       });
 
-      setVideos(fetchedVideos);
-
-      // Save videos to Supabase if configured
-      if (hasSupabaseCredentials()) {
-        try {
-          const supabase = getSupabaseClient();
-
-          // Upsert videos (update if exists, insert if not)
-          const { error } = await supabase.from("youtube_videos").upsert(
-            fetchedVideos.map((video) => ({
-              video_id: video.videoId,
-              channel_id: url,
-              title: video.title,
-              topic: video.topic,
-              presenter: video.presenter,
-              views: video.views,
-              likes: video.likes,
-              dislikes: video.dislikes,
-              upload_date: video.uploadDate,
-              duration: video.duration,
-              url: video.url,
-            })),
-            { onConflict: "video_id" },
-          );
-
-          if (error) {
-            console.error("Supabase error:", error);
-            toast.error("데이터 저장 중 오류가 발생했습니다");
-          } else {
-            toast.success(`${fetchedVideos.length}개의 영상을 분석했습니다`);
-          }
-        } catch (error) {
-          console.error("Supabase error:", error);
-          toast.error("Supabase 연결 오류");
+      if (edgeError) {
+        console.error('Edge Function error:', edgeError);
+        // Handle specific error cases
+        if (edgeError.message?.includes('401') || edgeError.message?.includes('403')) {
+          throw new Error('키가 없거나 잘못되었습니다. Settings에서 Supabase URL/Anon Key를 확인하세요.');
+        } else if (edgeError.message?.includes('404')) {
+          throw new Error('Edge Function(sync-new-videos)이 배포되지 않았거나 이름이 다릅니다.');
         }
-      } else {
-        toast.success(`${fetchedVideos.length}개의 영상을 분석했습니다`);
+        throw edgeError;
       }
-    } catch (error) {
-      console.error("Analysis error:", error);
-      toast.error("채널 분석 중 오류가 발생했습니다");
+
+      console.log('Edge Function response:', data);
+
+      // Check for error in response
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      const result = data as {
+        ok: boolean;
+        channelId: string;
+        title: string;
+        inserted_or_updated?: number;
+        inserted?: number;
+        newest_uploaded_at?: string;
+        message?: string;
+      };
+
+      // Refresh channel stats from database
+      const { data: channelData, error: channelError } = await supabase
+        .from('channels')
+        .select('subscriber_count, view_count, hidden_subscriber')
+        .eq('id', result.channelId)
+        .maybeSingle();
+
+      if (!channelError && channelData) {
+        setChannelStats({
+          subscriberCount: channelData.hidden_subscriber ? 0 : channelData.subscriber_count || 0,
+          totalViews: channelData.view_count || 0,
+          hiddenSubscriber: channelData.hidden_subscriber || false,
+        });
+      }
+
+      // Refresh videos from database
+      const { data: videosData, error: videosError } = await supabase
+        .from('youtube_videos')
+        .select('*')
+        .eq('channel_id', result.channelId)
+        .order('upload_date', { ascending: false });
+
+      if (videosError) {
+        console.error('Videos fetch error:', videosError);
+      } else {
+        const mappedVideos: YouTubeVideo[] = (videosData || []).map((v: any) => ({
+          videoId: v.video_id,
+          title: v.title,
+          topic: v.topic || '',
+          presenter: v.presenter || '',
+          views: v.views || 0,
+          likes: v.likes || 0,
+          dislikes: v.dislikes || 0,
+          uploadDate: v.upload_date,
+          duration: v.duration || '0:00',
+          url: v.url,
+        }));
+        setVideos(mappedVideos);
+      }
+
+      const insertedCount = result.inserted_or_updated || result.inserted || 0;
+      if (insertedCount > 0) {
+        toast.success(`✅ 분석 완료: ${insertedCount}개의 새 영상을 발견했습니다`);
+      } else {
+        toast.success(`✅ 분석 완료: 새 영상이 없습니다`);
+      }
+    } catch (error: any) {
+      console.error('Analysis error:', error);
+      let message = error.message || '채널 분석 중 오류가 발생했습니다';
+
+      // Additional error handling for network/timeout issues
+      if (message.includes('timeout') || message.includes('ETIMEDOUT')) {
+        message = '채널 영상이 많거나 일시적 오류입니다. 다시 시도하세요.';
+      } else if (message.includes('500') || message.includes('502') || message.includes('503')) {
+        message = '서버 오류가 발생했습니다. 잠시 후 다시 시도하세요.';
+      }
+
+      toast.error(message);
     } finally {
       setLoading(false);
       setProgress({ current: 0, total: 0 });
