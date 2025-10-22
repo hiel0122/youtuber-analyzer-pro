@@ -140,6 +140,27 @@ async function fetchVideosStats(
   return out;
 }
 
+async function getChannelStats(
+  channelId: string,
+  apiKey: string
+): Promise<{ subscriberCount: number; videoCount: number; viewCount: number; title: string }> {
+  const url = `${YT_BASE}/channels?part=statistics,snippet&id=${channelId}&key=${apiKey}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  const item = data?.items?.[0];
+  
+  if (!item) {
+    return { subscriberCount: 0, videoCount: 0, viewCount: 0, title: '' };
+  }
+  
+  return {
+    subscriberCount: Number(item?.statistics?.subscriberCount ?? 0),
+    videoCount: Number(item?.statistics?.videoCount ?? 0),
+    viewCount: Number(item?.statistics?.viewCount ?? 0),
+    title: item?.snippet?.title ?? '',
+  };
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
