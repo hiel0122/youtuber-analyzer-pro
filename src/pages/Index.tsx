@@ -7,6 +7,7 @@ import { TopicChart } from "@/components/TopicChart";
 import { SettingsModal } from "@/components/SettingsModal";
 import { YouTubeVideo } from "@/lib/youtubeApi";
 import { getSupabaseClient, hasSupabaseCredentials } from "@/lib/supabaseClient";
+import { syncNewVideos } from "@/lib/edge";
 import { Video, Eye, ThumbsUp, Calendar, Users, Clock, Zap, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import { formatInt } from "@/utils/format";
@@ -32,23 +33,8 @@ const Index = () => {
         return;
       }
 
-      const supabase = getSupabaseClient();
-
-      // Call Edge Function to sync new videos
-      const { data, error: edgeError } = await supabase.functions.invoke('sync-new-videos', {
-        body: { channelKey: url }
-      });
-
-      if (edgeError) {
-        console.error('Edge Function error:', edgeError);
-        // Handle specific error cases
-        if (edgeError.message?.includes('401') || edgeError.message?.includes('403')) {
-          throw new Error('키가 없거나 잘못되었습니다. Settings에서 Supabase URL/Anon Key를 확인하세요.');
-        } else if (edgeError.message?.includes('404')) {
-          throw new Error('Edge Function(sync-new-videos)이 배포되지 않았거나 이름이 다릅니다.');
-        }
-        throw edgeError;
-      }
+      // Call Edge Function using absolute URL
+      const data = await syncNewVideos(url);
 
       console.log('Edge Function response:', data);
 
@@ -66,6 +52,8 @@ const Index = () => {
         newest_uploaded_at?: string;
         message?: string;
       };
+
+      const supabase = getSupabaseClient();
 
       // Refresh channel stats from database
       const { data: channelData, error: channelError } = await supabase
@@ -115,16 +103,7 @@ const Index = () => {
       }
     } catch (error: any) {
       console.error('Analysis error:', error);
-      let message = error.message || '채널 분석 중 오류가 발생했습니다';
-
-      // Additional error handling for network/timeout issues
-      if (message.includes('timeout') || message.includes('ETIMEDOUT')) {
-        message = '채널 영상이 많거나 일시적 오류입니다. 다시 시도하세요.';
-      } else if (message.includes('500') || message.includes('502') || message.includes('503')) {
-        message = '서버 오류가 발생했습니다. 잠시 후 다시 시도하세요.';
-      }
-
-      toast.error(message);
+      toast.error(error.message || '채널 분석 중 오류가 발생했습니다');
     } finally {
       setLoading(false);
       setProgress({ current: 0, total: 0 });
