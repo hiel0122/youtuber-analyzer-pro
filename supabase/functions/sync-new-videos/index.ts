@@ -224,10 +224,34 @@ Deno.serve(async (req) => {
 
     console.log('Resolved channel:', { channelId, resolvedTitle });
 
+    // ✅ 새로 추가: 채널 통계 가져오기 및 저장
+    const channelStats = await getChannelStats(channelId, YOUTUBE_API_KEY);
+    console.log('Channel stats:', channelStats);
+    
     // 2) Create Supabase client
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
+
+    // ✅ 채널 정보 저장
+    const { error: channelError } = await supabase
+      .from('youtube_channels')
+      .upsert({
+        channel_id: channelId,
+        channel_name: channelStats.title || resolvedTitle,
+        subscriber_count: channelStats.subscriberCount,
+        total_videos: channelStats.videoCount,
+        total_views: channelStats.viewCount,
+        last_updated: new Date().toISOString(),
+       }, {
+    onConflict: 'channel_id'
+  });
+
+    if (channelError) {
+      console.error('Error saving channel info:', channelError);
+}
+
+console.log('Channel info saved to database');
 
     // 3) Get last upload date for this channel
     const { data: lastRow, error: lastErr } = await supabase
