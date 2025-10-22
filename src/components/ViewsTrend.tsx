@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from "react";
 import { VideoRow } from "@/lib/types";
 import { formatMMDD } from "@/utils/format";
+import { SectionCard } from "@/components/ui/card";
 import {
-  ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer
+  ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, LabelList
 } from "recharts";
 
 type Point = { date: string; views: number };
@@ -42,7 +43,10 @@ export default function ViewsTrend({ videos, loading }: { videos: VideoRow[]; lo
   // 최대 10일만 표시
   const display = useMemo(() => {
     const sliced = filtered.slice(-10);
-    return sliced;
+    return sliced.map(p => ({
+      ...p,
+      dateLabel: formatMMDD(p.date),
+    }));
   }, [filtered]);
 
   const maxY = useMemo(() => {
@@ -51,46 +55,67 @@ export default function ViewsTrend({ videos, loading }: { videos: VideoRow[]; lo
   }, [display]);
 
   if (loading) {
-    return <div className="h-72 rounded-2xl bg-gray-900 animate-pulse" />;
+    return (
+      <SectionCard title="조회수 추이">
+        <div className="h-72 rounded-xl bg-muted/60 animate-pulse" />
+      </SectionCard>
+    );
   }
 
   return (
-    <div className="rounded-2xl bg-gray-900 p-4">
-      {/* 기간 버튼 */}
-      <div className="mb-3 flex gap-2">
-        {[7,14,30].map((d) => (
-          <button
-            key={d}
-            onClick={() => setRangeDays(d as 7|14|30)}
-            className={`px-3 py-1 rounded-full text-sm ${rangeDays===d ? "bg-purple-600" : "bg-gray-800 hover:bg-gray-700"}`}
-          >
-            최근 {d}일
-          </button>
-        ))}
-        <div className="text-xs text-gray-400 ml-auto">최대 10일만 표시</div>
-      </div>
-
+    <SectionCard
+      title="조회수 추이"
+      right={
+        <div className="flex items-center gap-2">
+          {[7,14,30].map((d) => (
+            <button
+              key={d}
+              onClick={() => setRangeDays(d as 7|14|30)}
+              className={`px-3 py-1 rounded-full text-xs transition-colors ${rangeDays===d ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-muted/80"}`}
+            >
+              최근 {d}일
+            </button>
+          ))}
+          <span className="text-[11px] text-muted-foreground ml-1">최대 10일 표시</span>
+        </div>
+      }
+    >
       <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={display}>
-            <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-            {/* X축: 날짜 mm/dd, 라벨 기울이기 */}
-            <XAxis
-              dataKey="date"
-              tickFormatter={formatMMDD}
-              angle={-45}
-              textAnchor="end"
-              height={50}
+          <ComposedChart data={display} margin={{ top: 8, right: 8, bottom: 28, left: 8 }} barCategoryGap="20%">
+            <CartesianGrid strokeDasharray="3 3" opacity={0.2} stroke="hsl(var(--border))" />
+            {/* X축 숨김 */}
+            <XAxis dataKey="date" hide />
+            <YAxis domain={[0, maxY]} stroke="hsl(var(--muted-foreground))" />
+            <Tooltip
+              labelFormatter={(l) => `날짜: ${formatMMDD(l as string)}`}
+              formatter={(v) => [(v as number).toLocaleString(), "조회수"]}
+              contentStyle={{
+                backgroundColor: 'hsl(var(--card))',
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '8px'
+              }}
             />
-            {/* Y축: 조회수, 0 ~ max*1.02 */}
-            <YAxis domain={[0, maxY]} />
-            <Tooltip formatter={(value) => value.toLocaleString()} labelFormatter={(l) => `날짜: ${formatMMDD(l as string)}`} />
-            {/* 막대 + 선(점 포함) */}
-            <Bar dataKey="views" fill="#8b5cf6" barSize={24} />
-            <Line dataKey="views" stroke="#10b981" dot strokeWidth={2} />
+            {/* 막대 + 라벨 */}
+            <Bar dataKey="views" fill="hsl(var(--primary))" barSize={28}>
+              <LabelList 
+                dataKey="dateLabel" 
+                position="insideBottom" 
+                offset={-4} 
+                style={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} 
+              />
+              <LabelList 
+                dataKey="views" 
+                position="top" 
+                formatter={(v: number) => v.toLocaleString()} 
+                style={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} 
+              />
+            </Bar>
+            {/* 선 + 점 */}
+            <Line dataKey="views" stroke="hsl(var(--chart-2))" dot strokeWidth={2} />
           </ComposedChart>
         </ResponsiveContainer>
       </div>
-    </div>
+    </SectionCard>
   );
 }

@@ -1,12 +1,13 @@
 import React, { useMemo } from "react";
 import { VideoRow } from "@/lib/types";
 import { parseDurationToSeconds, formatNumber } from "@/lib/utils";
+import { SectionCard } from "@/components/ui/card";
 
 function StatCard({ title, value }: { title: string; value: string | number }) {
   return (
-    <div className="flex flex-col gap-1 rounded-2xl bg-gray-900 p-4">
-      <div className="text-sm text-gray-400">{title}</div>
-      <div className="text-2xl font-semibold">{value}</div>
+    <div className="flex flex-col gap-1 rounded-xl bg-muted/50 p-4 border border-border">
+      <div className="text-sm text-muted-foreground">{title}</div>
+      <div className="text-2xl font-semibold text-foreground">{value}</div>
     </div>
   );
 }
@@ -60,21 +61,23 @@ export default function QuantityQuality({ videos, loading }: { videos: VideoRow[
   }
 
   return (
-    <div className="grid gap-4">
-      {/* 1행 */}
-      <div className="grid grid-cols-4 gap-4">
-        <StatCard title="롱폼 개수 (>60s)" value={formatNumber(stats.longCount)} />
-        <StatCard title="숏폼 개수 (≤60s)" value={formatNumber(stats.shortCount)} />
-        <StatCard title="최대 영상 길이" value={secsToLabel(stats.maxDur)} />
-        <StatCard title="최소 영상 길이(숏폼 제외)" value={secsToLabel(stats.minLongDur)} />
+    <SectionCard title="Quality">
+      <div className="grid gap-3">
+        {/* 1행 */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <StatCard title="롱폼 개수 (>60s)" value={formatNumber(stats.longCount)} />
+          <StatCard title="숏폼 개수 (≤60s)" value={formatNumber(stats.shortCount)} />
+          <StatCard title="최대 영상 길이" value={secsToLabel(stats.maxDur)} />
+          <StatCard title="최소 영상 길이(숏폼 제외)" value={secsToLabel(stats.minLongDur)} />
+        </div>
+        {/* 2행 */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <StatCard title="최고 조회수" value={formatNumber(stats.maxViews)} />
+          <StatCard title="최저 조회수" value={formatNumber(stats.minViews)} />
+          <StatCard title="평균 조회수" value={formatNumber(stats.avgViews)} />
+          <StatCard title="평균 좋아요" value={formatNumber(stats.avgLikes)} />
+        </div>
       </div>
-      {/* 2행 */}
-      <div className="grid grid-cols-4 gap-4">
-        <StatCard title="최고 조회수" value={formatNumber(stats.maxViews)} />
-        <StatCard title="최저 조회수" value={formatNumber(stats.minViews)} />
-        <StatCard title="평균 조회수" value={formatNumber(stats.avgViews)} />
-        <StatCard title="평균 좋아요" value={formatNumber(stats.avgLikes)} />
-      </div>
-    </div>
+    </SectionCard>
   );
 }

@@ -227,20 +227,15 @@ const Index = () => {
 
         {/* Quality Section - 2 Rows */}
         <section className="mb-12">
-          <h3 className="text-sm font-semibold mb-3 text-foreground">Quality</h3>
           <QuantityQuality videos={videoRows} loading={isLoading} />
         </section>
 
-        {/* Views Trend Chart */}
+        {/* Views Trend & Topic Chart - Side by Side */}
         <section className="mb-12">
-          <h3 className="text-sm font-semibold mb-3 text-foreground">조회수 추이</h3>
-          <ViewsTrend videos={videoRows} loading={isLoading} />
-        </section>
-
-        {/* Topic Chart */}
-        <section className="mb-12">
-          <h3 className="text-sm font-semibold mb-3 text-foreground">주제별 분포</h3>
-          <TopicChart videos={videos} />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ViewsTrend videos={videoRows} loading={isLoading} />
+            <TopicChart videos={videos} />
+          </div>
         </section>
 
         {/* Video Table */}

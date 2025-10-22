@@ -1,5 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PieChart as PieChartIcon } from 'lucide-react';
+import { SectionCard } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { YouTubeVideo } from '@/lib/youtubeApi';
 import { formatInt } from '@/utils/format';
@@ -46,35 +45,18 @@ export const TopicChart = ({ videos }: TopicChartProps) => {
 
   if (videos.length === 0) {
     return (
-      <Card className="bg-gradient-card border-border shadow-card">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <PieChartIcon className="h-5 w-5 text-primary" />
-            주제별 비율
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[250px] flex items-center justify-center text-muted-foreground">
-            <div className="text-center">
-              <PieChartIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">데이터가 없습니다</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <SectionCard title="주제별 분포">
+        <div className="h-72 flex items-center justify-center text-muted-foreground">
+          <p className="text-sm">데이터가 없습니다</p>
+        </div>
+      </SectionCard>
     );
   }
 
   return (
-    <Card className="bg-gradient-card border-border shadow-card">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <PieChartIcon className="h-5 w-5 text-primary" />
-          주제별 비율
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
+    <SectionCard title="주제별 분포">
+      <div className="h-72">
+        <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
               data={chartData}
@@ -108,7 +90,7 @@ export const TopicChart = ({ videos }: TopicChartProps) => {
             />
           </PieChart>
         </ResponsiveContainer>
-      </CardContent>
-    </Card>
+      </div>
+    </SectionCard>
   );
 };

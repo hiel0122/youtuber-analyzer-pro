@@ -40,4 +40,29 @@ const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
 );
 CardFooter.displayName = "CardFooter";
 
+// New unified Card component for sections
+export function SectionCard({
+  title,
+  children,
+  className = "",
+  right = null,
+}: {
+  title?: React.ReactNode;
+  right?: React.ReactNode;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className={cn("rounded-2xl bg-card border border-border shadow-lg", className)}>
+      {(title || right) && (
+        <header className="flex items-center justify-between px-4 py-3 border-b border-border">
+          <h3 className="text-sm font-medium text-foreground">{title}</h3>
+          {right}
+        </header>
+      )}
+      <div className="p-4">{children}</div>
+    </section>
+  );
+}
+
 export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent };
