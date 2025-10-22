@@ -1,11 +1,135 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState, useEffect } from 'react';
+import { ChannelInput } from '@/components/ChannelInput';
+import { MetricsCard } from '@/components/MetricsCard';
+import { VideoTable } from '@/components/VideoTable';
+import { ChartPlaceholder } from '@/components/ChartPlaceholder';
+import { SettingsModal } from '@/components/SettingsModal';
+import { fetchChannelVideos, YouTubeVideo } from '@/lib/youtubeApi';
+import { getSupabaseClient, hasSupabaseCredentials } from '@/lib/supabaseClient';
+import { Video, Eye, ThumbsUp, Calendar } from 'lucide-react';
+import { toast } from 'sonner';
 
 const Index = () => {
+  const [videos, setVideos] = useState<YouTubeVideo[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const handleAnalyze = async (url: string) => {
+    setLoading(true);
+    try {
+      const fetchedVideos = await fetchChannelVideos(url);
+      setVideos(fetchedVideos);
+
+      // Save to Supabase if configured
+      if (hasSupabaseCredentials()) {
+        try {
+          const supabase = getSupabaseClient();
+          const { error } = await supabase
+            .from('youtube_videos')
+            .insert(
+              fetchedVideos.map(video => ({
+                channel_id: url,
+                title: video.title,
+                topic: video.topic,
+                presenter: video.presenter,
+                views: video.views,
+                likes: video.likes,
+                dislikes: video.dislikes,
+                upload_date: video.uploadDate,
+                duration: video.duration,
+                url: video.url
+              }))
+            );
+
+          if (error) {
+            console.error('Supabase error:', error);
+            toast.error('데이터 저장 중 오류가 발생했습니다');
+          } else {
+            toast.success(`${fetchedVideos.length}개의 영상을 분석했습니다`);
+          }
+        } catch (error) {
+          console.error('Supabase error:', error);
+          toast.error('Supabase 연결 오류');
+        }
+      } else {
+        toast.success(`${fetchedVideos.length}개의 영상을 분석했습니다`);
+      }
+    } catch (error) {
+      console.error('Analysis error:', error);
+      toast.error('채널 분석 중 오류가 발생했습니다');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const totalVideos = videos.length;
+  const totalViews = videos.reduce((sum, v) => sum + v.views, 0);
+  const avgLikes = videos.length > 0 
+    ? Math.round(videos.reduce((sum, v) => sum + v.likes, 0) / videos.length)
+    : 0;
+  const latestUpload = videos.length > 0
+    ? videos.sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime())[0].uploadDate
+    : '없음';
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-background">
+      <SettingsModal />
+      
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <header className="text-center mb-12">
+          <h1 className="text-5xl font-bold mb-4 bg-gradient-primary bg-clip-text text-transparent">
+            YouTube Channel Analyzer
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            유튜브 채널의 영상 데이터를 분석하고 시각화하세요
+          </p>
+        </header>
+
+        {/* Channel Input */}
+        <div className="flex justify-center mb-12">
+          <ChannelInput onAnalyze={handleAnalyze} loading={loading} />
+        </div>
+
+        {/* Metrics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <MetricsCard
+            title="총 영상 수"
+            value={totalVideos}
+            icon={Video}
+            description="분석된 영상"
+          />
+          <MetricsCard
+            title="총 조회수"
+            value={totalViews.toLocaleString('ko-KR')}
+            icon={Eye}
+            description="전체 조회수"
+          />
+          <MetricsCard
+            title="평균 좋아요"
+            value={avgLikes.toLocaleString('ko-KR')}
+            icon={ThumbsUp}
+            description="영상당 평균"
+          />
+          <MetricsCard
+            title="최근 업로드"
+            value={latestUpload}
+            icon={Calendar}
+            description="마지막 업로드일"
+          />
+        </div>
+
+        {/* Charts Placeholder */}
+        <div className="mb-12">
+          <ChartPlaceholder />
+        </div>
+
+        {/* Video Table */}
+        <VideoTable videos={videos} />
+
+        {/* Footer */}
+        <footer className="text-center mt-12 text-muted-foreground text-sm">
+          Powered by Supabase + Lovable
+        </footer>
       </div>
     </div>
   );
