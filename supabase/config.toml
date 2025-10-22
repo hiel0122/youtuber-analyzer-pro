@@ -1,0 +1,2 @@
+[functions.sync-new-videos]
+verify_jwt = false
