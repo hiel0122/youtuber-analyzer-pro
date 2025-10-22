@@ -72,11 +72,24 @@ To connect a domain, navigate to Project > Settings > Domains and click Connect 
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
 
-## Edge Function Secrets Setup
+## Environment Setup
+
+### Frontend Environment Variables
+
+Create a `.env` file in the project root with the following variables:
+
+```env
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+```
+
+Get these values from your Supabase Dashboard > Settings > API.
+
+### Edge Function Secrets
 
 This project uses Supabase Edge Functions that require certain secrets to be configured in your Supabase project.
 
-### Required Secrets
+**Required Secrets**
 
 | Key name | Required | Note |
 |----------|----------|------|
@@ -92,9 +105,11 @@ This project uses Supabase Edge Functions that require certain secrets to be con
 1. Go to your Supabase Dashboard
 2. Navigate to Project Settings > Edge Functions > Secrets
 3. Add the required secrets listed above
-4. Redeploy your edge functions:
+4. **After adding secrets or modifying edge functions, you MUST redeploy:**
    - Via Dashboard: Functions > sync-new-videos > Redeploy
    - Via CLI: `supabase functions deploy sync-new-videos`
+
+> **Note**: Edge functions are automatically deployed when you build your project in Lovable, but manual redeployment may be needed after secret changes.
 
 ### Testing the Edge Function
 
