@@ -1,12 +1,16 @@
 import React, { useMemo } from "react";
-import { VideoRow } from "@/lib/types";
+import { VideoRow, UploadFrequency } from "@/lib/types";
 import { parseDurationToSeconds, formatNumber } from "@/lib/utils";
 import { SectionCard } from "@/components/ui/card";
+import { Calendar, CalendarCheck, Video, Clapperboard } from "lucide-react";
 
-function StatCard({ title, value }: { title: string; value: string | number }) {
+function StatCard({ title, value, icon: Icon }: { title: string; value: string | number; icon?: React.ElementType }) {
   return (
     <div className="flex flex-col gap-1 rounded-xl bg-muted/50 p-4 border border-border">
-      <div className="text-sm text-muted-foreground">{title}</div>
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-muted-foreground">{title}</div>
+        {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
+      </div>
       <div className="text-2xl font-semibold text-foreground">{value}</div>
     </div>
   );
@@ -22,7 +26,15 @@ function secsToLabel(secs: number) {
   return `${s}s`;
 }
 
-export default function QuantityQuality({ videos, loading }: { videos: VideoRow[]; loading: boolean }) {
+export default function QuantityQuality({ 
+  videos, 
+  loading, 
+  uploadFrequency 
+}: { 
+  videos: VideoRow[]; 
+  loading: boolean;
+  uploadFrequency?: UploadFrequency;
+}) {
   const stats = useMemo(() => {
     const durations = videos.map(v => parseDurationToSeconds(v.duration));
     const viewsArr = videos.map(v => v.views ?? 0);
@@ -77,6 +89,31 @@ export default function QuantityQuality({ videos, loading }: { videos: VideoRow[
           <StatCard title="평균 조회수" value={formatNumber(stats.avgViews)} />
           <StatCard title="평균 좋아요" value={formatNumber(stats.avgLikes)} />
         </div>
+        {/* 3행: 업로드 빈도 통계 */}
+        {uploadFrequency && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <StatCard 
+              title="평균 영상 업로드 (Week)" 
+              value={`${uploadFrequency.averages.perWeek.toFixed(2)}/주`}
+              icon={Calendar}
+            />
+            <StatCard 
+              title="평균 영상 업로드 (Month)" 
+              value={`${uploadFrequency.averages.perMonth.toFixed(2)}/월`}
+              icon={CalendarCheck}
+            />
+            <StatCard 
+              title="평균 영상 업로드 (General)" 
+              value={`${uploadFrequency.averages.perMonthGeneral.toFixed(2)}/월`}
+              icon={Video}
+            />
+            <StatCard 
+              title="평균 영상 업로드 (Shorts)" 
+              value={`${uploadFrequency.averages.perMonthShorts.toFixed(2)}/월`}
+              icon={Clapperboard}
+            />
+          </div>
+        )}
       </div>
     </SectionCard>
   );

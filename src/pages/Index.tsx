@@ -5,7 +5,7 @@ import { VideoTable } from "@/components/VideoTable";
 import { TopicChart } from "@/components/TopicChart";
 import { SettingsModal } from "@/components/SettingsModal";
 import { YouTubeVideo } from "@/lib/youtubeApi";
-import { VideoRow } from "@/lib/types";
+import { VideoRow, SyncResponse, UploadFrequency } from "@/lib/types";
 import { getSupabaseClient, hasSupabaseCredentials } from "@/lib/supabaseClient";
 import { syncNewVideos } from "@/lib/edge";
 import { Video, Eye, Calendar, Users } from "lucide-react";
@@ -28,6 +28,7 @@ const Index = () => {
     hiddenSubscriber: boolean;
   } | null>(null);
   const [currentChannelId, setCurrentChannelId] = useState<string>("");
+  const [uploadFrequency, setUploadFrequency] = useState<UploadFrequency | undefined>(undefined);
   const { isSyncing, progress: syncProgress, error: syncError, startSync } = useSync();
 
   const loadVideos = async (channelId: string) => {
@@ -91,21 +92,14 @@ const Index = () => {
       const supabase = getSupabaseClient();
       const data = await syncNewVideos(url);
       
-      if (data?.error) {
-        throw new Error(data.error);
-      }
-
-      const result = data as {
-        ok: boolean;
-        channelId: string;
-        title: string;
-        inserted_or_updated?: number;
-        inserted?: number;
-        newest_uploaded_at?: string;
-        message?: string;
-      };
+      const result = data;
 
       setCurrentChannelId(result.channelId);
+      
+      // ✅ 업로드 빈도 통계 저장
+      if (result.uploadFrequency) {
+        setUploadFrequency(result.uploadFrequency);
+      }
 
       // Refresh channel stats from database
       const { data: channelData, error: channelError } = await supabase
@@ -124,7 +118,7 @@ const Index = () => {
 
       await loadVideos(result.channelId);
 
-      const insertedCount = result.inserted_or_updated || result.inserted || 0;
+      const insertedCount = result.inserted_or_updated || 0;
       if (insertedCount > 0) {
         toast.success(`✅ 분석 완료: ${insertedCount}개의 새 영상을 발견했습니다`);
       } else {
