@@ -132,12 +132,12 @@ async function getUploadsPlaylistId(channelId: string, apiKey: string) {
 }
 
 async function listNewUploads(uploadsPlaylistId: string, apiKey: string, sinceISO?: string) {
+  const MAX_ALL_LIMIT = 100000; // Safety limit for full sync
   const endpoint = `${YT_BASE}/playlistItems`;
   const items: any[] = [];
   let pageToken = "";
-  let keep = true;
 
-  while (keep) {
+  while (true) {
     const url = new URL(endpoint);
     url.searchParams.set("part", "contentDetails,snippet");
     url.searchParams.set("playlistId", uploadsPlaylistId);
@@ -153,16 +153,17 @@ async function listNewUploads(uploadsPlaylistId: string, apiKey: string, sinceIS
       const publishedAt = it?.contentDetails?.videoPublishedAt || it?.snippet?.publishedAt;
       if (!vid || !publishedAt) continue;
 
-      if (sinceISO && new Date(publishedAt) <= new Date(sinceISO)) {
-        keep = false;
-        break;
-      }
-
       items.push({
         videoId: vid,
         title: it?.snippet?.title ?? "",
         publishedAt
       });
+      
+      // Safety limit check
+      if (items.length >= MAX_ALL_LIMIT) {
+        console.warn(`Reached MAX_ALL_LIMIT: ${MAX_ALL_LIMIT}`);
+        return items;
+      }
     }
 
     pageToken = data?.nextPageToken ?? "";
@@ -316,6 +317,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const channelKey = body?.channelKey || body?.channel;
     const rawId = body?.channelId;
+    const fullSync = body?.fullSync ?? true; // ✅ 기본값 true - 항상 전체 동기화
 
     if (!channelKey && !rawId) {
       console.error('Missing required parameters');
@@ -328,7 +330,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log('Sync request:', { channelKey, rawId });
+    console.log('Sync request:', { channelKey, rawId, fullSync });
 
     // 1) 채널 ID 해석
     let channelId = rawId;
@@ -377,22 +379,10 @@ Deno.serve(async (req) => {
 
     console.log('Channel info saved to database');
 
-    // 4) ✅ 기존 기능: 마지막 업로드 날짜 확인
-    const { data: lastRow, error: lastErr } = await supabase
-      .from('youtube_videos')
-      .select('upload_date')
-      .eq('channel_id', channelId)
-      .order('upload_date', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (lastErr) {
-      console.error('Error fetching last upload:', lastErr);
-      throw lastErr;
-    }
-
-    const sinceISO = lastRow?.upload_date ? new Date(lastRow.upload_date).toISOString() : undefined;
-    console.log('Last upload:', { sinceISO });
+    // 4) ✅ 전체 동기화 모드 - sinceISO 비활성화
+    // 항상 모든 영상을 수집하므로 증분 동기화 코드는 사용하지 않음
+    const sinceISO = undefined; // ✅ 항상 undefined로 전체 수집
+    console.log('Full sync mode enabled - fetching all videos');
 
     // 5) ✅ 기존 기능: 업로드 플레이리스트 가져오기
     const uploadsId = await getUploadsPlaylistId(channelId, YOUTUBE_API_KEY);
@@ -408,19 +398,19 @@ Deno.serve(async (req) => {
 
     console.log('Uploads playlist:', uploadsId);
 
-    // 6) ✅ 기존 기능: 새 비디오 가져오기
-    const newItems = await listNewUploads(uploadsId, YOUTUBE_API_KEY, sinceISO);
-    console.log('New videos found:', newItems.length);
+    // 6) ✅ 전체 비디오 가져오기 (페이지네이션 끝까지)
+    const allItems = await listNewUploads(uploadsId, YOUTUBE_API_KEY, sinceISO);
+    console.log('Total videos fetched:', allItems.length);
 
     let insertedOrUpdated = 0;
 
-    if (newItems.length > 0) {
+    if (allItems.length > 0) {
       // 7) ✅ 기존 기능: 비디오 통계 가져오기
-      const stats = await fetchVideosStats(newItems.map(v => v.videoId), YOUTUBE_API_KEY);
+      const stats = await fetchVideosStats(allItems.map(v => v.videoId), YOUTUBE_API_KEY);
       const statsMap = new Map(stats.map(x => [x.id, x]));
 
-      // 8) ✅ 기존 기능: RPC로 비디오 저장
-      const rows = newItems.map(v => {
+      // 8) ✅ 기존 기능: RPC로 비디오 저장 (upsert로 중복 방지)
+      const rows = allItems.map(v => {
         const s = statsMap.get(v.videoId);
         return {
           video_id: v.videoId,
@@ -480,13 +470,16 @@ Deno.serve(async (req) => {
       console.log('Upload stats saved to database');
     }
 
-    // 11) ✅ 응답 (기존 필드 + uploadFrequency 추가)
+    // 11) ✅ 응답 (mode: "full" 추가)
     return new Response(JSON.stringify({
       ok: true,
+      mode: "full", // ✅ 항상 전체 동기화 모드
       channelId,
       title: resolvedTitle || channelStats.title,
-      inserted_or_updated: insertedOrUpdated,
-      newest_uploaded_at: newItems[0]?.publishedAt,
+      fetched: allItems.length, // ✅ 총 수집된 영상 수
+      upserted: insertedOrUpdated, // ✅ DB에 저장된 수
+      inserted_or_updated: insertedOrUpdated, // 하위 호환성 유지
+      newest_uploaded_at: allItems[0]?.publishedAt,
       channelStats: {
         subscriberCount: channelStats.subscriberCount,
         videoCount: channelStats.videoCount,

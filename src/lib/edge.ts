@@ -7,7 +7,10 @@ export async function syncNewVideos(channelUrl: string): Promise<SyncResponse> {
   }
 
   const { data, error } = await supabase.functions.invoke("sync-new-videos", {
-    body: { channelKey: channelUrl },
+    body: { 
+      channelKey: channelUrl,
+      fullSync: true // ✅ 항상 전체 동기화
+    },
   });
 
   if (error) {
