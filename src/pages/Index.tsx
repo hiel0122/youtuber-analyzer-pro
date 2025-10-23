@@ -36,24 +36,24 @@ const Index = () => {
     try {
       const supabase = getSupabaseClient();
       const { data: videosData, error: videosError } = await supabase
-        .from('youtube_videos')
-        .select('*')
-        .eq('channel_id', channelId)
-        .order('upload_date', { ascending: false });
+        .from("youtube_videos")
+        .select("*")
+        .eq("channel_id", channelId)
+        .order("upload_date", { ascending: false });
 
       if (videosError) {
-        console.error('Videos fetch error:', videosError);
+        console.error("Videos fetch error:", videosError);
       } else {
         const mappedVideos: YouTubeVideo[] = (videosData || []).map((v: any) => ({
           videoId: v.video_id,
           title: v.title,
-          topic: v.topic || '',
-          presenter: v.presenter || '',
+          topic: v.topic || "",
+          presenter: v.presenter || "",
           views: v.views || 0,
           likes: v.likes || 0,
           dislikes: v.dislikes || 0,
           uploadDate: v.upload_date,
-          duration: v.duration || '0:00',
+          duration: v.duration || "0:00",
           url: v.url,
         }));
         setVideos(mappedVideos);
@@ -73,7 +73,7 @@ const Index = () => {
         setVideoRows(mappedRows);
       }
     } catch (error) {
-      console.error('Load videos error:', error);
+      console.error("Load videos error:", error);
     } finally {
       setLoading(false);
     }
@@ -82,7 +82,7 @@ const Index = () => {
   const handleAnalyze = async (url: string) => {
     try {
       if (!hasSupabaseCredentials()) {
-        toast.error('Settings에서 Supabase URL/Anon Key를 설정하세요');
+        toast.error("Settings에서 Supabase URL/Anon Key를 설정하세요");
         return;
       }
 
@@ -91,11 +91,11 @@ const Index = () => {
       // After sync completes, fetch data
       const supabase = getSupabaseClient();
       const data = await syncNewVideos(url);
-      
+
       const result = data;
 
       setCurrentChannelId(result.channelId);
-      
+
       // ✅ 업로드 빈도 통계 저장
       if (result.uploadFrequency) {
         setUploadFrequency(result.uploadFrequency);
@@ -103,9 +103,9 @@ const Index = () => {
 
       // Refresh channel stats from database
       const { data: channelData, error: channelError } = await supabase
-        .from('youtube_channels')
-        .select('subscriber_count, total_views, channel_name')
-        .eq('channel_id', result.channelId)
+        .from("youtube_channels")
+        .select("subscriber_count, total_views, channel_name")
+        .eq("channel_id", result.channelId)
         .maybeSingle();
 
       if (!channelError && channelData) {
@@ -125,8 +125,8 @@ const Index = () => {
         toast.success(`✅ 분석 완료: 새 영상이 없습니다`);
       }
     } catch (error: any) {
-      console.error('Analysis error:', error);
-      toast.error(error.message || '채널 분석 중 오류가 발생했습니다');
+      console.error("Analysis error:", error);
+      toast.error(error.message || "채널 분석 중 오류가 발생했습니다");
     }
   };
 
@@ -148,7 +148,7 @@ const Index = () => {
   const subscriberCount = channelStats?.subscriberCount || 0;
   const channelTotalViews = channelStats?.totalViews || 0;
   const hiddenSubscriber = channelStats?.hiddenSubscriber || false;
-  
+
   const isLoading = loading || isSyncing;
 
   return (
@@ -167,7 +167,7 @@ const Index = () => {
         {/* Channel Input */}
         <div className="flex flex-col items-center mb-12">
           <ChannelInput onAnalyze={handleAnalyze} loading={isLoading} />
-          
+
           {/* Sync Progress Bar */}
           {isSyncing && (
             <div className="w-full max-w-3xl mt-4">
@@ -177,10 +177,8 @@ const Index = () => {
               </div>
             </div>
           )}
-          
-          {syncError && (
-            <div className="text-red-400 text-sm mt-2">{syncError}</div>
-          )}
+
+          {syncError && <div className="text-red-400 text-sm mt-2">{syncError}</div>}
         </div>
 
         {/* Quantity Section */}
@@ -188,7 +186,9 @@ const Index = () => {
           <h3 className="text-sm font-semibold mb-3 text-foreground">Quantity</h3>
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[...Array(4)].map((_, i) => <SkeletonCard key={`qty-${i}`} className="h-32" />)}
+              {[...Array(4)].map((_, i) => (
+                <SkeletonCard key={`qty-${i}`} className="h-32" />
+              ))}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -221,7 +221,7 @@ const Index = () => {
 
         {/* Quality Section - 2 Rows */}
         <section className="mb-12">
-          <QuantityQuality videos={videoRows} loading={isLoading} />
+          <QuantityQuality videos={videoRows} loading={isLoading} uploadFrequency={uploadFrequency} />
         </section>
 
         {/* Views Trend & Topic Chart - Side by Side */}
