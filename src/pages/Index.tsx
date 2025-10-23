@@ -95,22 +95,36 @@ const Index = () => {
 
   const performSync = async (url: string, fullSync: boolean, knownChannelId?: string) => {
     try {
+      console.log('🚀 Starting performSync:', { url, fullSync, knownChannelId });
+
       // 동기화 시작 (useSync의 startSync가 Edge Function 호출 포함)
       const result = await startSync(url, fullSync);
+      console.log('📦 Sync result:', result);
       
       // channelId 확인
       const channelId = knownChannelId || result?.channelId;
       if (!channelId) throw new Error("채널 ID를 확인할 수 없습니다.");
       
+      console.log('✅ Using channelId:', channelId);
       setCurrentChannelId(channelId);
+
+      // ✅ uploadFrequency 설정 추가!
+      if (result?.uploadFrequency) {
+        console.log('📊 Setting uploadFrequency:', result.uploadFrequency);
+        setUploadFrequency(result.uploadFrequency);
+      } else {
+        console.warn('⚠️ No uploadFrequency in result');
+      }
 
       // 채널 통계 갱신
       const supabase = getSupabaseClient();
       const { data: channelData } = await supabase
         .from("youtube_channels")
-        .select("subscriber_count, total_views, channel_name")
+        .select("subscriber_count, total_views, channel_name, total_videos")
         .eq("channel_id", channelId)
         .maybeSingle();
+
+      console.log('📈 Channel data:', channelData);
 
       if (channelData) {
         setChannelStats({
@@ -123,8 +137,16 @@ const Index = () => {
       // 영상 목록 로드
       await loadVideos(channelId);
 
+      // 실제 개수 확인
+      const { count: actualCount } = await supabase
+        .from("youtube_videos")
+        .select("video_id", { count: "exact", head: true })
+        .eq("channel_id", channelId);
+
+      console.log('✅ Total videos in DB:', actualCount);
+
       // 성공 메시지
-      const insertedCount = result?.inserted_or_updated || 0;
+      const insertedCount = result?.inserted_or_updated || actualCount || 0;
       if (fullSync) {
         toast.success(`✅ 전체 분석 완료: ${insertedCount}개 영상`);
       } else if (insertedCount > 0) {
@@ -133,7 +155,7 @@ const Index = () => {
         toast.success(`✅ 분석 완료: 새 영상이 없습니다`);
       }
     } catch (error: any) {
-      console.error("Sync error:", error);
+      console.error("❌ Sync error:", error);
       toast.error(error.message || "동기화 중 오류가 발생했습니다");
     }
   };
@@ -145,15 +167,19 @@ const Index = () => {
         return;
       }
 
+      console.log('🔍 Analyzing:', url);
+
       // 채널 존재 확인 & 기존 개수 체크 (quickCheck 사용)
-      const { channelId } = await syncQuickCheck(url);
+      const { channelId, totalVideos } = await syncQuickCheck(url);
+      console.log('📡 QuickCheck result:', { channelId, totalVideos });
+
       const supabase = getSupabaseClient();
       const { count: existingCount } = await supabase
         .from("youtube_videos")
         .select("video_id", { count: "exact", head: true })
         .eq("channel_id", channelId);
 
-      console.log('📊 Existing videos:', existingCount);
+      console.log('📊 Existing videos for channelId', channelId, ':', existingCount);
 
       if (existingCount && existingCount > 10) {
         // 재분석 - 다이얼로그 표시
@@ -163,10 +189,11 @@ const Index = () => {
       }
 
       // 최초 분석 - 바로 실행
+      console.log('🆕 First time analysis - full sync');
       await performSync(url, true, channelId);
 
     } catch (error: any) {
-      console.error("Analysis error:", error);
+      console.error("❌ Analysis error:", error);
       toast.error(error.message || "채널 분석 중 오류가 발생했습니다");
     }
   };
