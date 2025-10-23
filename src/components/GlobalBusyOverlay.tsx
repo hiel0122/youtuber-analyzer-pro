@@ -38,8 +38,8 @@ export default function GlobalBusyOverlay({
             totalCount={totalCount}
           />
 
-          <p className="mt-3 text-xs text-muted-foreground">
-            분석이 완료될 때까지 화면이 잠시 흐려집니다.
+          <p className="mt-3 text-xs text-muted-foreground text-center">
+            분석이 완료될 때까지 잠시 기다려주세요
           </p>
         </div>
       </div>

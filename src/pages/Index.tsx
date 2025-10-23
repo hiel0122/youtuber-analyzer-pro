@@ -329,65 +329,41 @@ const Index = () => {
         <div className="flex flex-col items-center mb-12">
           <ChannelInput onAnalyze={handleAnalyze} loading={isLoading} />
 
-        {/* Sync Progress Bar - 동기화 중에만 표시 */}
-        {isSyncing && (
-          <div className="w-full max-w-3xl mt-4">
-            <div className="flex flex-col gap-2">
-              <div className="text-sm text-muted-foreground">동기화 중...</div>
-              <SyncProgress 
-                progress={syncProgress} 
-                error={!!syncError}
-                currentCount={currentCount}
-                totalCount={totalCount}
-              />
-            </div>
-          </div>
-        )}
-
-        {syncError && <div className="text-destructive text-sm mt-2">{syncError}</div>}
       </div>
 
       {/* Quantity Section */}
       <section className="mb-8">
         <h3 className="text-sm font-semibold mb-3 text-foreground">Quantity</h3>
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[...Array(4)].map((_, i) => (
-              <SkeletonCard key={`qty-${i}`} className="h-32" />
-            ))}
-          </div>
-        ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <MetricsCard
-                title="총 구독자 수"
-                value={
-                  <div className="flex items-center gap-2">
-                    <span>{formatInt(subscriberCount)}</span>
-                    {hiddenSubscriber && (
-                      <Badge variant="secondary" className="text-xs">
-                        숨김
-                      </Badge>
-                    )}
-                  </div>
-                }
-                icon={Users}
-                description="채널 구독자"
-              />
-              <MetricsCard title="총 영상 수" value={formatInt(totalVideos)} icon={Video} description="분석된 영상" />
-              <MetricsCard
-                title="총 조회수"
-                value={formatInt(channelTotalViews || totalViews)}
-                icon={Eye}
-                description="전체 조회수"
-              />
-              <MetricsCard title="최근 업로드" value={latestUpload} icon={Calendar} description="마지막 업로드일" />
-            </div>
-          )}
-        </section>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <MetricsCard
+            title="총 구독자 수"
+            value={
+              <div className="flex items-center gap-2">
+                <span>{formatInt(subscriberCount)}</span>
+                {hiddenSubscriber && (
+                  <Badge variant="secondary" className="text-xs">
+                    숨김
+                  </Badge>
+                )}
+              </div>
+            }
+            icon={Users}
+            description="채널 구독자"
+          />
+          <MetricsCard title="총 영상 수" value={formatInt(totalVideos)} icon={Video} description="분석된 영상" />
+          <MetricsCard
+            title="총 조회수"
+            value={formatInt(channelTotalViews || totalViews)}
+            icon={Eye}
+            description="전체 조회수"
+          />
+          <MetricsCard title="최근 업로드" value={latestUpload} icon={Calendar} description="마지막 업로드일" />
+        </div>
+      </section>
 
         {/* Quality Section - 2 Rows */}
         <section className="mb-12">
-          <QuantityQuality videos={videoRows} loading={isLoading} uploadFrequency={uploadFrequency} />
+          <QuantityQuality videos={videoRows} loading={false} uploadFrequency={uploadFrequency} />
         </section>
 
         {/* Views Trend & Topic Chart - Side by Side */}
