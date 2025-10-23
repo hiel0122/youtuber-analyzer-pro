@@ -317,7 +317,8 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const channelKey = body?.channelKey || body?.channel;
     const rawId = body?.channelId;
-    const fullSync = body?.fullSync ?? true; // ✅ 기본값 true - 항상 전체 동기화
+    const fullSync = body?.fullSync ?? true;
+    const quickCheck = body?.quickCheck ?? false; // ✅ quickCheck 플래그
 
     if (!channelKey && !rawId) {
       console.error('Missing required parameters');
@@ -330,7 +331,45 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log('Sync request:', { channelKey, rawId, fullSync });
+    console.log('Sync request:', { channelKey, rawId, fullSync, quickCheck });
+
+    // ✅ quickCheck 모드: 채널 ID와 총 영상수만 빠르게 반환
+    if (quickCheck) {
+      let channelId = rawId;
+      let resolvedTitle = "";
+      let totalVideos = 0;
+
+      if (!channelId) {
+        const resolved = await resolveChannelId(channelKey, YOUTUBE_API_KEY);
+        if (!resolved) {
+          console.error('Cannot resolve channel id for:', channelKey);
+          return new Response(JSON.stringify({
+            ok: false,
+            error: 'Cannot resolve channel id'
+          }), {
+            status: 404,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+        channelId = resolved.channelId;
+        resolvedTitle = resolved.title;
+      }
+
+      // 채널 통계에서 총 영상수 가져오기
+      const channelStats = await getChannelStats(channelId, YOUTUBE_API_KEY);
+      totalVideos = channelStats.videoCount;
+
+      console.log('QuickCheck complete:', { channelId, totalVideos });
+
+      return new Response(JSON.stringify({
+        ok: true,
+        mode: "quickCheck",
+        channelId,
+        totalVideos
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
     // 1) 채널 ID 해석
     let channelId = rawId;

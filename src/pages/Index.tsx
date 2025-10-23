@@ -7,7 +7,7 @@ import { SettingsModal } from "@/components/SettingsModal";
 import { YouTubeVideo } from "@/lib/youtubeApi";
 import { VideoRow, SyncResponse, UploadFrequency } from "@/lib/types";
 import { getSupabaseClient, hasSupabaseCredentials } from "@/lib/supabaseClient";
-import { syncNewVideos, resolveChannelId } from "@/lib/edge";
+import { syncNewVideos, syncQuickCheck } from "@/lib/edge";
 import { Video, Eye, Calendar, Users } from "lucide-react";
 import { toast } from "sonner";
 import { formatInt } from "@/utils/format";
@@ -93,13 +93,15 @@ const Index = () => {
     }
   };
 
-  const performSync = async (url: string, fullSync: boolean) => {
+  const performSync = async (url: string, fullSync: boolean, knownChannelId?: string) => {
     try {
       // 동기화 시작 (useSync의 startSync가 Edge Function 호출 포함)
-      await startSync(url, fullSync);
-
+      const result = await startSync(url, fullSync);
+      
       // channelId 확인
-      const { channelId } = await resolveChannelId(url);
+      const channelId = knownChannelId || result?.channelId;
+      if (!channelId) throw new Error("채널 ID를 확인할 수 없습니다.");
+      
       setCurrentChannelId(channelId);
 
       // 채널 통계 갱신
@@ -122,7 +124,14 @@ const Index = () => {
       await loadVideos(channelId);
 
       // 성공 메시지
-      toast.success(fullSync ? "✅ 전체 분석 완료" : "✅ 새 영상 분석 완료");
+      const insertedCount = result?.inserted_or_updated || 0;
+      if (fullSync) {
+        toast.success(`✅ 전체 분석 완료: ${insertedCount}개 영상`);
+      } else if (insertedCount > 0) {
+        toast.success(`✅ 분석 완료: ${insertedCount}개의 새 영상 추가`);
+      } else {
+        toast.success(`✅ 분석 완료: 새 영상이 없습니다`);
+      }
     } catch (error: any) {
       console.error("Sync error:", error);
       toast.error(error.message || "동기화 중 오류가 발생했습니다");
@@ -136,8 +145,8 @@ const Index = () => {
         return;
       }
 
-      // 채널 존재 확인 & 기존 개수 체크
-      const { channelId } = await resolveChannelId(url);
+      // 채널 존재 확인 & 기존 개수 체크 (quickCheck 사용)
+      const { channelId } = await syncQuickCheck(url);
       const supabase = getSupabaseClient();
       const { count: existingCount } = await supabase
         .from("youtube_videos")
@@ -154,7 +163,7 @@ const Index = () => {
       }
 
       // 최초 분석 - 바로 실행
-      await performSync(url, true);
+      await performSync(url, true, channelId);
 
     } catch (error: any) {
       console.error("Analysis error:", error);
@@ -172,7 +181,14 @@ const Index = () => {
       toast.info("새로운 영상만 확인합니다...");
     }
 
-    await performSync(pendingUrl, fullSync);
+    // quickCheck로 channelId 먼저 가져오기
+    try {
+      const { channelId } = await syncQuickCheck(pendingUrl);
+      await performSync(pendingUrl, fullSync, channelId);
+    } catch (error: any) {
+      console.error("Resync error:", error);
+      toast.error(error.message || "재분석 중 오류가 발생했습니다");
+    }
     setPendingUrl("");
   };
 

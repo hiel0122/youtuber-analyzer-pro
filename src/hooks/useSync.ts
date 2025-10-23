@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { resolveChannelId, syncNewVideos } from "@/lib/edge";
+import { syncQuickCheck, syncNewVideos } from "@/lib/edge";
 
 export function useSync() {
   const [isSyncing, setIsSyncing] = useState(false);
@@ -28,7 +28,7 @@ export function useSync() {
 
     try {
       // 1) 채널ID & 총영상수 선확인
-      const { channelId, totalVideos } = await resolveChannelId(channelInput).catch(() => ({
+      const { channelId, totalVideos } = await syncQuickCheck(channelInput).catch(() => ({
         channelId: "",
         totalVideos: 0,
       }));
@@ -64,9 +64,12 @@ export function useSync() {
       if (typeof res.inserted_or_updated === "number") {
         setCurrentCount(res.inserted_or_updated);
       }
+
+      return { ...res, channelId };
     } catch (e: any) {
       clearPoll();
       setError(e?.message || "동기화 실패");
+      throw e;
     } finally {
       // UI 여유시간 후 리셋(필요 시 조정)
       setTimeout(() => {
