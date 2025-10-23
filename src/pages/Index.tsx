@@ -18,6 +18,9 @@ import SyncProgress from "@/components/SyncProgress";
 import QuantityQuality from "@/components/QuantityQuality";
 import ViewsTrend from "@/components/ViewsTrend";
 import SkeletonCard from "@/components/SkeletonCard";
+import GlobalBusyOverlay from "@/components/GlobalBusyOverlay";
+import { useBodyLock } from "@/hooks/useBodyLock";
+import { cn } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,6 +50,9 @@ const Index = () => {
 
   // 전역 busy 상태
   const isBusy = isSyncing || isHydrating;
+
+  // 스크롤 잠금
+  useBodyLock(isBusy);
 
   const loadVideos = async (channelId: string) => {
     console.log('🔍 Loading videos for channel:', channelId);
@@ -264,8 +270,25 @@ const Index = () => {
   const isSkeleton = isBusy;
 
   return (
-    <div className="min-h-screen bg-background">
-      <SettingsModal />
+    <div className="min-h-screen bg-background relative">
+      {/* 전역 블러 오버레이 */}
+      <GlobalBusyOverlay
+        open={isBusy}
+        message="분석 중입니다..."
+        progress={syncProgress}
+        currentCount={currentCount}
+        totalCount={totalCount}
+      />
+
+      {/* 실제 컨텐츠: isBusy일 때 흐림 + 클릭 차단 */}
+      <div
+        className={cn(
+          "transition duration-200",
+          isBusy ? "blur-sm pointer-events-none select-none" : ""
+        )}
+        aria-busy={isBusy}
+      >
+        <SettingsModal />
 
       {/* 재분석 확인 다이얼로그 */}
       <AlertDialog open={showResyncDialog} onOpenChange={setShowResyncDialog}>
@@ -380,6 +403,7 @@ const Index = () => {
 
         {/* Footer */}
         <footer className="text-center mt-12 text-muted-foreground text-sm">Powered by Supabase + Lovable</footer>
+      </div>
       </div>
     </div>
   );
