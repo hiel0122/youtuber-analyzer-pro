@@ -15,9 +15,10 @@ import { formatInt } from '@/utils/format';
 
 interface VideoTableProps {
   videos: YouTubeVideo[];
+  loading?: boolean;
 }
 
-export const VideoTable = ({ videos }: VideoTableProps) => {
+export const VideoTable = ({ videos, loading }: VideoTableProps) => {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
   const totalPages = Math.ceil(videos.length / pageSize);
@@ -75,7 +76,15 @@ export const VideoTable = ({ videos }: VideoTableProps) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {videos.length === 0 ? (
+              {loading ? (
+                [...Array(10)].map((_, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell colSpan={8} className="py-4">
+                      <div className="h-6 bg-muted/50 rounded animate-pulse" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : videos.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                     채널 URL을 입력하고 분석하기를 클릭하세요

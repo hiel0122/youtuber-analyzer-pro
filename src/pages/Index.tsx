@@ -173,12 +173,12 @@ const Index = () => {
             <div className="w-full max-w-3xl mt-4">
               <div className="flex flex-col gap-2">
                 <div className="text-sm text-muted-foreground">동기화 중...</div>
-                <SyncProgress progress={syncProgress} />
+                <SyncProgress progress={syncProgress} error={!!syncError} />
               </div>
             </div>
           )}
 
-          {syncError && <div className="text-red-400 text-sm mt-2">{syncError}</div>}
+          {syncError && <div className="text-destructive text-sm mt-2">{syncError}</div>}
         </div>
 
         {/* Quantity Section */}
@@ -228,12 +228,12 @@ const Index = () => {
         <section className="mb-12">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <ViewsTrend videos={videoRows} loading={isLoading} />
-            <TopicChart videos={videos} />
+            <TopicChart videos={videos} loading={isLoading} />
           </div>
         </section>
 
         {/* Video Table */}
-        <VideoTable videos={videos} />
+        <VideoTable videos={videos} loading={isLoading} />
 
         {/* Footer */}
         <footer className="text-center mt-12 text-muted-foreground text-sm">Powered by Supabase + Lovable</footer>

@@ -2,19 +2,8 @@ import React, { useMemo } from "react";
 import { VideoRow, UploadFrequency } from "@/lib/types";
 import { parseDurationToSeconds, formatNumber } from "@/lib/utils";
 import { SectionCard } from "@/components/ui/card";
+import { MetricsCard } from "@/components/MetricsCard";
 import { Calendar, CalendarCheck, Video, Clapperboard } from "lucide-react";
-
-function StatCard({ title, value, icon: Icon }: { title: string; value: string | number; icon?: React.ElementType }) {
-  return (
-    <div className="flex flex-col gap-1 rounded-xl bg-muted/50 p-4 border border-border">
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-muted-foreground">{title}</div>
-        {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
-      </div>
-      <div className="text-2xl font-semibold text-foreground">{value}</div>
-    </div>
-  );
-}
 
 function secsToLabel(secs: number) {
   if (secs <= 0) return "0s";
@@ -77,24 +66,24 @@ export default function QuantityQuality({
 
   return (
     <SectionCard title="Quality">
-      <div className="grid gap-3">
+      <div className="grid gap-4">
         {/* 1행 */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <StatCard title="롱폼 개수 (>60s)" value={formatNumber(stats.longCount)} />
-          <StatCard title="숏폼 개수 (≤60s)" value={formatNumber(stats.shortCount)} />
-          <StatCard title="최대 영상 길이" value={secsToLabel(stats.maxDur)} />
-          <StatCard title="최소 영상 길이(숏폼 제외)" value={secsToLabel(stats.minLongDur)} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <MetricsCard title="General" value={formatNumber(stats.longCount)} icon={Video} />
+          <MetricsCard title="Shorts" value={formatNumber(stats.shortCount)} icon={Clapperboard} />
+          <MetricsCard title="Maximum Image Length" value={secsToLabel(stats.maxDur)} icon={Video} />
+          <MetricsCard title="Minimum Image Length" value={secsToLabel(stats.minLongDur)} icon={Video} />
         </div>
         {/* 2행 */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <StatCard title="최고 조회수" value={formatNumber(stats.maxViews)} />
-          <StatCard title="최저 조회수" value={formatNumber(stats.minViews)} />
-          <StatCard title="평균 조회수" value={formatNumber(stats.avgViews)} />
-          <StatCard title="평균 좋아요" value={formatNumber(stats.avgLikes)} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <MetricsCard title="Maximum hits" value={formatNumber(stats.maxViews)} icon={Video} />
+          <MetricsCard title="Minimum hits" value={formatNumber(stats.minViews)} icon={Video} />
+          <MetricsCard title="Avg. hits" value={formatNumber(stats.avgViews)} icon={Video} />
+          <MetricsCard title="Avg. Likes" value={formatNumber(stats.avgLikes)} icon={Video} />
         </div>
         {/* 3행: 업로드 빈도 통계 - 항상 표시 */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <StatCard 
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <MetricsCard 
             title="평균 영상 업로드 (Week)" 
             value={uploadFrequency 
               ? `${uploadFrequency.averages.perWeek.toFixed(2)}/주`
@@ -102,7 +91,7 @@ export default function QuantityQuality({
             }
             icon={Calendar}
           />
-          <StatCard 
+          <MetricsCard 
             title="평균 영상 업로드 (Month)" 
             value={uploadFrequency
               ? `${uploadFrequency.averages.perMonth.toFixed(2)}/월`
@@ -110,7 +99,7 @@ export default function QuantityQuality({
             }
             icon={CalendarCheck}
           />
-          <StatCard 
+          <MetricsCard 
             title="평균 영상 업로드 (General)" 
             value={uploadFrequency
               ? `${uploadFrequency.averages.perMonthGeneral.toFixed(2)}/월`
@@ -118,7 +107,7 @@ export default function QuantityQuality({
             }
             icon={Video}
           />
-          <StatCard 
+          <MetricsCard 
             title="평균 영상 업로드 (Shorts)" 
             value={uploadFrequency
               ? `${uploadFrequency.averages.perMonthShorts.toFixed(2)}/월`

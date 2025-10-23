@@ -5,6 +5,7 @@ import { formatInt } from '@/utils/format';
 
 interface TopicChartProps {
   videos: YouTubeVideo[];
+  loading?: boolean;
 }
 
 const COLORS = ['#A855F7', '#8B5CF6', '#7C3AED', '#6D28D9', '#5B21B6', '#4C1D95'];
@@ -29,7 +30,7 @@ const renderLabel = ({
   );
 };
 
-export const TopicChart = ({ videos }: TopicChartProps) => {
+export const TopicChart = ({ videos, loading }: TopicChartProps) => {
   const topicCounts = videos.reduce((acc, video) => {
     acc[video.topic] = (acc[video.topic] || 0) + 1;
     return acc;
@@ -42,6 +43,14 @@ export const TopicChart = ({ videos }: TopicChartProps) => {
       percentage: ((count / videos.length) * 100).toFixed(1)
     }))
     .sort((a, b) => b.value - a.value);
+
+  if (loading) {
+    return (
+      <SectionCard title="주제별 분포">
+        <div className="h-72 rounded-xl bg-muted/50 animate-pulse" />
+      </SectionCard>
+    );
+  }
 
   if (videos.length === 0) {
     return (
