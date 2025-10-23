@@ -306,7 +306,7 @@ const Index = () => {
         <div className="flex flex-col items-center mb-12">
           <ChannelInput onAnalyze={handleAnalyze} loading={isLoading} />
 
-        {/* Sync Progress Bar */}
+        {/* Sync Progress Bar - 동기화 중에만 표시 */}
         {isSyncing && (
           <div className="w-full max-w-3xl mt-4">
             <div className="flex flex-col gap-2">

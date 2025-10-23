@@ -29,6 +29,9 @@ export function useSync() {
     const channelIdRef = { current: "" };
 
     const finish = () => {
+      // ✅ 폴링 먼저 종료
+      clearPoll();
+      // ✅ isSyncing/진행률 리셋
       setIsSyncing(false);
       setProgress(0);
     };
