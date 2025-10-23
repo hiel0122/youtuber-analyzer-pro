@@ -1,50 +1,104 @@
 import { useCallback, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 
 export function useSync() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const animIdRef = useRef<number | undefined>();
-  const startTimeRef = useRef<number>(0);
+  const [currentCount, setCurrentCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+  const pollIntervalRef = useRef<number | undefined>();
+  const channelIdRef = useRef<string>("");
 
-  const startSync = useCallback(async (channelInput: string) => {
+  const startSync = useCallback(async (channelInput: string, fullSync = true) => {
     setError(null);
     setIsSyncing(true);
     setProgress(0);
-    startTimeRef.current = performance.now();
-
-    // requestAnimationFrame을 사용한 실시간 진행률 업데이트
-    const tick = (currentTime: number) => {
-      const elapsed = currentTime - startTimeRef.current;
-      // 20%/sec 증가, 최대 95%
-      const p = Math.min(95, Math.max(5, (elapsed / 1000) * 20));
-      setProgress(p);
-      animIdRef.current = requestAnimationFrame(tick);
-    };
-    animIdRef.current = requestAnimationFrame(tick);
+    setCurrentCount(0);
+    setTotalCount(0);
 
     try {
-      const { data, error } = await supabase.functions.invoke("sync-new-videos", {
-        body: { channelKey: channelInput },
+      // Edge Function 호출 시작
+      const syncPromise = supabase.functions.invoke("sync-new-videos", {
+        body: { channelKey: channelInput, fullSync },
       });
-      if (error) throw error;
+
+      // 채널 ID 추출 (간단한 정규식 체크)
+      let estimatedChannelId = channelInput;
+      if (channelInput.includes('youtube.com/@')) {
+        // @핸들은 Edge Function이 처리
+        estimatedChannelId = channelInput;
+      } else if (channelInput.includes('UC')) {
+        const match = channelInput.match(/UC[\w-]+/);
+        if (match) estimatedChannelId = match[0];
+      }
+
+      // DB에서 기존 채널 정보 확인 (빠른 응답)
+      try {
+        const { data: channelData } = await getSupabaseClient()
+          .from("youtube_channels")
+          .select("channel_id, total_videos")
+          .or(`channel_id.eq.${estimatedChannelId},channel_name.ilike.%${estimatedChannelId}%`)
+          .maybeSingle();
+
+        if (channelData?.channel_id) {
+          channelIdRef.current = channelData.channel_id;
+          const estimatedTotal = channelData.total_videos || 1000;
+          setTotalCount(estimatedTotal);
+
+          // 폴링 시작 (2초마다 DB 확인)
+          pollIntervalRef.current = window.setInterval(async () => {
+            try {
+              const { count } = await getSupabaseClient()
+                .from("youtube_videos")
+                .select("video_id", { count: "exact", head: true })
+                .eq("channel_id", channelIdRef.current);
+
+              if (count !== null) {
+                setCurrentCount(count);
+                const realProgress = Math.min(95, (count / estimatedTotal) * 100);
+                setProgress(realProgress);
+              }
+            } catch (e) {
+              console.error("Polling error:", e);
+            }
+          }, 2000);
+        }
+      } catch (e) {
+        console.log("채널 정보 가져오기 실패, 기본 진행률 사용");
+      }
+
+      // Edge Function 완료 대기
+      const { data, error: syncError } = await syncPromise;
       
-      // 성공 시 100%로 스냅
-      if (animIdRef.current) cancelAnimationFrame(animIdRef.current);
+      if (syncError) throw syncError;
+
+      // 완료 시 100%
+      if (pollIntervalRef.current) {
+        window.clearInterval(pollIntervalRef.current);
+      }
       setProgress(100);
+
+      // 최종 개수 업데이트
+      if (data?.inserted_or_updated) {
+        setCurrentCount(data.inserted_or_updated);
+      }
+
     } catch (e: any) {
-      // 실패 시 진행률 유지하고 에러 표시
-      if (animIdRef.current) cancelAnimationFrame(animIdRef.current);
+      if (pollIntervalRef.current) {
+        window.clearInterval(pollIntervalRef.current);
+      }
       setError(e?.message ?? "동기화 실패");
     } finally {
-      // 500ms 후 종료
       setTimeout(() => {
         setIsSyncing(false);
         setProgress(0);
-      }, 500);
+        setCurrentCount(0);
+        setTotalCount(0);
+      }, 1000);
     }
   }, []);
 
-  return { isSyncing, progress, error, startSync };
+  return { isSyncing, progress, currentCount, totalCount, error, startSync };
 }

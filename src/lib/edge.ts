@@ -1,7 +1,10 @@
 import { supabase } from "./supabase";
 import { SyncResponse } from "./types";
 
-export async function syncNewVideos(channelUrl: string): Promise<SyncResponse> {
+export async function syncNewVideos(
+  channelUrl: string, 
+  fullSync?: boolean
+): Promise<SyncResponse> {
   if (!channelUrl || !/^https?:\/\/(www\.)?youtube\.com|youtu\.be/.test(channelUrl)) {
     throw new Error('유효한 유튜브 채널 URL을 입력하세요.');
   }
@@ -9,7 +12,7 @@ export async function syncNewVideos(channelUrl: string): Promise<SyncResponse> {
   const { data, error } = await supabase.functions.invoke("sync-new-videos", {
     body: { 
       channelKey: channelUrl,
-      fullSync: true // ✅ 항상 전체 동기화
+      fullSync: fullSync ?? true, // 기본값은 true
     },
   });
 

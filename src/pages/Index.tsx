@@ -17,6 +17,16 @@ import SyncProgress from "@/components/SyncProgress";
 import QuantityQuality from "@/components/QuantityQuality";
 import ViewsTrend from "@/components/ViewsTrend";
 import SkeletonCard from "@/components/SkeletonCard";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const Index = () => {
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
@@ -29,7 +39,9 @@ const Index = () => {
   } | null>(null);
   const [currentChannelId, setCurrentChannelId] = useState<string>("");
   const [uploadFrequency, setUploadFrequency] = useState<UploadFrequency | undefined>(undefined);
-  const { isSyncing, progress: syncProgress, error: syncError, startSync } = useSync();
+  const [showResyncDialog, setShowResyncDialog] = useState(false);
+  const [pendingUrl, setPendingUrl] = useState<string>("");
+  const { isSyncing, progress: syncProgress, currentCount, totalCount, error: syncError, startSync } = useSync();
 
   const loadVideos = async (channelId: string) => {
     console.log('🔍 Loading videos for channel:', channelId);
@@ -81,41 +93,37 @@ const Index = () => {
     }
   };
 
-  const handleAnalyze = async (url: string) => {
+  const performSync = async (url: string, fullSync: boolean, knownChannelId?: string) => {
     try {
-      if (!hasSupabaseCredentials()) {
-        toast.error("Settings에서 Supabase URL/Anon Key를 설정하세요");
-        return;
-      }
+      // 동기화 시작
+      await startSync(url, fullSync);
 
-      await startSync(url);
+      // Edge Function 호출
+      const result = await syncNewVideos(url, fullSync);
+      const actualChannelId = knownChannelId || result.channelId;
 
-      // Sync videos and get actual channel ID
-      const result = await syncNewVideos(url);
-      const actualChannelId = result.channelId;
-      
-      console.log('📡 Sync complete:', {
+      console.log('🔄 Sync complete:', {
         channelId: actualChannelId,
         inserted: result.inserted_or_updated,
-        mode: (result as any).mode
+        fullSync
       });
 
       setCurrentChannelId(actualChannelId);
 
-      // ✅ 업로드 빈도 통계 저장
+      // 업로드 빈도 통계
       if (result.uploadFrequency) {
         setUploadFrequency(result.uploadFrequency);
       }
 
-      // Refresh channel stats from database using actual channel ID
+      // 채널 통계 갱신
       const supabase = getSupabaseClient();
-      const { data: channelData, error: channelError } = await supabase
+      const { data: channelData } = await supabase
         .from("youtube_channels")
         .select("subscriber_count, total_views, channel_name")
         .eq("channel_id", actualChannelId)
         .maybeSingle();
 
-      if (!channelError && channelData) {
+      if (channelData) {
         setChannelStats({
           subscriberCount: channelData.subscriber_count || 0,
           totalViews: channelData.total_views || 0,
@@ -123,19 +131,81 @@ const Index = () => {
         });
       }
 
-      // Load all videos using actual channel ID
+      // 영상 목록 로드
       await loadVideos(actualChannelId);
 
+      // 성공 메시지
       const insertedCount = result.inserted_or_updated || 0;
-      if (insertedCount > 0) {
-        toast.success(`✅ 분석 완료: ${insertedCount}개의 새 영상을 발견했습니다`);
+      if (fullSync) {
+        toast.success(`✅ 전체 분석 완료: ${insertedCount}개 영상`);
+      } else if (insertedCount > 0) {
+        toast.success(`✅ 분석 완료: ${insertedCount}개의 새 영상 추가`);
       } else {
         toast.success(`✅ 분석 완료: 새 영상이 없습니다`);
       }
     } catch (error: any) {
+      console.error("Sync error:", error);
+      toast.error(error.message || "동기화 중 오류가 발생했습니다");
+    }
+  };
+
+  const handleAnalyze = async (url: string) => {
+    try {
+      if (!hasSupabaseCredentials()) {
+        toast.error("Settings에서 Supabase URL/Anon Key를 설정하세요");
+        return;
+      }
+
+      // 먼저 채널 ID만 빠르게 확인
+      const supabase = getSupabaseClient();
+      
+      // URL에서 채널 식별자 추출
+      let channelIdentifier = url;
+      if (url.includes('youtube.com/@')) {
+        const match = url.match(/@([\w-]+)/);
+        if (match) channelIdentifier = match[1];
+      } else if (url.includes('UC')) {
+        const match = url.match(/UC[\w-]+/);
+        if (match) channelIdentifier = match[0];
+      }
+
+      // DB에 기존 데이터 있는지 확인
+      const { count: existingCount, data: existingChannel } = await supabase
+        .from("youtube_videos")
+        .select("channel_id", { count: "exact" })
+        .or(`channel_id.eq.${channelIdentifier},channel_id.ilike.%${channelIdentifier}%`)
+        .limit(1);
+
+      console.log('📊 Existing videos:', existingCount);
+
+      if (existingCount && existingCount > 10) {
+        // 재분석 - 다이얼로그 표시
+        setPendingUrl(url);
+        setShowResyncDialog(true);
+        return;
+      }
+
+      // 최초 분석 - 바로 실행
+      await performSync(url, true);
+
+    } catch (error: any) {
       console.error("Analysis error:", error);
       toast.error(error.message || "채널 분석 중 오류가 발생했습니다");
     }
+  };
+
+  const handleResyncConfirm = async (incrementalOnly: boolean) => {
+    setShowResyncDialog(false);
+    const fullSync = !incrementalOnly;
+    
+    if (fullSync) {
+      toast.info("전체 재분석을 시작합니다...");
+    } else {
+      toast.info("새로운 영상만 확인합니다...");
+    }
+
+    await performSync(pendingUrl, fullSync);
+    setPendingUrl("");
   };
 
   useEffect(() => {
@@ -163,6 +233,32 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <SettingsModal />
 
+      {/* 재분석 확인 다이얼로그 */}
+      <AlertDialog open={showResyncDialog} onOpenChange={setShowResyncDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>이미 분석한 채널입니다</AlertDialogTitle>
+            <AlertDialogDescription>
+              새로운 데이터만 분석하시겠습니까?
+              <br />
+              <span className="text-xs text-muted-foreground mt-2 block">
+                • 예: 최근 업로드된 영상만 추가 (빠름)
+                <br />
+                • 아니오: 모든 영상 재분석 (느림, API 할당량 소모)
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => handleResyncConfirm(false)}>
+              아니오 (전체 재분석)
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => handleResyncConfirm(true)}>
+              예 (새 영상만)
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <header className="text-center mb-12">
@@ -181,7 +277,12 @@ const Index = () => {
             <div className="w-full max-w-3xl mt-4">
               <div className="flex flex-col gap-2">
                 <div className="text-sm text-muted-foreground">동기화 중...</div>
-                <SyncProgress progress={syncProgress} error={!!syncError} />
+                <SyncProgress 
+                  progress={syncProgress} 
+                  error={!!syncError}
+                  currentCount={currentCount}
+                  totalCount={totalCount}
+                />
               </div>
             </div>
           )}
