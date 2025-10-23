@@ -7,7 +7,7 @@ import { SettingsModal } from "@/components/SettingsModal";
 import { YouTubeVideo } from "@/lib/youtubeApi";
 import { VideoRow, SyncResponse, UploadFrequency } from "@/lib/types";
 import { getSupabaseClient, hasSupabaseCredentials } from "@/lib/supabaseClient";
-import { syncNewVideos } from "@/lib/edge";
+import { syncNewVideos, resolveChannelId } from "@/lib/edge";
 import { Video, Eye, Calendar, Users } from "lucide-react";
 import { toast } from "sonner";
 import { formatInt } from "@/utils/format";
@@ -93,34 +93,21 @@ const Index = () => {
     }
   };
 
-  const performSync = async (url: string, fullSync: boolean, knownChannelId?: string) => {
+  const performSync = async (url: string, fullSync: boolean) => {
     try {
-      // 동기화 시작
+      // 동기화 시작 (useSync의 startSync가 Edge Function 호출 포함)
       await startSync(url, fullSync);
 
-      // Edge Function 호출
-      const result = await syncNewVideos(url, fullSync);
-      const actualChannelId = knownChannelId || result.channelId;
-
-      console.log('🔄 Sync complete:', {
-        channelId: actualChannelId,
-        inserted: result.inserted_or_updated,
-        fullSync
-      });
-
-      setCurrentChannelId(actualChannelId);
-
-      // 업로드 빈도 통계
-      if (result.uploadFrequency) {
-        setUploadFrequency(result.uploadFrequency);
-      }
+      // channelId 확인
+      const { channelId } = await resolveChannelId(url);
+      setCurrentChannelId(channelId);
 
       // 채널 통계 갱신
       const supabase = getSupabaseClient();
       const { data: channelData } = await supabase
         .from("youtube_channels")
         .select("subscriber_count, total_views, channel_name")
-        .eq("channel_id", actualChannelId)
+        .eq("channel_id", channelId)
         .maybeSingle();
 
       if (channelData) {
@@ -132,17 +119,10 @@ const Index = () => {
       }
 
       // 영상 목록 로드
-      await loadVideos(actualChannelId);
+      await loadVideos(channelId);
 
       // 성공 메시지
-      const insertedCount = result.inserted_or_updated || 0;
-      if (fullSync) {
-        toast.success(`✅ 전체 분석 완료: ${insertedCount}개 영상`);
-      } else if (insertedCount > 0) {
-        toast.success(`✅ 분석 완료: ${insertedCount}개의 새 영상 추가`);
-      } else {
-        toast.success(`✅ 분석 완료: 새 영상이 없습니다`);
-      }
+      toast.success(fullSync ? "✅ 전체 분석 완료" : "✅ 새 영상 분석 완료");
     } catch (error: any) {
       console.error("Sync error:", error);
       toast.error(error.message || "동기화 중 오류가 발생했습니다");
@@ -156,25 +136,13 @@ const Index = () => {
         return;
       }
 
-      // 먼저 채널 ID만 빠르게 확인
+      // 채널 존재 확인 & 기존 개수 체크
+      const { channelId } = await resolveChannelId(url);
       const supabase = getSupabaseClient();
-      
-      // URL에서 채널 식별자 추출
-      let channelIdentifier = url;
-      if (url.includes('youtube.com/@')) {
-        const match = url.match(/@([\w-]+)/);
-        if (match) channelIdentifier = match[1];
-      } else if (url.includes('UC')) {
-        const match = url.match(/UC[\w-]+/);
-        if (match) channelIdentifier = match[0];
-      }
-
-      // DB에 기존 데이터 있는지 확인
-      const { count: existingCount, data: existingChannel } = await supabase
+      const { count: existingCount } = await supabase
         .from("youtube_videos")
-        .select("channel_id", { count: "exact" })
-        .or(`channel_id.eq.${channelIdentifier},channel_id.ilike.%${channelIdentifier}%`)
-        .limit(1);
+        .select("video_id", { count: "exact", head: true })
+        .eq("channel_id", channelId);
 
       console.log('📊 Existing videos:', existingCount);
 
@@ -272,34 +240,34 @@ const Index = () => {
         <div className="flex flex-col items-center mb-12">
           <ChannelInput onAnalyze={handleAnalyze} loading={isLoading} />
 
-          {/* Sync Progress Bar */}
-          {isSyncing && (
-            <div className="w-full max-w-3xl mt-4">
-              <div className="flex flex-col gap-2">
-                <div className="text-sm text-muted-foreground">동기화 중...</div>
-                <SyncProgress 
-                  progress={syncProgress} 
-                  error={!!syncError}
-                  currentCount={currentCount}
-                  totalCount={totalCount}
-                />
-              </div>
+        {/* Sync Progress Bar */}
+        {isSyncing && (
+          <div className="w-full max-w-3xl mt-4">
+            <div className="flex flex-col gap-2">
+              <div className="text-sm text-muted-foreground">동기화 중...</div>
+              <SyncProgress 
+                progress={syncProgress} 
+                error={!!syncError}
+                currentCount={currentCount}
+                totalCount={totalCount}
+              />
             </div>
-          )}
+          </div>
+        )}
 
-          {syncError && <div className="text-destructive text-sm mt-2">{syncError}</div>}
-        </div>
+        {syncError && <div className="text-destructive text-sm mt-2">{syncError}</div>}
+      </div>
 
-        {/* Quantity Section */}
-        <section className="mb-8">
-          <h3 className="text-sm font-semibold mb-3 text-foreground">Quantity</h3>
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[...Array(4)].map((_, i) => (
-                <SkeletonCard key={`qty-${i}`} className="h-32" />
-              ))}
-            </div>
-          ) : (
+      {/* Quantity Section */}
+      <section className="mb-8">
+        <h3 className="text-sm font-semibold mb-3 text-foreground">Quantity</h3>
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <SkeletonCard key={`qty-${i}`} className="h-32" />
+            ))}
+          </div>
+        ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <MetricsCard
                 title="총 구독자 수"

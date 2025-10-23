@@ -1,29 +1,20 @@
 import { supabase } from "./supabase";
 import { SyncResponse } from "./types";
 
-export async function syncNewVideos(
-  channelUrl: string, 
-  fullSync?: boolean
-): Promise<SyncResponse> {
-  if (!channelUrl || !/^https?:\/\/(www\.)?youtube\.com|youtu\.be/.test(channelUrl)) {
-    throw new Error('유효한 유튜브 채널 URL을 입력하세요.');
-  }
-
-  const { data, error } = await supabase.functions.invoke("sync-new-videos", {
-    body: { 
-      channelKey: channelUrl,
-      fullSync: fullSync ?? true, // 기본값은 true
-    },
+export async function resolveChannelId(channelKey: string) {
+  const { data, error } = await supabase.functions.invoke("resolve-channel-id", {
+    body: { channelKey },
   });
+  if (error) throw new Error(error.message || "resolve-channel-id failed");
+  if (!data?.ok || !data?.channelId) throw new Error(data?.error || "Cannot resolve channelId");
+  return { channelId: data.channelId as string, totalVideos: (data.totalVideos ?? 0) as number };
+}
 
-  if (error) {
-    console.error('Edge Function error:', error);
-    throw new Error(error.message || 'Edge Function 호출에 실패했습니다.');
-  }
-
-  if (!data?.ok) {
-    throw new Error(data?.error || '알 수 없는 오류가 발생했습니다.');
-  }
-
+export async function syncNewVideos(channelKey: string, fullSync = true) {
+  const { data, error } = await supabase.functions.invoke("sync-new-videos", {
+    body: { channelKey, fullSync },
+  });
+  if (error) throw new Error(error.message || "sync-new-videos failed");
+  if (!data?.ok) throw new Error(data?.error || "sync-new-videos returned not ok");
   return data as SyncResponse;
 }
