@@ -238,7 +238,9 @@ const Index = () => {
   const channelTotalViews = channelStats?.totalViews || 0;
   const hiddenSubscriber = channelStats?.hiddenSubscriber || false;
 
+  // 통합 스켈레톤 상태: 동기화 중이거나 데이터 로딩 중일 때
   const isLoading = loading || isSyncing;
+  const isSkeleton = loading || isSyncing;
 
   return (
     <div className="min-h-screen bg-background">
@@ -347,13 +349,13 @@ const Index = () => {
         {/* Views Trend & Topic Chart - Side by Side */}
         <section className="mb-12">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <ViewsTrend videos={videoRows} loading={isLoading} />
-            <TopicChart videos={videos} loading={isLoading} />
+            <ViewsTrend videos={videoRows} loading={isSkeleton} />
+            <TopicChart videos={videos} loading={isSkeleton} />
           </div>
         </section>
 
         {/* Video Table */}
-        <VideoTable videos={videos} loading={isLoading} />
+        <VideoTable videos={videos} loading={isSkeleton} />
 
         {/* Footer */}
         <footer className="text-center mt-12 text-muted-foreground text-sm">Powered by Supabase + Lovable</footer>
