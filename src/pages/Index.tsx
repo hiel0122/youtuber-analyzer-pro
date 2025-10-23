@@ -32,6 +32,7 @@ const Index = () => {
   const { isSyncing, progress: syncProgress, error: syncError, startSync } = useSync();
 
   const loadVideos = async (channelId: string) => {
+    console.log('🔍 Loading videos for channel:', channelId);
     setLoading(true);
     try {
       const supabase = getSupabaseClient();
@@ -42,8 +43,9 @@ const Index = () => {
         .order("upload_date", { ascending: false });
 
       if (videosError) {
-        console.error("Videos fetch error:", videosError);
+        console.error("❌ Videos fetch error:", videosError);
       } else {
+        console.log('✅ Videos loaded:', videosData?.length || 0);
         const mappedVideos: YouTubeVideo[] = (videosData || []).map((v: any) => ({
           videoId: v.video_id,
           title: v.title,
@@ -88,24 +90,29 @@ const Index = () => {
 
       await startSync(url);
 
-      // After sync completes, fetch data
-      const supabase = getSupabaseClient();
-      const data = await syncNewVideos(url);
+      // Sync videos and get actual channel ID
+      const result = await syncNewVideos(url);
+      const actualChannelId = result.channelId;
+      
+      console.log('📡 Sync complete:', {
+        channelId: actualChannelId,
+        inserted: result.inserted_or_updated,
+        mode: (result as any).mode
+      });
 
-      const result = data;
-
-      setCurrentChannelId(result.channelId);
+      setCurrentChannelId(actualChannelId);
 
       // ✅ 업로드 빈도 통계 저장
       if (result.uploadFrequency) {
         setUploadFrequency(result.uploadFrequency);
       }
 
-      // Refresh channel stats from database
+      // Refresh channel stats from database using actual channel ID
+      const supabase = getSupabaseClient();
       const { data: channelData, error: channelError } = await supabase
         .from("youtube_channels")
         .select("subscriber_count, total_views, channel_name")
-        .eq("channel_id", result.channelId)
+        .eq("channel_id", actualChannelId)
         .maybeSingle();
 
       if (!channelError && channelData) {
@@ -116,7 +123,8 @@ const Index = () => {
         });
       }
 
-      await loadVideos(result.channelId);
+      // Load all videos using actual channel ID
+      await loadVideos(actualChannelId);
 
       const insertedCount = result.inserted_or_updated || 0;
       if (insertedCount > 0) {
