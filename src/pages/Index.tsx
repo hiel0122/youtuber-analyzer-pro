@@ -8,6 +8,7 @@ import { YouTubeVideo } from "@/lib/youtubeApi";
 import { VideoRow, SyncResponse, UploadFrequency } from "@/lib/types";
 import { getSupabaseClient, hasSupabaseCredentials } from "@/lib/supabaseClient";
 import { syncNewVideos, syncQuickCheck } from "@/lib/edge";
+import { fetchAllVideosByChannel } from "@/lib/supabasePaging";
 import { Video, Eye, Calendar, Users } from "lucide-react";
 import { toast } from "sonner";
 import { formatInt } from "@/utils/format";
@@ -47,47 +48,46 @@ const Index = () => {
     console.log('🔍 Loading videos for channel:', channelId);
     setLoading(true);
     try {
-      const supabase = getSupabaseClient();
-      const { data: videosData, error: videosError } = await supabase
-        .from("youtube_videos")
-        .select("*")
-        .eq("channel_id", channelId)
-        .order("upload_date", { ascending: false });
+      // 전체 로드 (페이지네이션으로 1000개 제한 해제)
+      const { data: allVideos, count: totalCount } = await fetchAllVideosByChannel<any>(
+        channelId,
+        "*",
+        "upload_date",
+        false
+      );
 
-      if (videosError) {
-        console.error("❌ Videos fetch error:", videosError);
-      } else {
-        console.log('✅ Videos loaded:', videosData?.length || 0);
-        const mappedVideos: YouTubeVideo[] = (videosData || []).map((v: any) => ({
-          videoId: v.video_id,
-          title: v.title,
-          topic: v.topic || "",
-          presenter: v.presenter || "",
-          views: v.views || 0,
-          likes: v.likes || 0,
-          dislikes: v.dislikes || 0,
-          uploadDate: v.upload_date,
-          duration: v.duration || "0:00",
-          url: v.url,
-        }));
-        setVideos(mappedVideos);
+      console.log('📊 Total videos in DB:', totalCount);
+      console.log('✅ All videos loaded:', allVideos.length);
 
-        const mappedRows: VideoRow[] = (videosData || []).map((v: any) => ({
-          id: v.id,
-          channel_id: v.channel_id,
-          topic: v.topic,
-          title: v.title,
-          presenter: v.presenter,
-          views: v.views,
-          likes: v.likes,
-          upload_date: v.upload_date,
-          duration: v.duration,
-          url: v.url,
-        }));
-        setVideoRows(mappedRows);
-      }
+      const mappedVideos: YouTubeVideo[] = allVideos.map((v: any) => ({
+        videoId: v.video_id,
+        title: v.title,
+        topic: v.topic || "",
+        presenter: v.presenter || "",
+        views: v.views || 0,
+        likes: v.likes || 0,
+        dislikes: v.dislikes || 0,
+        uploadDate: v.upload_date,
+        duration: v.duration || "0:00",
+        url: v.url,
+      }));
+      setVideos(mappedVideos);
+
+      const mappedRows: VideoRow[] = allVideos.map((v: any) => ({
+        id: v.id,
+        channel_id: v.channel_id,
+        topic: v.topic,
+        title: v.title,
+        presenter: v.presenter,
+        views: v.views,
+        likes: v.likes,
+        upload_date: v.upload_date,
+        duration: v.duration,
+        url: v.url,
+      }));
+      setVideoRows(mappedRows);
     } catch (error) {
-      console.error("Load videos error:", error);
+      console.error("❌ Load videos error:", error);
     } finally {
       setLoading(false);
     }
