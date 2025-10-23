@@ -42,7 +42,11 @@ const Index = () => {
   const [uploadFrequency, setUploadFrequency] = useState<UploadFrequency | undefined>(undefined);
   const [showResyncDialog, setShowResyncDialog] = useState(false);
   const [pendingUrl, setPendingUrl] = useState<string>("");
+  const [isHydrating, setIsHydrating] = useState(false);
   const { isSyncing, progress: syncProgress, currentCount, totalCount, error: syncError, startSync } = useSync();
+
+  // 전역 busy 상태
+  const isBusy = isSyncing || isHydrating;
 
   const loadVideos = async (channelId: string) => {
     console.log('🔍 Loading videos for channel:', channelId);
@@ -93,12 +97,24 @@ const Index = () => {
     }
   };
 
+  const hydrateAll = async (channelId: string) => {
+    setIsHydrating(true);
+    try {
+      await loadVideos(channelId);
+    } finally {
+      setIsHydrating(false);
+    }
+  };
+
   const performSync = async (url: string, fullSync: boolean, knownChannelId?: string) => {
+    let finish: (() => void) | undefined;
+    
     try {
       console.log('🚀 Starting performSync:', { url, fullSync, knownChannelId });
 
       // 동기화 시작 (useSync의 startSync가 Edge Function 호출 포함)
       const result = await startSync(url, fullSync);
+      finish = result?.finish;
       console.log('📦 Sync result:', result);
       
       // channelId 확인
@@ -134,8 +150,8 @@ const Index = () => {
         });
       }
 
-      // 영상 목록 로드
-      await loadVideos(channelId);
+      // 모든 데이터 로딩 (병렬)
+      await hydrateAll(channelId);
 
       // 실제 개수 확인
       const { count: actualCount } = await supabase
@@ -154,9 +170,14 @@ const Index = () => {
       } else {
         toast.success(`✅ 분석 완료: 새 영상이 없습니다`);
       }
+
+      // ✅ 모든 데이터 로딩이 완료된 후 동기화 상태 종료
+      finish?.();
     } catch (error: any) {
       console.error("❌ Sync error:", error);
       toast.error(error.message || "동기화 중 오류가 발생했습니다");
+      // 에러 시에도 finish 호출
+      finish?.();
     }
   };
 
@@ -239,8 +260,8 @@ const Index = () => {
   const hiddenSubscriber = channelStats?.hiddenSubscriber || false;
 
   // 통합 스켈레톤 상태: 동기화 중이거나 데이터 로딩 중일 때
-  const isLoading = loading || isSyncing;
-  const isSkeleton = loading || isSyncing;
+  const isLoading = loading || isBusy;
+  const isSkeleton = isBusy;
 
   return (
     <div className="min-h-screen bg-background">

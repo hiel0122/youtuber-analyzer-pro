@@ -26,12 +26,20 @@ export function useSync() {
     setError(null);
     clearPoll();
 
+    const channelIdRef = { current: "" };
+
+    const finish = () => {
+      setIsSyncing(false);
+      setProgress(0);
+    };
+
     try {
       // 1) 채널ID & 총영상수 선확인
       const { channelId, totalVideos } = await syncQuickCheck(channelInput).catch(() => ({
         channelId: "",
         totalVideos: 0,
       }));
+      channelIdRef.current = channelId;
       const estimatedTotal = totalVideos && totalVideos > 0 ? totalVideos : 1000;
       setTotalCount(estimatedTotal);
 
@@ -65,16 +73,12 @@ export function useSync() {
         setCurrentCount(res.inserted_or_updated);
       }
 
-      return { ...res, channelId };
+      return { ...res, channelId: channelIdRef.current, finish };
     } catch (e: any) {
       clearPoll();
       setError(e?.message || "동기화 실패");
+      finish();
       throw e;
-    } finally {
-      // UI 여유시간 후 리셋(필요 시 조정)
-      setTimeout(() => {
-        setIsSyncing(false);
-      }, 600);
     }
   }, []);
 
