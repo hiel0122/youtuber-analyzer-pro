@@ -68,6 +68,9 @@ export default function QuantityQuality({
         <div className="grid grid-cols-4 gap-4">
           {[...Array(4)].map((_,i) => <div key={`q2-${i}`} className="h-24 bg-gray-900 animate-pulse rounded-2xl" />)}
         </div>
+        <div className="grid grid-cols-4 gap-4">
+          {[...Array(4)].map((_,i) => <div key={`q3-${i}`} className="h-24 bg-gray-900 animate-pulse rounded-2xl" />)}
+        </div>
       </div>
     );
   }
@@ -89,31 +92,41 @@ export default function QuantityQuality({
           <StatCard title="평균 조회수" value={formatNumber(stats.avgViews)} />
           <StatCard title="평균 좋아요" value={formatNumber(stats.avgLikes)} />
         </div>
-        {/* 3행: 업로드 빈도 통계 */}
-        {uploadFrequency && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <StatCard 
-              title="평균 영상 업로드 (Week)" 
-              value={`${uploadFrequency.averages.perWeek.toFixed(2)}/주`}
-              icon={Calendar}
-            />
-            <StatCard 
-              title="평균 영상 업로드 (Month)" 
-              value={`${uploadFrequency.averages.perMonth.toFixed(2)}/월`}
-              icon={CalendarCheck}
-            />
-            <StatCard 
-              title="평균 영상 업로드 (General)" 
-              value={`${uploadFrequency.averages.perMonthGeneral.toFixed(2)}/월`}
-              icon={Video}
-            />
-            <StatCard 
-              title="평균 영상 업로드 (Shorts)" 
-              value={`${uploadFrequency.averages.perMonthShorts.toFixed(2)}/월`}
-              icon={Clapperboard}
-            />
-          </div>
-        )}
+        {/* 3행: 업로드 빈도 통계 - 항상 표시 */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <StatCard 
+            title="평균 영상 업로드 (Week)" 
+            value={uploadFrequency 
+              ? `${uploadFrequency.averages.perWeek.toFixed(2)}/주`
+              : '0.00/주'
+            }
+            icon={Calendar}
+          />
+          <StatCard 
+            title="평균 영상 업로드 (Month)" 
+            value={uploadFrequency
+              ? `${uploadFrequency.averages.perMonth.toFixed(2)}/월`
+              : '0.00/월'
+            }
+            icon={CalendarCheck}
+          />
+          <StatCard 
+            title="평균 영상 업로드 (General)" 
+            value={uploadFrequency
+              ? `${uploadFrequency.averages.perMonthGeneral.toFixed(2)}/월`
+              : '0.00/월'
+            }
+            icon={Video}
+          />
+          <StatCard 
+            title="평균 영상 업로드 (Shorts)" 
+            value={uploadFrequency
+              ? `${uploadFrequency.averages.perMonthShorts.toFixed(2)}/월`
+              : '0.00/월'
+            }
+            icon={Clapperboard}
+          />
+        </div>
       </div>
     </SectionCard>
   );

@@ -38,7 +38,7 @@ function iso8601ToHMS(iso: string): string {
   return h ? `${h}:${pad(min)}:${pad(s)}` : `${min}:${pad(s)}`;
 }
 
-// ✅ 수정: 채널 ID 해석 (forHandle 올바르게 사용 + /c/, /user/ 지원)
+// ✅ 수정: 채널 ID 해석 (forHandle @ 제거 + /c/, /user/ 지원)
 async function resolveChannelId(input: string, apiKey: string) {
   const v = input.trim();
   
@@ -56,7 +56,7 @@ async function resolveChannelId(input: string, apiKey: string) {
     return item ? { channelId: mUC[1], title: item.snippet?.title ?? '' } : null;
   }
 
-  // 2) Handle (@handle) - ✅ forHandle 파라미터에 @ 제거
+  // 2) Handle (@handle) - ✅ @ 제거
   const mHandle = v.match(/@([a-zA-Z0-9._-]+)/);
   if (mHandle) {
     const handleName = mHandle[1]; // @ 제거
