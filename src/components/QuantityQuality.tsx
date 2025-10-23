@@ -15,22 +15,22 @@ function secsToLabel(secs: number) {
   return `${s}s`;
 }
 
-export default function QuantityQuality({ 
-  videos, 
-  loading, 
-  uploadFrequency 
-}: { 
-  videos: VideoRow[]; 
+export default function QuantityQuality({
+  videos,
+  loading,
+  uploadFrequency,
+}: {
+  videos: VideoRow[];
   loading: boolean;
   uploadFrequency?: UploadFrequency;
 }) {
   const stats = useMemo(() => {
-    const durations = videos.map(v => parseDurationToSeconds(v.duration));
-    const viewsArr = videos.map(v => v.views ?? 0);
-    const likesArr = videos.map(v => v.likes ?? 0);
+    const durations = videos.map((v) => parseDurationToSeconds(v.duration));
+    const viewsArr = videos.map((v) => v.views ?? 0);
+    const likesArr = videos.map((v) => v.likes ?? 0);
 
-    const longArr = durations.filter(d => d > 60);
-    const shortArr = durations.filter(d => d <= 60);
+    const longArr = durations.filter((d) => d > 60);
+    const shortArr = durations.filter((d) => d <= 60);
 
     const longCount = longArr.length;
     const shortCount = shortArr.length;
@@ -39,12 +39,18 @@ export default function QuantityQuality({
 
     const maxViews = viewsArr.length ? Math.max(...viewsArr) : 0;
     const minViews = viewsArr.length ? Math.min(...viewsArr) : 0;
-    const avgViews = viewsArr.length ? Math.round(viewsArr.reduce((a,b)=>a+b,0) / viewsArr.length) : 0;
-    const avgLikes = likesArr.length ? Math.round(likesArr.reduce((a,b)=>a+b,0) / likesArr.length) : 0;
+    const avgViews = viewsArr.length ? Math.round(viewsArr.reduce((a, b) => a + b, 0) / viewsArr.length) : 0;
+    const avgLikes = likesArr.length ? Math.round(likesArr.reduce((a, b) => a + b, 0) / likesArr.length) : 0;
 
     return {
-      longCount, shortCount, maxDur, minLongDur,
-      maxViews, minViews, avgViews, avgLikes,
+      longCount,
+      shortCount,
+      maxDur,
+      minLongDur,
+      maxViews,
+      minViews,
+      avgViews,
+      avgLikes,
     };
   }, [videos]);
 
@@ -52,13 +58,19 @@ export default function QuantityQuality({
     return (
       <div className="grid gap-4">
         <div className="grid grid-cols-4 gap-4">
-          {[...Array(4)].map((_,i) => <div key={`q1-${i}`} className="h-24 bg-gray-900 animate-pulse rounded-2xl" />)}
+          {[...Array(4)].map((_, i) => (
+            <div key={`q1-${i}`} className="h-24 bg-gray-900 animate-pulse rounded-2xl" />
+          ))}
         </div>
         <div className="grid grid-cols-4 gap-4">
-          {[...Array(4)].map((_,i) => <div key={`q2-${i}`} className="h-24 bg-gray-900 animate-pulse rounded-2xl" />)}
+          {[...Array(4)].map((_, i) => (
+            <div key={`q2-${i}`} className="h-24 bg-gray-900 animate-pulse rounded-2xl" />
+          ))}
         </div>
         <div className="grid grid-cols-4 gap-4">
-          {[...Array(4)].map((_,i) => <div key={`q3-${i}`} className="h-24 bg-gray-900 animate-pulse rounded-2xl" />)}
+          {[...Array(4)].map((_, i) => (
+            <div key={`q3-${i}`} className="h-24 bg-gray-900 animate-pulse rounded-2xl" />
+          ))}
         </div>
       </div>
     );
@@ -83,36 +95,24 @@ export default function QuantityQuality({
         </div>
         {/* 3행: 업로드 빈도 통계 - 항상 표시 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <MetricsCard 
-            title="평균 영상 업로드 (Week)" 
-            value={uploadFrequency 
-              ? `${uploadFrequency.averages.perWeek.toFixed(2)}/주`
-              : '0.00/주'
-            }
+          <MetricsCard
+            title="평균 영상 업로드 (Week)"
+            value={uploadFrequency ? `${uploadFrequency.averages.perWeek.toFixed(2)}/주` : "0.00/주"}
             icon={Calendar}
           />
-          <MetricsCard 
-            title="평균 영상 업로드 (Month)" 
-            value={uploadFrequency
-              ? `${uploadFrequency.averages.perMonth.toFixed(2)}/월`
-              : '0.00/월'
-            }
+          <MetricsCard
+            title="평균 영상 업로드 (Month)"
+            value={uploadFrequency ? `${uploadFrequency.averages.perMonth.toFixed(2)}/월` : "0.00/월"}
             icon={CalendarCheck}
           />
-          <MetricsCard 
-            title="평균 영상 업로드 (General)" 
-            value={uploadFrequency
-              ? `${uploadFrequency.averages.perMonthGeneral.toFixed(2)}/월`
-              : '0.00/월'
-            }
+          <MetricsCard
+            title="평균 영상 업로드 (General)"
+            value={uploadFrequency ? `${uploadFrequency.averages.perMonthGeneral.toFixed(2)}/월` : "0.00/월"}
             icon={Video}
           />
-          <MetricsCard 
-            title="평균 영상 업로드 (Shorts)" 
-            value={uploadFrequency
-              ? `${uploadFrequency.averages.perMonthShorts.toFixed(2)}/월`
-              : '0.00/월'
-            }
+          <MetricsCard
+            title="평균 영상 업로드 (Shorts)"
+            value={uploadFrequency ? `${uploadFrequency.averages.perMonthShorts.toFixed(2)}/월` : "0.00/월"}
             icon={Clapperboard}
           />
         </div>
