@@ -13,7 +13,6 @@ import { Video, Eye, Calendar, Users } from "lucide-react";
 import { toast } from "sonner";
 import { formatInt } from "@/utils/format";
 import { Badge } from "@/components/ui/badge";
-import { SectionCard } from "@/components/ui/card";
 import { useSync } from "@/hooks/useSync";
 import SyncProgress from "@/components/SyncProgress";
 import QuantityQuality from "@/components/QuantityQuality";
@@ -56,7 +55,7 @@ const Index = () => {
   useBodyLock(isBusy);
 
   const loadVideos = async (channelId: string) => {
-    console.log('🔍 Loading videos for channel:', channelId);
+    console.log("🔍 Loading videos for channel:", channelId);
     setLoading(true);
     try {
       // 전체 로드 (페이지네이션으로 1000개 제한 해제)
@@ -64,11 +63,11 @@ const Index = () => {
         channelId,
         "*",
         "upload_date",
-        false
+        false,
       );
 
-      console.log('📊 Total videos in DB:', totalCount);
-      console.log('✅ All videos loaded:', allVideos.length);
+      console.log("📊 Total videos in DB:", totalCount);
+      console.log("✅ All videos loaded:", allVideos.length);
 
       const mappedVideos: YouTubeVideo[] = allVideos.map((v: any) => ({
         videoId: v.video_id,
@@ -115,28 +114,28 @@ const Index = () => {
 
   const performSync = async (url: string, fullSync: boolean, knownChannelId?: string) => {
     let finish: (() => void) | undefined;
-    
+
     try {
-      console.log('🚀 Starting performSync:', { url, fullSync, knownChannelId });
+      console.log("🚀 Starting performSync:", { url, fullSync, knownChannelId });
 
       // 동기화 시작 (useSync의 startSync가 Edge Function 호출 포함)
       const result = await startSync(url, fullSync);
       finish = result?.finish;
-      console.log('📦 Sync result:', result);
-      
+      console.log("📦 Sync result:", result);
+
       // channelId 확인
       const channelId = knownChannelId || result?.channelId;
       if (!channelId) throw new Error("채널 ID를 확인할 수 없습니다.");
-      
-      console.log('✅ Using channelId:', channelId);
+
+      console.log("✅ Using channelId:", channelId);
       setCurrentChannelId(channelId);
 
       // ✅ uploadFrequency 설정 추가!
       if (result?.uploadFrequency) {
-        console.log('📊 Setting uploadFrequency:', result.uploadFrequency);
+        console.log("📊 Setting uploadFrequency:", result.uploadFrequency);
         setUploadFrequency(result.uploadFrequency);
       } else {
-        console.warn('⚠️ No uploadFrequency in result');
+        console.warn("⚠️ No uploadFrequency in result");
       }
 
       // 채널 통계 갱신
@@ -147,7 +146,7 @@ const Index = () => {
         .eq("channel_id", channelId)
         .maybeSingle();
 
-      console.log('📈 Channel data:', channelData);
+      console.log("📈 Channel data:", channelData);
 
       if (channelData) {
         setChannelStats({
@@ -166,7 +165,7 @@ const Index = () => {
         .select("video_id", { count: "exact", head: true })
         .eq("channel_id", channelId);
 
-      console.log('✅ Total videos in DB:', actualCount);
+      console.log("✅ Total videos in DB:", actualCount);
 
       // 성공 메시지
       const insertedCount = result?.inserted_or_updated || actualCount || 0;
@@ -195,11 +194,11 @@ const Index = () => {
         return;
       }
 
-      console.log('🔍 Analyzing:', url);
+      console.log("🔍 Analyzing:", url);
 
       // 채널 존재 확인 & 기존 개수 체크 (quickCheck 사용)
       const { channelId, totalVideos } = await syncQuickCheck(url);
-      console.log('📡 QuickCheck result:', { channelId, totalVideos });
+      console.log("📡 QuickCheck result:", { channelId, totalVideos });
 
       const supabase = getSupabaseClient();
       const { count: existingCount } = await supabase
@@ -207,7 +206,7 @@ const Index = () => {
         .select("video_id", { count: "exact", head: true })
         .eq("channel_id", channelId);
 
-      console.log('📊 Existing videos for channelId', channelId, ':', existingCount);
+      console.log("📊 Existing videos for channelId", channelId, ":", existingCount);
 
       if (existingCount && existingCount > 10) {
         // 재분석 - 다이얼로그 표시
@@ -217,9 +216,8 @@ const Index = () => {
       }
 
       // 최초 분석 - 바로 실행
-      console.log('🆕 First time analysis - full sync');
+      console.log("🆕 First time analysis - full sync");
       await performSync(url, true, channelId);
-
     } catch (error: any) {
       console.error("❌ Analysis error:", error);
       toast.error(error.message || "채널 분석 중 오류가 발생했습니다");
@@ -229,7 +227,7 @@ const Index = () => {
   const handleResyncConfirm = async (incrementalOnly: boolean) => {
     setShowResyncDialog(false);
     const fullSync = !incrementalOnly;
-    
+
     if (fullSync) {
       toast.info("전체 재분석을 시작합니다...");
     } else {
@@ -283,106 +281,98 @@ const Index = () => {
 
       {/* 실제 컨텐츠: isBusy일 때 흐림 + 클릭 차단 */}
       <div
-        className={cn(
-          "transition duration-200",
-          isBusy ? "blur-sm pointer-events-none select-none" : ""
-        )}
+        className={cn("transition duration-200", isBusy ? "blur-sm pointer-events-none select-none" : "")}
         aria-busy={isBusy}
       >
         <SettingsModal />
 
-      {/* 재분석 확인 다이얼로그 */}
-      <AlertDialog open={showResyncDialog} onOpenChange={setShowResyncDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>이미 분석한 채널입니다</AlertDialogTitle>
-            <AlertDialogDescription>
-              새로운 데이터만 분석하시겠습니까?
-              <br />
-              <span className="text-xs text-muted-foreground mt-2 block">
-                • 예: 최근 업로드된 영상만 추가 (빠름)
+        {/* 재분석 확인 다이얼로그 */}
+        <AlertDialog open={showResyncDialog} onOpenChange={setShowResyncDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>이미 분석한 채널입니다</AlertDialogTitle>
+              <AlertDialogDescription>
+                새로운 데이터만 분석하시겠습니까?
                 <br />
-                • 아니오: 모든 영상 재분석 (느림, API 할당량 소모)
-              </span>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => handleResyncConfirm(false)}>
-              아니오 (전체 재분석)
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={() => handleResyncConfirm(true)}>
-              예 (새 영상만)
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+                <span className="text-xs text-muted-foreground mt-2 block">
+                  • 예: 최근 업로드된 영상만 추가 (빠름)
+                  <br />• 아니오: 모든 영상 재분석 (느림, API 할당량 소모)
+                </span>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => handleResyncConfirm(false)}>아니오 (전체 재분석)</AlertDialogCancel>
+              <AlertDialogAction onClick={() => handleResyncConfirm(true)}>예 (새 영상만)</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <header className="text-center mb-12">
-          <h1 className="text-5xl font-bold mb-4 bg-gradient-primary bg-clip-text text-transparent">
-            YouTube Channel Analyzer
-          </h1>
-          <p className="text-muted-foreground text-lg">유튜브 채널의 영상 데이터를 분석하고 시각화하세요</p>
-        </header>
+        <div className="container mx-auto px-4 py-8">
+          {/* Header */}
+          <header className="text-center mb-12">
+            <h1 className="text-5xl font-bold mb-4 bg-gradient-primary bg-clip-text text-transparent">
+              YouTube Channel Analyzer
+            </h1>
+            <p className="text-muted-foreground text-lg">유튜브 채널의 영상 데이터를 분석하고 시각화하세요</p>
+          </header>
 
-        {/* Channel Input */}
-        <div className="flex flex-col items-center mb-12">
-          <ChannelInput onAnalyze={handleAnalyze} loading={isLoading} />
-
-      </div>
-
-      {/* Quantity Section */}
-      <section className="mb-8">
-        <SectionCard title="Quantity">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <MetricsCard
-              title="총 구독자 수"
-              value={
-                <div className="flex items-center gap-2">
-                  <span>{formatInt(subscriberCount)}</span>
-                  {hiddenSubscriber && (
-                    <Badge variant="secondary" className="text-xs">
-                      숨김
-                    </Badge>
-                  )}
-                </div>
-              }
-              icon={Users}
-              description="채널 구독자"
-            />
-            <MetricsCard title="총 영상 수" value={formatInt(totalVideos)} icon={Video} description="분석된 영상" />
-            <MetricsCard
-              title="총 조회수"
-              value={formatInt(channelTotalViews || totalViews)}
-              icon={Eye}
-              description="전체 조회수"
-            />
-            <MetricsCard title="최근 업로드" value={latestUpload} icon={Calendar} description="마지막 업로드일" />
+          {/* Channel Input */}
+          <div className="flex flex-col items-center mb-12">
+            <ChannelInput onAnalyze={handleAnalyze} loading={isLoading} />
           </div>
-        </SectionCard>
-      </section>
 
-      {/* Quality Section */}
-      <section className="mb-12">
-        <QuantityQuality videos={videoRows} loading={false} uploadFrequency={uploadFrequency} />
-      </section>
+          {/* Quantity Section */}
+          <section className="mb-8">
+            <h3 className="text-sm font-semibold mb-3 text-foreground">Quantity</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <MetricsCard
+                title="총 구독자 수"
+                value={
+                  <div className="flex items-center gap-2">
+                    <span>{formatInt(subscriberCount)}</span>
+                    {hiddenSubscriber && (
+                      <Badge variant="secondary" className="text-xs">
+                        숨김
+                      </Badge>
+                    )}
+                  </div>
+                }
+                icon={Users}
+                description="채널 구독자"
+              />
+              <MetricsCard title="총 영상 수" value={formatInt(totalVideos)} icon={Video} description="분석된 영상" />
+              <MetricsCard
+                title="총 조회수"
+                value={formatInt(channelTotalViews || totalViews)}
+                icon={Eye}
+                description="전체 조회수"
+              />
+              <MetricsCard title="최근 업로드" value={latestUpload} icon={Calendar} description="마지막 업로드일" />
+            </div>
+          </section>
 
+          {/* Quality Section - 2 Rows */}
+          <section className="mb-12">
+            <QuantityQuality videos={videoRows} loading={false} uploadFrequency={uploadFrequency} />
+          </section>
 
-        {/* Views Trend & Topic Chart - Side by Side */}
-        <section className="mb-12">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <ViewsTrend videos={videoRows} loading={isSkeleton} />
-            <TopicChart videos={videos} loading={isSkeleton} />
-          </div>
-        </section>
+          {/* Views Trend & Topic Chart - Side by Side */}
+          <section className="mb-12">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <ViewsTrend videos={videoRows} loading={isSkeleton} />
+              <TopicChart videos={videos} loading={isSkeleton} />
+            </div>
+          </section>
 
-        {/* Video Table */}
-        <VideoTable videos={videos} loading={isSkeleton} />
+          {/* Video Table */}
+          <VideoTable videos={videos} loading={isSkeleton} />
 
-        {/* Footer */}
-        <footer className="text-center mt-12 text-muted-foreground text-sm">Powered by Supabase + Lovable</footer>
-      </div>
+          {/* Footer */}
+          <footer className="text-center mt-12 text-muted-foreground text-sm">
+            Data via YouTube API • © All content belongs to the respective owners. This service is not affiliated with,
+            endorsed, or sponsored by YouTube or Google.
+          </footer>
+        </div>
       </div>
     </div>
   );
