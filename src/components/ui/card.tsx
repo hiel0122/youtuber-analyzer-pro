@@ -46,17 +46,19 @@ export function SectionCard({
   children,
   className = "",
   right = null,
+  titleClassName = "",
 }: {
   title?: React.ReactNode;
   right?: React.ReactNode;
   className?: string;
+  titleClassName?: string;
   children: React.ReactNode;
 }) {
   return (
     <section className={cn("rounded-2xl bg-card border border-border shadow-lg", className)}>
       {(title || right) && (
         <header className="flex items-center justify-between px-4 py-3 border-b border-border">
-          <h2 className="text-lg md:text-xl font-semibold tracking-tight text-foreground">{title}</h2>
+          <h2 className={cn("text-lg md:text-xl font-semibold tracking-tight text-foreground", titleClassName)}>{title}</h2>
           {right}
         </header>
       )}
