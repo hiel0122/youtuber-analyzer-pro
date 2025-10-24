@@ -96,23 +96,23 @@ export default function QuantityQuality({
         {/* 3행: 업로드 빈도 통계 - 항상 표시 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <MetricsCard
-            title="Upload(Week)"
+            title="Avg. Upload(Week)"
             value={uploadFrequency ? `${uploadFrequency.averages.perWeek.toFixed(2)}/주` : "주 0.00개"}
             icon={Calendar}
           />
           <MetricsCard
-            title="Upload(Month)"
+            title="Avg. Upload(Month)"
             value={uploadFrequency ? `${uploadFrequency.averages.perMonth.toFixed(2)}/월` : "월 0.00개"}
             icon={CalendarCheck}
           />
           <MetricsCard
-            title="Upload(Quarter)"
+            title="Avg. Upload(Quarter)"
             value={uploadFrequency ? `${uploadFrequency.averages.perQuarter.toFixed(2)}/분기` : "분기당 0.00개"}
             icon={Video}
           />
           <MetricsCard
-            title="Upload(Year)"
-            value={uploadFrequency ? `${uploadFrequency.averages.perYearAvg.toFixed(2)}/년` : "0.00개/year"}
+            title="Avg. Upload(Year)"
+            value={uploadFrequency ? `${uploadFrequency.averages.perYear.toFixed(0)}/년` : "연간 0개"}
             icon={Clapperboard}
           />
         </div>
