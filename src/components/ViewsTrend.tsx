@@ -4,7 +4,7 @@ import { formatMMDD } from "@/utils/format";
 import { formatNumber } from "@/lib/utils";
 import { SectionCard } from "@/components/ui/card";
 import {
-  ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, LabelList
+  ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList
 } from "recharts";
 
 type Point = { date: string; views: number };
@@ -95,7 +95,6 @@ export default function ViewsTrend({ videos, loading }: { videos: VideoRow[]; lo
       <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={display} margin={{ top: 28, right: 8, bottom: 36, left: 0 }} barCategoryGap={24}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis
               dataKey="dateLabel"
               angle={-35}
