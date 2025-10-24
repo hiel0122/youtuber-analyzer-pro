@@ -280,6 +280,8 @@ async function calculateUploadStats(supabase: any, channelId: string) {
     averages: {
       perWeek: round2((uploads12w || 0) / 12),
       perMonth: round2((uploads12m || 0) / 12),
+      perQuarter: round2((uploads12m || 0) / 4),
+      perYear: uploads12m || 0,
       perMonthGeneral: round2(uploads12mLong / 12),
       perMonthShorts: round2(uploads12mShort / 12)
     }

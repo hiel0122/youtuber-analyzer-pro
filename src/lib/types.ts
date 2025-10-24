@@ -23,6 +23,8 @@ export type UploadFrequency = {
   averages: {
     perWeek: number;
     perMonth: number;
+    perQuarter: number;
+    perYear: number;
     perMonthGeneral: number;  // 롱폼
     perMonthShorts: number;   // 숏폼
   };
