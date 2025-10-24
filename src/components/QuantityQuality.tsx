@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { VideoRow, UploadFrequency } from "@/lib/types";
-import { parseDurationToSeconds, formatNumber } from "@/lib/utils";
+import { parseDurationToSeconds, formatNumber, isYoutubeShort } from "@/lib/utils";
 import { SectionCard } from "@/components/ui/card";
 import { MetricsCard } from "@/components/MetricsCard";
 import { Calendar, CalendarCheck, Video, Clapperboard } from "lucide-react";
@@ -25,24 +25,35 @@ export default function QuantityQuality({
   uploadFrequency?: UploadFrequency;
 }) {
   const stats = useMemo(() => {
-    const durations = videos.map((v) => parseDurationToSeconds(v.duration));
+    // Classify videos using new YouTube Shorts rules
+    const shortVideos = videos.filter((v) => isYoutubeShort(v));
+    const longVideos = videos.filter((v) => !isYoutubeShort(v));
+
+    const longCount = longVideos.length;
+    const shortCount = shortVideos.length;
+
+    // Duration stats
+    const allDurations = videos.map((v) => parseDurationToSeconds(v.duration));
+    const longDurations = longVideos.map((v) => parseDurationToSeconds(v.duration));
+    
+    const maxDur = allDurations.length ? Math.max(...allDurations) : 0;
+    const minLongDur = longDurations.length ? Math.min(...longDurations) : 0;
+    const avgDur = allDurations.length 
+      ? Math.round(allDurations.reduce((a, b) => a + b, 0) / allDurations.length) 
+      : 0;
+
+    // View/Like stats
     const viewsArr = videos.map((v) => v.views ?? 0);
     const likesArr = videos.map((v) => v.likes ?? 0);
 
-    const longArr = durations.filter((d) => d > 60);
-    const shortArr = durations.filter((d) => d <= 60);
-
-    const longCount = longArr.length;
-    const shortCount = shortArr.length;
-    const maxDur = durations.length ? Math.max(...durations) : 0;
-    const minLongDur = longArr.length ? Math.min(...longArr) : 0;
-
     const maxViews = viewsArr.length ? Math.max(...viewsArr) : 0;
     const minViews = viewsArr.length ? Math.min(...viewsArr) : 0;
-    const avgViews = viewsArr.length ? Math.round(viewsArr.reduce((a, b) => a + b, 0) / viewsArr.length) : 0;
-    const avgLikes = likesArr.length ? Math.round(likesArr.reduce((a, b) => a + b, 0) / likesArr.length) : 0;
-
-    const avgDur = durations.length ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length) : 0;
+    const avgViews = viewsArr.length 
+      ? Math.round(viewsArr.reduce((a, b) => a + b, 0) / viewsArr.length) 
+      : 0;
+    const avgLikes = likesArr.length 
+      ? Math.round(likesArr.reduce((a, b) => a + b, 0) / likesArr.length) 
+      : 0;
 
     return {
       longCount,
