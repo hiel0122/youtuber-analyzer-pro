@@ -267,6 +267,7 @@ async function calculateUploadStats(supabase: any, channelId: string) {
   }
 
   const round2 = (n: number) => Number((Math.max(n, 0)).toFixed(2));
+  const perMonthAvg = round2((uploads12m || 0) / 12);
 
   return {
     windowWeeks: 12,
@@ -279,9 +280,10 @@ async function calculateUploadStats(supabase: any, channelId: string) {
     },
     averages: {
       perWeek: round2((uploads12w || 0) / 12),
-      perMonth: round2((uploads12m || 0) / 12),
-      perQuarter: round2((uploads12m || 0) / 4),
+      perMonth: perMonthAvg,
+      perQuarter: round2(perMonthAvg * 3),
       perYear: uploads12m || 0,
+      perYearAvg: round2(perMonthAvg * 12),
       perMonthGeneral: round2(uploads12mLong / 12),
       perMonthShorts: round2(uploads12mShort / 12)
     }

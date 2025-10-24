@@ -112,7 +112,7 @@ export default function QuantityQuality({
           />
           <MetricsCard
             title="Upload(Year)"
-            value={uploadFrequency ? `${uploadFrequency.averages.perYear.toFixed(0)}/년` : "연간 0개"}
+            value={uploadFrequency ? `${uploadFrequency.averages.perYearAvg.toFixed(2)}/년` : "0.00개/year"}
             icon={Clapperboard}
           />
         </div>
