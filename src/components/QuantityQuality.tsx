@@ -42,6 +42,8 @@ export default function QuantityQuality({
     const avgViews = viewsArr.length ? Math.round(viewsArr.reduce((a, b) => a + b, 0) / viewsArr.length) : 0;
     const avgLikes = likesArr.length ? Math.round(likesArr.reduce((a, b) => a + b, 0) / likesArr.length) : 0;
 
+    const avgDur = durations.length ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length) : 0;
+
     return {
       longCount,
       shortCount,
@@ -51,6 +53,7 @@ export default function QuantityQuality({
       minViews,
       avgViews,
       avgLikes,
+      avgDur,
     };
   }, [videos]);
 
@@ -81,10 +84,14 @@ export default function QuantityQuality({
       <div className="grid gap-4">
         {/* 1행 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <MetricsCard title="General" value={formatNumber(stats.longCount)} icon={Video} />
-          <MetricsCard title="Shorts" value={formatNumber(stats.shortCount)} icon={Clapperboard} />
+          <MetricsCard 
+            title="General/Shorts" 
+            value={`${formatNumber(stats.longCount)}/${formatNumber(stats.shortCount)}`} 
+            icon={Video} 
+          />
           <MetricsCard title="Maximum Image Length" value={secsToLabel(stats.maxDur)} icon={Video} />
           <MetricsCard title="Minimum Image Length" value={secsToLabel(stats.minLongDur)} icon={Video} />
+          <MetricsCard title="Avg. Video Length" value={secsToLabel(stats.avgDur)} icon={Video} />
         </div>
         {/* 2행 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -112,7 +119,7 @@ export default function QuantityQuality({
           />
           <MetricsCard
             title="Upload(Year)"
-            value={uploadFrequency ? `${uploadFrequency.averages.perYear.toFixed(0)}/년` : "0개/연"}
+            value={uploadFrequency ? `${uploadFrequency.averages.perYearAvg.toFixed(2)}/년` : "0.00개/년"}
             icon={Clapperboard}
           />
         </div>
