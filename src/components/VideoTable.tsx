@@ -78,8 +78,8 @@ export const VideoTable = ({ videos, loading }: VideoTableProps) => {
                 ))
               ) : videos.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
-                    채널 URL을 입력하고 분석하기를 클릭하세요.
+                  <TableCell colSpan={8} className="text-center text-sm text-muted-foreground py-8">
+                    데이터가 없습니다.
                   </TableCell>
                 </TableRow>
               ) : (

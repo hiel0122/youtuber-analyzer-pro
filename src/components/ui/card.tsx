@@ -56,7 +56,7 @@ export function SectionCard({
     <section className={cn("rounded-2xl bg-card border border-border shadow-lg", className)}>
       {(title || right) && (
         <header className="flex items-center justify-between px-4 py-3 border-b border-border">
-          <h3 className="text-sm font-medium text-foreground">{title}</h3>
+          <h2 className="text-lg md:text-xl font-semibold tracking-tight text-foreground">{title}</h2>
           {right}
         </header>
       )}

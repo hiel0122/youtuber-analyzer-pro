@@ -75,6 +75,16 @@ export default function ViewsTrend({ videos, loading }: { videos: VideoRow[]; lo
     );
   }
 
+  if (!videos || videos.length === 0 || display.length === 0) {
+    return (
+      <SectionCard title="조회수 추이">
+        <div className="flex items-center justify-center h-72 text-sm text-muted-foreground">
+          데이터가 없습니다.
+        </div>
+      </SectionCard>
+    );
+  }
+
   return (
     <SectionCard
       title="조회수 추이"

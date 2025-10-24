@@ -13,6 +13,7 @@ import { Video, Eye, Calendar, Users } from "lucide-react";
 import { toast } from "sonner";
 import { formatInt } from "@/utils/format";
 import { Badge } from "@/components/ui/badge";
+import { SectionCard } from "@/components/ui/card";
 import { useSync } from "@/hooks/useSync";
 import SyncProgress from "@/components/SyncProgress";
 import QuantityQuality from "@/components/QuantityQuality";
@@ -333,38 +334,40 @@ const Index = () => {
 
       {/* Quantity Section */}
       <section className="mb-8">
-        <h3 className="text-sm font-semibold mb-3 text-foreground">Quantity</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <MetricsCard
-            title="총 구독자 수"
-            value={
-              <div className="flex items-center gap-2">
-                <span>{formatInt(subscriberCount)}</span>
-                {hiddenSubscriber && (
-                  <Badge variant="secondary" className="text-xs">
-                    숨김
-                  </Badge>
-                )}
-              </div>
-            }
-            icon={Users}
-            description="채널 구독자"
-          />
-          <MetricsCard title="총 영상 수" value={formatInt(totalVideos)} icon={Video} description="분석된 영상" />
-          <MetricsCard
-            title="총 조회수"
-            value={formatInt(channelTotalViews || totalViews)}
-            icon={Eye}
-            description="전체 조회수"
-          />
-          <MetricsCard title="최근 업로드" value={latestUpload} icon={Calendar} description="마지막 업로드일" />
-        </div>
+        <SectionCard title="Quantity">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <MetricsCard
+              title="총 구독자 수"
+              value={
+                <div className="flex items-center gap-2">
+                  <span>{formatInt(subscriberCount)}</span>
+                  {hiddenSubscriber && (
+                    <Badge variant="secondary" className="text-xs">
+                      숨김
+                    </Badge>
+                  )}
+                </div>
+              }
+              icon={Users}
+              description="채널 구독자"
+            />
+            <MetricsCard title="총 영상 수" value={formatInt(totalVideos)} icon={Video} description="분석된 영상" />
+            <MetricsCard
+              title="총 조회수"
+              value={formatInt(channelTotalViews || totalViews)}
+              icon={Eye}
+              description="전체 조회수"
+            />
+            <MetricsCard title="최근 업로드" value={latestUpload} icon={Calendar} description="마지막 업로드일" />
+          </div>
+        </SectionCard>
       </section>
 
-        {/* Quality Section - 2 Rows */}
-        <section className="mb-12">
-          <QuantityQuality videos={videoRows} loading={false} uploadFrequency={uploadFrequency} />
-        </section>
+      {/* Quality Section */}
+      <section className="mb-12">
+        <QuantityQuality videos={videoRows} loading={false} uploadFrequency={uploadFrequency} />
+      </section>
+
 
         {/* Views Trend & Topic Chart - Side by Side */}
         <section className="mb-12">
