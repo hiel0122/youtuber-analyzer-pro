@@ -96,23 +96,23 @@ export default function QuantityQuality({
         {/* 3행: 업로드 빈도 통계 - 항상 표시 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <MetricsCard
-            title="Avg. Upload(Week)"
-            value={uploadFrequency ? `${uploadFrequency.averages.perWeek.toFixed(2)}/주` : "주 0.00개"}
+            title="Upload(Week)"
+            value={uploadFrequency ? `${uploadFrequency.averages.perWeek.toFixed(2)}/주` : "0.00개/주"}
             icon={Calendar}
           />
           <MetricsCard
-            title="Avg. Upload(Month)"
-            value={uploadFrequency ? `${uploadFrequency.averages.perMonth.toFixed(2)}/월` : "월 0.00개"}
+            title="Upload(Month)"
+            value={uploadFrequency ? `${uploadFrequency.averages.perMonth.toFixed(2)}/월` : "0.00개/월"}
             icon={CalendarCheck}
           />
           <MetricsCard
-            title="Avg. Upload(Quarter)"
-            value={uploadFrequency ? `${uploadFrequency.averages.perQuarter.toFixed(2)}/분기` : "분기당 0.00개"}
+            title="Upload(Quarter)"
+            value={uploadFrequency ? `${uploadFrequency.averages.perQuarter.toFixed(2)}/분기` : "0.00개/분기"}
             icon={Video}
           />
           <MetricsCard
-            title="Avg. Upload(Year)"
-            value={uploadFrequency ? `${uploadFrequency.averages.perYear.toFixed(0)}/년` : "연간 0개"}
+            title="Upload(Year)"
+            value={uploadFrequency ? `${uploadFrequency.averages.perYear.toFixed(0)}/년` : "0개/연"}
             icon={Clapperboard}
           />
         </div>
