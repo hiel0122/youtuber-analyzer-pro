@@ -97,22 +97,22 @@ export default function QuantityQuality({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <MetricsCard
             title="Upload(Week)"
-            value={uploadFrequency ? `${uploadFrequency.averages.perWeek.toFixed(2)}/주` : "0.00개/week"}
+            value={uploadFrequency ? `${uploadFrequency.averages.perWeek.toFixed(2)}/주` : "주 0.00개"}
             icon={Calendar}
           />
           <MetricsCard
             title="Upload(Month)"
-            value={uploadFrequency ? `${uploadFrequency.averages.perMonth.toFixed(2)}/월` : "0.00개/month"}
+            value={uploadFrequency ? `${uploadFrequency.averages.perMonth.toFixed(2)}/월` : "월 0.00개"}
             icon={CalendarCheck}
           />
           <MetricsCard
             title="Upload(Quarter)"
-            value={uploadFrequency ? `${uploadFrequency.averages.perQuarter.toFixed(2)}/분기` : "0.00개/quarter"}
+            value={uploadFrequency ? `${uploadFrequency.averages.perQuarter.toFixed(2)}/분기` : "분기당 0.00개"}
             icon={Video}
           />
           <MetricsCard
             title="Upload(Year)"
-            value={uploadFrequency ? `${uploadFrequency.averages.perYear.toFixed(0)}/년` : "0개/year"}
+            value={uploadFrequency ? `${uploadFrequency.averages.perYear.toFixed(0)}/년` : "연간 0개"}
             icon={Clapperboard}
           />
         </div>
