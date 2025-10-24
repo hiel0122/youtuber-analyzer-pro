@@ -1,8 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3 } from 'lucide-react';
-import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { YouTubeVideo } from '@/lib/youtubeApi';
-import { formatMMDD, yTicks200kTo2M, yTickLabel, formatInt } from '@/utils/format';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BarChart3 } from "lucide-react";
+import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { YouTubeVideo } from "@/lib/youtubeApi";
+import { formatMMDD, yTicks200kTo2M, yTickLabel, formatInt } from "@/utils/format";
 
 interface ViewsChartProps {
   videos: YouTubeVideo[];
@@ -11,10 +11,10 @@ interface ViewsChartProps {
 export const ViewsChart = ({ videos }: ViewsChartProps) => {
   const chartData = videos
     .sort((a, b) => new Date(a.uploadDate).getTime() - new Date(b.uploadDate).getTime())
-    .map(video => ({
+    .map((video) => ({
       date: video.uploadDate,
       views: video.views,
-      title: video.title.length > 30 ? video.title.substring(0, 30) + '...' : video.title
+      title: video.title.length > 30 ? video.title.substring(0, 30) + "..." : video.title,
     }));
 
   if (videos.length === 0) {
@@ -30,7 +30,7 @@ export const ViewsChart = ({ videos }: ViewsChartProps) => {
           <div className="h-[250px] flex items-center justify-center text-muted-foreground">
             <div className="text-center">
               <BarChart3 className="h-12 w-12 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">데이터가 없습니다</p>
+              <p className="text-sm">데이터가 없습니다.</p>
             </div>
           </div>
         </CardContent>
@@ -50,44 +50,32 @@ export const ViewsChart = ({ videos }: ViewsChartProps) => {
         <ResponsiveContainer width="100%" height={300}>
           <ComposedChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.2} />
-            <XAxis 
-              dataKey="date" 
+            <XAxis
+              dataKey="date"
               tickFormatter={formatMMDD}
               minTickGap={20}
               stroke="hsl(var(--muted-foreground))"
-              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
             />
-            <YAxis 
+            <YAxis
               domain={[0, 2_000_000]}
               ticks={yTicks200kTo2M}
               tickFormatter={yTickLabel}
               stroke="hsl(var(--muted-foreground))"
-              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+              tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
             />
-            <Tooltip 
+            <Tooltip
               contentStyle={{
-                backgroundColor: 'hsl(var(--card))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '8px'
+                backgroundColor: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: "8px",
               }}
-              labelStyle={{ color: 'hsl(var(--foreground))' }}
+              labelStyle={{ color: "hsl(var(--foreground))" }}
               labelFormatter={(v) => `업로드: ${formatMMDD(v as string)}`}
-              formatter={(value: number) => [formatInt(value), '조회수']}
+              formatter={(value: number) => [formatInt(value), "조회수"]}
             />
-            <Bar 
-              dataKey="views" 
-              barSize={6} 
-              radius={[3, 3, 0, 0]} 
-              fill="hsl(var(--primary))" 
-              opacity={0.3}
-            />
-            <Line 
-              type="monotone" 
-              dataKey="views" 
-              stroke="hsl(var(--primary))" 
-              strokeWidth={2}
-              dot={false}
-            />
+            <Bar dataKey="views" barSize={6} radius={[3, 3, 0, 0]} fill="hsl(var(--primary))" opacity={0.3} />
+            <Line type="monotone" dataKey="views" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
           </ComposedChart>
         </ResponsiveContainer>
       </CardContent>
