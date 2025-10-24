@@ -1,12 +1,25 @@
 import React, { useMemo, useState } from "react";
 import { VideoRow } from "@/lib/types";
 import { formatMMDD } from "@/utils/format";
+import { formatNumber } from "@/lib/utils";
 import { SectionCard } from "@/components/ui/card";
 import {
   ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, LabelList
 } from "recharts";
 
 type Point = { date: string; views: number };
+
+const TopLabel = (props: any) => {
+  const { x = 0, y = 0, width = 0, value } = props;
+  const cx = x + width / 2;
+  // 상단 클리핑 방지: 최소 12px 안쪽으로
+  const cy = Math.max(12, y - 8);
+  return (
+    <text x={cx} y={cy} textAnchor="middle" fill="#fff" fontSize={12}>
+      {formatNumber(value as number)}
+    </text>
+  );
+};
 
 function buildDailySeries(videos: VideoRow[]): Point[] {
   const map = new Map<string, number>(); // YYYY-MM-DD -> sum views
@@ -51,7 +64,7 @@ export default function ViewsTrend({ videos, loading }: { videos: VideoRow[]; lo
 
   const maxY = useMemo(() => {
     const m = Math.max(0, ...display.map(p => p.views));
-    return Math.ceil(m * 1.02);
+    return Math.ceil(m * 1.12);
   }, [display]);
 
   if (loading) {
@@ -76,43 +89,44 @@ export default function ViewsTrend({ videos, loading }: { videos: VideoRow[]; lo
               최근 {d}일
             </button>
           ))}
-          <span className="text-[11px] text-muted-foreground ml-1">최대 10일 표시</span>
         </div>
       }
     >
       <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={display} margin={{ top: 8, right: 8, bottom: 28, left: 8 }} barCategoryGap="20%">
-            <CartesianGrid strokeDasharray="3 3" opacity={0.2} stroke="hsl(var(--border))" />
-            {/* X축 숨김 */}
-            <XAxis dataKey="date" hide />
-            <YAxis domain={[0, maxY]} stroke="hsl(var(--muted-foreground))" />
+          <ComposedChart data={display} margin={{ top: 28, right: 8, bottom: 36, left: 0 }} barCategoryGap={24}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis
+              dataKey="dateLabel"
+              angle={-35}
+              textAnchor="end"
+              height={28}
+              tickMargin={12}
+              padding={{ left: 8, right: 8 }}
+              interval="preserveStartEnd"
+            />
+            <YAxis hide domain={[0, maxY]} />
             <Tooltip
-              labelFormatter={(l) => `날짜: ${formatMMDD(l as string)}`}
-              formatter={(v) => [(v as number).toLocaleString(), "조회수"]}
+              labelFormatter={(l) => `날짜: ${l}`}
+              formatter={(v) => [formatNumber(v as number), "조회수"]}
+              cursor={false}
               contentStyle={{
                 backgroundColor: 'hsl(var(--card))',
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '8px'
               }}
             />
-            {/* 막대 + 라벨 */}
-            <Bar dataKey="views" fill="hsl(var(--primary))" barSize={28}>
-              <LabelList 
-                dataKey="dateLabel" 
-                position="insideBottom" 
-                offset={-4} 
-                style={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} 
-              />
-              <LabelList 
-                dataKey="views" 
-                position="top" 
-                formatter={(v: number) => v.toLocaleString()} 
-                style={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} 
-              />
+            <Bar dataKey="views" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]}>
+              <LabelList dataKey="views" content={<TopLabel />} />
             </Bar>
-            {/* 선 + 점 */}
-            <Line dataKey="views" stroke="hsl(var(--chart-2))" dot strokeWidth={2} />
+            <Line
+              type="monotone"
+              dataKey="views"
+              stroke="hsl(var(--chart-2))"
+              strokeWidth={2}
+              dot={{ r: 2 }}
+              activeDot={{ r: 3 }}
+            />
           </ComposedChart>
         </ResponsiveContainer>
       </div>
