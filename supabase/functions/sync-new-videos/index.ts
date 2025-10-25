@@ -191,7 +191,8 @@ async function fetchVideosStats(videoIds: string[], apiKey: string) {
         title: v?.snippet?.title ?? "",
         duration: iso8601ToHMS(v?.contentDetails?.duration),
         viewCount: Number(v?.statistics?.viewCount ?? 0),
-        likeCount: v?.statistics?.likeCount ? Number(v.statistics.likeCount) : undefined
+        likeCount: v?.statistics?.likeCount ? Number(v.statistics.likeCount) : undefined,
+        commentCount: v?.statistics?.commentCount ? Number(v.statistics.commentCount) : 0
       });
     }
   }
@@ -287,6 +288,94 @@ async function calculateUploadStats(supabase: any, channelId: string) {
       perMonthGeneral: round2(uploads12mLong / 12),
       perMonthShorts: round2(uploads12mShort / 12)
     }
+  };
+}
+
+// ✅ 신규: 구독 변화량 계산
+async function calculateSubscriptionRates(supabase: any, channelId: string) {
+  const now = new Date();
+  const format = (date: Date) => date.toISOString().split('T')[0];
+  
+  // Get latest snapshot
+  const { data: latest } = await supabase
+    .from('channel_snapshots')
+    .select('subscriber_count, snapshot_date')
+    .eq('channel_id', channelId)
+    .order('snapshot_date', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!latest) {
+    return { day: 0, week: 0, month: 0, year: 0 };
+  }
+
+  const currentCount = latest.subscriber_count || 0;
+
+  // Helper to find closest snapshot before target date
+  const findSnapshot = async (daysAgo: number) => {
+    const targetDate = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
+    const { data } = await supabase
+      .from('channel_snapshots')
+      .select('subscriber_count')
+      .eq('channel_id', channelId)
+      .lte('snapshot_date', format(targetDate))
+      .order('snapshot_date', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    return data?.subscriber_count || currentCount;
+  };
+
+  const [day1, day7, day30, day365] = await Promise.all([
+    findSnapshot(1),
+    findSnapshot(7),
+    findSnapshot(30),
+    findSnapshot(365)
+  ]);
+
+  return {
+    day: currentCount - day1,
+    week: currentCount - day7,
+    month: currentCount - day30,
+    year: currentCount - day365
+  };
+}
+
+// ✅ 신규: 댓글 통계 계산
+async function calculateCommentStats(supabase: any, channelId: string, videoIds: string[]) {
+  if (videoIds.length === 0) {
+    return { total: 0, maxPerVideo: 0, minPerVideo: 0, avgPerVideo: 0 };
+  }
+
+  // Get latest comment counts from video_snapshots
+  const { data: snapshots } = await supabase
+    .from('video_snapshots')
+    .select('video_id, comment_count, snapshot_date')
+    .in('video_id', videoIds)
+    .order('snapshot_date', { ascending: false });
+
+  if (!snapshots || snapshots.length === 0) {
+    return { total: 0, maxPerVideo: 0, minPerVideo: 0, avgPerVideo: 0 };
+  }
+
+  // Get latest snapshot per video
+  const latestByVideo = new Map<string, number>();
+  for (const snap of snapshots) {
+    if (!latestByVideo.has(snap.video_id)) {
+      latestByVideo.set(snap.video_id, snap.comment_count || 0);
+    }
+  }
+
+  const counts = Array.from(latestByVideo.values());
+  const total = counts.reduce((a, b) => a + b, 0);
+  const max = counts.length > 0 ? Math.max(...counts) : 0;
+  const min = counts.length > 0 ? Math.min(...counts) : 0;
+  const avg = counts.length > 0 ? total / counts.length : 0;
+
+  return {
+    total,
+    maxPerVideo: max,
+    minPerVideo: min,
+    avgPerVideo: avg
   };
 }
 
@@ -422,10 +511,30 @@ Deno.serve(async (req) => {
 
     console.log('Channel info saved to database');
 
-    // 4) ✅ 전체 동기화 모드 - sinceISO 비활성화
-    // 항상 모든 영상을 수집하므로 증분 동기화 코드는 사용하지 않음
-    const sinceISO = undefined; // ✅ 항상 undefined로 전체 수집
-    console.log('Full sync mode enabled - fetching all videos');
+    // 4) ✅ 증분/전체 동기화 모드 결정
+    const requestedFull = fullSync === true;
+    
+    // DB에서 최신 업로드 시각 조회
+    const { data: latestVideo } = await supabase
+      .from('youtube_videos')
+      .select('upload_date')
+      .eq('channel_id', channelId)
+      .order('upload_date', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const hasHistory = !!latestVideo?.upload_date;
+    let mode: 'full' | 'incremental' = 'full';
+    let publishedAfter: string | undefined;
+
+    if (!requestedFull && hasHistory) {
+      mode = 'incremental';
+      const baseDate = new Date(latestVideo.upload_date);
+      publishedAfter = baseDate.toISOString();
+      console.log('Incremental sync mode - fetching videos after:', publishedAfter);
+    } else {
+      console.log('Full sync mode enabled - fetching all videos');
+    }
 
     // 5) ✅ 기존 기능: 업로드 플레이리스트 가져오기
     const uploadsId = await getUploadsPlaylistId(channelId, YOUTUBE_API_KEY);
@@ -441,20 +550,22 @@ Deno.serve(async (req) => {
 
     console.log('Uploads playlist:', uploadsId);
 
-    // 6) ✅ 전체 비디오 가져오기 (페이지네이션 끝까지)
-    const allItems = await listNewUploads(uploadsId, YOUTUBE_API_KEY, sinceISO);
+    // 6) ✅ 비디오 가져오기 (증분/전체 모드에 따라)
+    const allItems = await listNewUploads(uploadsId, YOUTUBE_API_KEY, publishedAfter);
     console.log('Total videos fetched:', allItems.length);
 
     let insertedOrUpdated = 0;
+    const videoIds: string[] = [];
 
     if (allItems.length > 0) {
-      // 7) ✅ 기존 기능: 비디오 통계 가져오기
+      // 7) ✅ 비디오 통계 가져오기 (commentCount 포함)
       const stats = await fetchVideosStats(allItems.map(v => v.videoId), YOUTUBE_API_KEY);
       const statsMap = new Map(stats.map(x => [x.id, x]));
 
-      // 8) ✅ 기존 기능: RPC로 비디오 저장 (upsert로 중복 방지)
+      // 8) ✅ RPC로 비디오 저장 (upsert로 중복 방지)
       const rows = allItems.map(v => {
         const s = statsMap.get(v.videoId);
+        videoIds.push(v.videoId);
         return {
           video_id: v.videoId,
           channel_id: channelId,
@@ -483,13 +594,46 @@ Deno.serve(async (req) => {
 
       insertedOrUpdated = affected ?? rows.length;
       console.log('Upsert complete:', insertedOrUpdated);
+
+      // 9) ✅ 스냅샷 저장 (channel_snapshots)
+      const today = new Date().toISOString().split('T')[0];
+      await supabase
+        .from('channel_snapshots')
+        .upsert({
+          channel_id: channelId,
+          snapshot_date: today,
+          subscriber_count: channelStats.subscriberCount,
+          view_count: channelStats.viewCount,
+          video_count: channelStats.videoCount
+        }, { onConflict: 'channel_id,snapshot_date' });
+
+      console.log('Channel snapshot saved');
+
+      // 10) ✅ 스냅샷 저장 (video_snapshots)
+      const videoSnapshots = allItems.map(v => {
+        const s = statsMap.get(v.videoId);
+        return {
+          video_id: v.videoId,
+          snapshot_date: today,
+          view_count: s?.viewCount ?? 0,
+          like_count: s?.likeCount ?? 0,
+          comment_count: s?.commentCount ?? 0
+        };
+      });
+
+      if (videoSnapshots.length > 0) {
+        await supabase
+          .from('video_snapshots')
+          .upsert(videoSnapshots, { onConflict: 'video_id,snapshot_date' });
+        console.log('Video snapshots saved:', videoSnapshots.length);
+      }
     }
 
-    // 9) ✅ 신규 기능: 업로드 빈도 통계 계산
+    // 11) ✅ 업로드 빈도 통계 계산
     const uploadFrequency = await calculateUploadStats(supabase, channelId);
     console.log('Upload frequency calculated:', uploadFrequency);
 
-    // 10) ✅ 신규 기능: 통계 DB에 저장
+    // 12) ✅ 통계 DB에 저장
     const { error: statsError } = await supabase
       .from('channel_upload_stats')
       .upsert({
@@ -513,22 +657,32 @@ Deno.serve(async (req) => {
       console.log('Upload stats saved to database');
     }
 
-    // 11) ✅ 응답 (mode: "full" 추가)
+    // 13) ✅ 구독 변화량 계산
+    const subscriptionRates = await calculateSubscriptionRates(supabase, channelId);
+    console.log('Subscription rates calculated:', subscriptionRates);
+
+    // 14) ✅ 댓글 통계 계산
+    const commentStats = await calculateCommentStats(supabase, channelId, videoIds);
+    console.log('Comment stats calculated:', commentStats);
+
+    // 15) ✅ 응답
     return new Response(JSON.stringify({
       ok: true,
-      mode: "full", // ✅ 항상 전체 동기화 모드
+      mode,
       channelId,
       title: resolvedTitle || channelStats.title,
-      fetched: allItems.length, // ✅ 총 수집된 영상 수
-      upserted: insertedOrUpdated, // ✅ DB에 저장된 수
-      inserted_or_updated: insertedOrUpdated, // 하위 호환성 유지
+      fetched: allItems.length,
+      upserted: insertedOrUpdated,
+      inserted_or_updated: insertedOrUpdated,
       newest_uploaded_at: allItems[0]?.publishedAt,
       channelStats: {
         subscriberCount: channelStats.subscriberCount,
         videoCount: channelStats.videoCount,
         viewCount: channelStats.viewCount
       },
-      uploadFrequency // ✅ 신규 추가
+      uploadFrequency,
+      subscriptionRates,
+      commentStats
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });

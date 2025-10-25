@@ -1,9 +1,10 @@
 import React, { useMemo } from "react";
-import { VideoRow, UploadFrequency } from "@/lib/types";
+import { VideoRow, UploadFrequency, SubscriptionRates, CommentStats } from "@/lib/types";
 import { parseDurationToSeconds, formatNumber, isYoutubeShort } from "@/lib/utils";
 import { SectionCard } from "@/components/ui/card";
 import { MetricsCard } from "@/components/MetricsCard";
-import { Calendar, CalendarCheck, Video, Clapperboard } from "lucide-react";
+import { RowHeader } from "@/components/RowHeader";
+import { CalendarCheck, Video, ThumbsUp, UserPlus, MessageSquare } from "lucide-react";
 
 function secsToLabel(secs: number) {
   if (secs <= 0) return "0s";
@@ -15,14 +16,25 @@ function secsToLabel(secs: number) {
   return `${s}s`;
 }
 
+function formatSigned(n: number) {
+  const s = Math.round(n);
+  if (s > 0) return `+${formatNumber(s)}`;
+  if (s < 0) return `-${formatNumber(Math.abs(s))}`;
+  return "0";
+}
+
 export default function QuantityQuality({
   videos,
   loading,
   uploadFrequency,
+  subscriptionRates,
+  commentStats,
 }: {
   videos: VideoRow[];
   loading: boolean;
   uploadFrequency?: UploadFrequency;
+  subscriptionRates?: SubscriptionRates;
+  commentStats?: CommentStats;
 }) {
   const stats = useMemo(() => {
     // Classify videos using new YouTube Shorts rules
@@ -94,47 +106,99 @@ export default function QuantityQuality({
 
   return (
     <SectionCard title="Quality">
-      <div className="grid gap-4">
-        {/* 1행 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <MetricsCard 
-            title="General/Shorts" 
-            value={`${formatNumber(stats.longCount)}/${formatNumber(stats.shortCount)}`} 
-            icon={Video} 
-          />
-          <MetricsCard title="Maximum Image Length" value={secsToLabel(stats.maxDur)} icon={Video} />
-          <MetricsCard title="Minimum Image Length" value={secsToLabel(stats.minLongDur)} icon={Video} />
-          <MetricsCard title="Avg. Video Length" value={secsToLabel(stats.avgDur)} icon={Video} />
+      <div className="grid gap-6">
+        {/* 1행: [Video] */}
+        <div>
+          <RowHeader title="[Video]" Icon={Video} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <MetricsCard 
+              title="General/Shorts" 
+              value={`${formatNumber(stats.longCount)}/${formatNumber(stats.shortCount)}`} 
+            />
+            <MetricsCard title="Maximum Image Length" value={secsToLabel(stats.maxDur)} />
+            <MetricsCard title="Minimum Image Length" value={secsToLabel(stats.minLongDur)} />
+            <MetricsCard title="Avg. Video Length" value={secsToLabel(stats.avgDur)} />
+          </div>
         </div>
-        {/* 2행 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <MetricsCard title="Maximum hits" value={formatNumber(stats.maxViews)} icon={Video} />
-          <MetricsCard title="Minimum hits" value={formatNumber(stats.minViews)} icon={Video} />
-          <MetricsCard title="Avg. hits" value={formatNumber(stats.avgViews)} icon={Video} />
-          <MetricsCard title="Avg. Likes" value={formatNumber(stats.avgLikes)} icon={Video} />
+
+        {/* 2행: [Hits & Likes] */}
+        <div>
+          <RowHeader title="[Hits & Likes]" Icon={ThumbsUp} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <MetricsCard title="Maximum hits" value={formatNumber(stats.maxViews)} />
+            <MetricsCard title="Minimum hits" value={formatNumber(stats.minViews)} />
+            <MetricsCard title="Avg. hits" value={formatNumber(stats.avgViews)} />
+            <MetricsCard title="Avg. Likes" value={formatNumber(stats.avgLikes)} />
+          </div>
         </div>
-        {/* 3행: 업로드 빈도 통계 - 항상 표시 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <MetricsCard
-            title="Upload(Week)"
-            value={uploadFrequency ? `${uploadFrequency.averages.perWeek.toFixed(2)}/주` : "0.00개/주"}
-            icon={Calendar}
-          />
-          <MetricsCard
-            title="Upload(Month)"
-            value={uploadFrequency ? `${uploadFrequency.averages.perMonth.toFixed(2)}/월` : "0.00개/월"}
-            icon={CalendarCheck}
-          />
-          <MetricsCard
-            title="Upload(Quarter)"
-            value={uploadFrequency ? `${uploadFrequency.averages.perQuarter.toFixed(2)}/분기` : "0.00개/분기"}
-            icon={Video}
-          />
-          <MetricsCard
-            title="Upload(Year)"
-            value={uploadFrequency ? `${uploadFrequency.averages.perYearAvg.toFixed(2)}/년` : "0.00개/년"}
-            icon={Clapperboard}
-          />
+
+        {/* 3행: [Upload] */}
+        <div>
+          <RowHeader title="[Upload]" Icon={CalendarCheck} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <MetricsCard
+              title="Upload(Week)"
+              value={uploadFrequency ? `${uploadFrequency.averages.perWeek.toFixed(2)}/주` : "0.00개/주"}
+            />
+            <MetricsCard
+              title="Upload(Month)"
+              value={uploadFrequency ? `${uploadFrequency.averages.perMonth.toFixed(2)}/월` : "0.00개/월"}
+            />
+            <MetricsCard
+              title="Upload(Quarter)"
+              value={uploadFrequency ? `${uploadFrequency.averages.perQuarter.toFixed(2)}/분기` : "0.00개/분기"}
+            />
+            <MetricsCard
+              title="Upload(Year)"
+              value={uploadFrequency ? `${uploadFrequency.averages.perYearAvg.toFixed(2)}/년` : "0.00개/년"}
+            />
+          </div>
+        </div>
+
+        {/* 4행: [Subscription] */}
+        <div>
+          <RowHeader title="[Subscription]" Icon={UserPlus} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <MetricsCard 
+              title="Subscription ± Rate (Days)" 
+              value={subscriptionRates ? formatSigned(subscriptionRates.day) : "0"} 
+            />
+            <MetricsCard 
+              title="Subscription ± Rate (Week)" 
+              value={subscriptionRates ? formatSigned(subscriptionRates.week) : "0"} 
+            />
+            <MetricsCard 
+              title="Subscription ± Rate (Month)" 
+              value={subscriptionRates ? formatSigned(subscriptionRates.month) : "0"} 
+            />
+            <MetricsCard 
+              title="Subscription ± Rate (Year)" 
+              value={subscriptionRates ? formatSigned(subscriptionRates.year) : "0"} 
+            />
+          </div>
+        </div>
+
+        {/* 5행: [Comments] */}
+        <div>
+          <RowHeader title="[Comments]" Icon={MessageSquare} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <MetricsCard 
+              title="All Comments" 
+              value={commentStats ? formatNumber(commentStats.total) : "0"} 
+            />
+            <MetricsCard 
+              title="Maximum Comments (per video)" 
+              value={commentStats ? formatNumber(commentStats.maxPerVideo) : "0"} 
+            />
+            <MetricsCard 
+              title="Minimum Comments (per video)" 
+              value={commentStats ? formatNumber(commentStats.minPerVideo) : "0"} 
+            />
+            <MetricsCard 
+              title="Avg. comment (per video)" 
+              value={commentStats ? formatNumber(Math.round(commentStats.avgPerVideo)) : "0"} 
+            />
+          </div>
         </div>
       </div>
     </SectionCard>

@@ -4,7 +4,7 @@ import { LucideIcon } from 'lucide-react';
 interface MetricsCardProps {
   title: string;
   value: string | number | React.ReactNode;
-  icon: LucideIcon;
+  icon?: LucideIcon;
   description?: string;
 }
 
@@ -15,7 +15,7 @@ export const MetricsCard = ({ title, value, icon: Icon, description }: MetricsCa
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
         </CardTitle>
-        <Icon className="h-4 w-4 text-primary" />
+        {Icon && <Icon className="h-4 w-4 text-primary" />}
       </CardHeader>
       <CardContent>
         <div className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">

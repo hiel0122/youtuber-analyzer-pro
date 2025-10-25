@@ -5,7 +5,7 @@ import { VideoTable } from "@/components/VideoTable";
 import { TopicChart } from "@/components/TopicChart";
 import { SettingsModal } from "@/components/SettingsModal";
 import { YouTubeVideo } from "@/lib/youtubeApi";
-import { VideoRow, SyncResponse, UploadFrequency } from "@/lib/types";
+import { VideoRow, SyncResponse, UploadFrequency, SubscriptionRates, CommentStats } from "@/lib/types";
 import { getSupabaseClient, hasSupabaseCredentials } from "@/lib/supabaseClient";
 import { syncNewVideos, syncQuickCheck } from "@/lib/edge";
 import { fetchAllVideosByChannel } from "@/lib/supabasePaging";
@@ -45,6 +45,8 @@ const Index = () => {
   } | null>(null);
   const [currentChannelId, setCurrentChannelId] = useState<string>("");
   const [uploadFrequency, setUploadFrequency] = useState<UploadFrequency | undefined>(undefined);
+  const [subscriptionRates, setSubscriptionRates] = useState<SubscriptionRates | undefined>(undefined);
+  const [commentStats, setCommentStats] = useState<CommentStats | undefined>(undefined);
   const [showResyncDialog, setShowResyncDialog] = useState(false);
   const [pendingUrl, setPendingUrl] = useState<string>("");
   const [isHydrating, setIsHydrating] = useState(false);
@@ -138,6 +140,18 @@ const Index = () => {
         setUploadFrequency(result.uploadFrequency);
       } else {
         console.warn("⚠️ No uploadFrequency in result");
+      }
+
+      // ✅ subscriptionRates 설정 추가!
+      if (result?.subscriptionRates) {
+        console.log("📊 Setting subscriptionRates:", result.subscriptionRates);
+        setSubscriptionRates(result.subscriptionRates);
+      }
+
+      // ✅ commentStats 설정 추가!
+      if (result?.commentStats) {
+        console.log("📊 Setting commentStats:", result.commentStats);
+        setCommentStats(result.commentStats);
       }
 
       // 채널 통계 갱신
@@ -354,9 +368,15 @@ const Index = () => {
             </SectionCard>
           </section>
 
-          {/* Quality Section - 2 Rows */}
+          {/* Quality Section - 5 Rows */}
           <section className="mb-12">
-            <QuantityQuality videos={videoRows} loading={false} uploadFrequency={uploadFrequency} />
+            <QuantityQuality 
+              videos={videoRows} 
+              loading={false} 
+              uploadFrequency={uploadFrequency}
+              subscriptionRates={subscriptionRates}
+              commentStats={commentStats}
+            />
           </section>
 
           {/* Views Trend & Topic Chart - Side by Side */}
