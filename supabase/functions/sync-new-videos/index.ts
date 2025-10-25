@@ -247,23 +247,37 @@ async function calculateUploadStats(supabase: any, channelId: string) {
     .eq('channel_id', channelId)
     .gte('upload_date', format(twelveMonthsAgo));
 
-  // 최근 12개월 모든 비디오 가져오기 (duration으로 분류)
+  // 최근 12개월 모든 비디오 가져오기 (duration, upload_date, url로 분류)
   const { data: videos12m } = await supabase
     .from('youtube_videos')
-    .select('duration')
+    .select('duration, upload_date, url')
     .eq('channel_id', channelId)
     .gte('upload_date', format(twelveMonthsAgo));
 
-  // duration을 초로 변환하여 롱폼/숏폼 분류
+  // ✅ 새로운 YouTube Shorts 분류 규칙 적용
   let uploads12mLong = 0;
   let uploads12mShort = 0;
 
+  const cutoffDate = new Date('2024-10-15T00:00:00Z');
+
   for (const video of videos12m || []) {
     const seconds = durationToSeconds(video.duration || '');
-    if (seconds > 60) {
-      uploads12mLong++;
-    } else if (seconds > 0) {
+    if (seconds <= 0) continue;
+
+    const uploadDate = video.upload_date ? new Date(video.upload_date) : new Date(0);
+    const url = (video.url || '').toLowerCase();
+    const urlLooksShort = /youtube\.com\/shorts\/|youtu\.be\/shorts\//.test(url);
+    
+    // Date-based length cap
+    const lengthCap = uploadDate >= cutoffDate ? 180 : 60;
+    
+    // Classify as Short if URL indicates Shorts AND duration is within cap
+    const isShort = urlLooksShort && seconds <= lengthCap;
+    
+    if (isShort) {
       uploads12mShort++;
+    } else {
+      uploads12mLong++;
     }
   }
 

@@ -155,28 +155,30 @@ export default function QuantityQuality({
           </div>
         </div>
 
-        {/* 4행: [Subscription] */}
-        <div>
-          <RowHeader title="[Subscription]" Icon={UserPlus} />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <MetricsCard 
-              title="Subscription ± Rate (Days)" 
-              value={subscriptionRates ? formatSigned(subscriptionRates.day) : "0"} 
-            />
-            <MetricsCard 
-              title="Subscription ± Rate (Week)" 
-              value={subscriptionRates ? formatSigned(subscriptionRates.week) : "0"} 
-            />
-            <MetricsCard 
-              title="Subscription ± Rate (Month)" 
-              value={subscriptionRates ? formatSigned(subscriptionRates.month) : "0"} 
-            />
-            <MetricsCard 
-              title="Subscription ± Rate (Year)" 
-              value={subscriptionRates ? formatSigned(subscriptionRates.year) : "0"} 
-            />
+        {/* 4행: [Subscription] - Only show if data available */}
+        {subscriptionRates && (
+          <div>
+            <RowHeader title="[Subscription]" Icon={UserPlus} />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <MetricsCard 
+                title="Subscription ± Rate (Days)" 
+                value={formatSigned(subscriptionRates.day)} 
+              />
+              <MetricsCard 
+                title="Subscription ± Rate (Week)" 
+                value={formatSigned(subscriptionRates.week)} 
+              />
+              <MetricsCard 
+                title="Subscription ± Rate (Month)" 
+                value={formatSigned(subscriptionRates.month)} 
+              />
+              <MetricsCard 
+                title="Subscription ± Rate (Year)" 
+                value={formatSigned(subscriptionRates.year)} 
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* 5행: [Comments] */}
         <div>
