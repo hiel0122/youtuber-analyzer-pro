@@ -342,8 +342,8 @@ const Index = () => {
 
           {/* Channel Summary */}
           <ChannelSummary 
+            channelId={currentChannelId}
             channelName={currentChannelName}
-            managerName={undefined}
             videos={videoRows}
             uploadFrequency={uploadFrequency}
           />
