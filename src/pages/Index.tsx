@@ -23,6 +23,7 @@ import { useBodyLock } from "@/hooks/useBodyLock";
 import { cn } from "@/lib/utils";
 import { SectionCard } from "@/components/ui/card";
 import Footer from "@/components/Footer";
+import { ChannelSummary } from "@/components/ChannelSummary";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,6 +45,7 @@ const Index = () => {
     hiddenSubscriber: boolean;
   } | null>(null);
   const [currentChannelId, setCurrentChannelId] = useState<string>("");
+  const [currentChannelName, setCurrentChannelName] = useState<string>("");
   const [uploadFrequency, setUploadFrequency] = useState<UploadFrequency | undefined>(undefined);
   const [subscriptionRates, setSubscriptionRates] = useState<SubscriptionRates | undefined>(undefined);
   const [commentStats, setCommentStats] = useState<CommentStats | undefined>(undefined);
@@ -170,6 +172,7 @@ const Index = () => {
           totalViews: channelData.total_views || 0,
           hiddenSubscriber: false,
         });
+        setCurrentChannelName(channelData.channel_name || "");
       }
 
       // 모든 데이터 로딩 (병렬)
@@ -336,6 +339,14 @@ const Index = () => {
           <div className="flex flex-col items-center mb-12">
             <ChannelInput onAnalyze={handleAnalyze} loading={isLoading} />
           </div>
+
+          {/* Channel Summary */}
+          <ChannelSummary 
+            channelName={currentChannelName}
+            videos={videoRows}
+            uploadFrequency={uploadFrequency}
+            loading={isSkeleton}
+          />
 
           {/* Quantity Section */}
           <section className="mb-8">
