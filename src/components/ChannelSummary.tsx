@@ -1,21 +1,22 @@
-'use client';
-import React from 'react';
+import React from "react";
 
 type Video = {
-  upload_date: string;
-  duration?: string | null;
+  upload_date?: string | null;
   topic?: string | null;
+  duration?: string | null; // "HH:MM:SS" | "MM:SS"
   views?: number | null;
   likes?: number | null;
 };
 
-type UploadFrequency =
-  | { averages?: { perWeek?: number | null } }
-  | undefined;
+type UploadFrequency = {
+  averages?: {
+    perWeek?: number;
+  };
+};
 
 const parseDurationToSeconds = (d?: string | null) => {
   if (!d) return 0;
-  const parts = d.split(':').map(Number);
+  const parts = d.split(":").map(Number);
   if (parts.length === 3) {
     const [h, m, s] = parts;
     return h * 3600 + m * 60 + s;
@@ -55,98 +56,90 @@ function ChannelSummary({
   videos: Video[];
   uploadFrequency?: UploadFrequency;
 }) {
-  if (!videos?.length) return null;
+  const hasVideos = Array.isArray(videos) && videos.length > 0;
 
-  const firstUpload = videos?.length
+  const firstUpload = hasVideos
     ? new Date(
         videos.reduce((min, v) => {
-          const t = new Date(v.upload_date).getTime();
+          const t = new Date(v.upload_date ?? "").getTime();
           return Math.min(min, isNaN(t) ? Infinity : t);
         }, Infinity),
       )
-    : null;
+    : undefined;
 
-  const period =
-    firstUpload && isFinite(firstUpload.getTime()) ? calcPeriod(firstUpload) : null;
+  const period = firstUpload && isFinite(firstUpload.getTime()) ? calcPeriod(firstUpload) : undefined;
 
   const topicCounts = (videos || []).reduce<Record<string, number>>((acc, v) => {
     if (v.topic) acc[String(v.topic)] = (acc[String(v.topic)] || 0) + 1;
     return acc;
   }, {});
-  const primaryTopic = Object.keys(topicCounts).length
-    ? Object.entries(topicCounts).sort((a, b) => b[1] - a[1])[0][0]
-    : undefined;
+  const primaryTopic =
+    Object.keys(topicCounts).length > 0
+      ? Object.entries(topicCounts).sort((a, b) => b[1] - a[1])[0][0]
+      : undefined;
 
   const durations = (videos || [])
-    .map((v) => parseDurationToSeconds(v.duration || undefined))
+    .map((v) => parseDurationToSeconds(v.duration))
     .filter((n) => n > 0);
-  const avgMin = durations.length
-    ? durations.reduce((a, b) => a + b, 0) / durations.length / 60
-    : 0;
+  const avgMin = durations.length ? durations.reduce((a, b) => a + b, 0) / durations.length / 60 : 0;
 
   const traits: string[] = [];
-  if (avgMin >= 8) traits.push('롱폼 중심');
-  else if (avgMin > 0) traits.push('숏폼/쇼츠 중심');
+  if (avgMin >= 8) traits.push("롱폼 중심");
+  else if (avgMin > 0) traits.push("숏폼/쇼츠 중심");
 
   const perWeek = Number(uploadFrequency?.averages?.perWeek || 0);
-  if (perWeek >= 2) traits.push('활발한 업로드');
-  else if (perWeek >= 1) traits.push('주 1회');
-  else if (perWeek > 0) traits.push('비정기');
+  if (perWeek >= 2) traits.push("활발한 업로드");
+  else if (perWeek >= 1) traits.push("주 1회");
+  else if (perWeek > 0) traits.push("비정기");
 
-  const withStats = (videos || []).filter(
-    (v) => (v.views || 0) > 0 && (v.likes || 0) >= 0,
-  );
+  const withStats = (videos || []).filter((v) => (v.views || 0) > 0 && (v.likes || 0) >= 0);
   if (withStats.length) {
     const likeRatio =
-      withStats.reduce(
-        (sum, v) => sum + (((v.likes || 0) / (v.views || 1)) * 100),
-        0,
-      ) / withStats.length;
-    if (likeRatio >= 3) traits.push('좋아요 반응 높음');
+      withStats.reduce((sum, v) => sum + (((v.likes || 0) / (v.views || 1)) * 100), 0) /
+      withStats.length;
+    if (likeRatio >= 3) traits.push("좋아요 반응 높음");
   }
 
+  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+
   return (
-    <div className="w-full rounded-2xl bg-slate-900/40 ring-1 ring-white/10 p-5 md:p-6 mb-6">
-      <div className="flex items-start gap-5 md:gap-8">
-        <div className="shrink-0 grid place-items-center h-14 w-14 rounded-full bg-violet-500/20 text-violet-300 text-xl font-semibold">
-          {(channelName?.trim()?.[0] || '?').toUpperCase()}
+    <div className="rounded-2xl bg-slate-800/60 border border-slate-700 px-6 py-5 mb-6">
+      <div className="flex items-start gap-4">
+        {/* 아바타 */}
+        <div className="h-12 w-12 rounded-xl bg-violet-600 flex items-center justify-center text-white text-lg font-semibold shrink-0">
+          {(channelName?.trim()?.[0] || "?").toUpperCase()}
         </div>
 
-        <div className="flex-1 grid md:grid-cols-3 gap-4">
-          {/* 좌측: 채널 기본 정보 */}
+        {/* 그리드 */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+          {/* 좌: 기본 정보 */}
           <div>
-            <div className="text-lg font-semibold">
-              {channelName || 'YouTube Channel'}
-            </div>
-            <div className="text-sm text-slate-400">관리자: {managerName || '—'}</div>
+            <div className="text-base text-slate-300">채널명</div>
+            <div className="text-xl font-semibold text-white">{channelName || "—"}</div>
+            <div className="mt-2 text-sm text-slate-400">관리자: {managerName || "—"}</div>
           </div>
 
-          {/* 가운데: 운영기간 */}
-          <div className="text-sm">
-            <div className="text-slate-400 mb-1">운영기간</div>
-            <div className="font-medium">
-              {period ? `${period.years}년 ${period.months}개월 ${period.days}일` : '—'}
+          {/* 중: 운영기간 */}
+          <div>
+            <div className="text-base text-slate-300">운영기간</div>
+            <div className="text-xl font-semibold text-white">
+              {period ? `${period.years}년 ${period.months}개월 ${period.days}일` : "—"}
             </div>
-            <div className="text-slate-400">
-              {firstUpload
-                ? `${firstUpload.toISOString().slice(0, 10)} ~ ${new Date()
-                    .toISOString()
-                    .slice(0, 10)}`
-                : ''}
+            <div className="mt-2 text-sm text-slate-400">
+              {firstUpload ? `${fmt(firstUpload)} ~ ${fmt(new Date())}` : "업로드 이력 없음"}
             </div>
           </div>
 
-          {/* 우측: 주제 + 특징 */}
-          <div className="text-sm">
-            <div className="text-slate-400 mb-1">주제</div>
-            <div className="font-medium">{primaryTopic || '—'}</div>
-
-            {!!traits.length && (
+          {/* 우: 주제 & 특징 */}
+          <div>
+            <div className="text-base text-slate-300">주제</div>
+            <div className="text-xl font-semibold text-white">{primaryTopic || "—"}</div>
+            {traits.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-2">
                 {traits.map((t, i) => (
                   <span
                     key={i}
-                    className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-300"
+                    className="text-xs px-2.5 py-1 rounded-full bg-slate-700/60 text-slate-200 border border-slate-600"
                   >
                     {t}
                   </span>
