@@ -23,7 +23,7 @@ import { useBodyLock } from "@/hooks/useBodyLock";
 import { cn } from "@/lib/utils";
 import { SectionCard } from "@/components/ui/card";
 import Footer from "@/components/Footer";
-import { ChannelSummary } from "@/components/ChannelSummary";
+import ChannelSummary from "@/components/ChannelSummary";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -343,9 +343,9 @@ const Index = () => {
           {/* Channel Summary */}
           <ChannelSummary 
             channelName={currentChannelName}
+            managerName={undefined}
             videos={videoRows}
             uploadFrequency={uploadFrequency}
-            loading={isSkeleton}
           />
 
           {/* Quantity Section */}
