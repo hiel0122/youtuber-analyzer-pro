@@ -341,12 +341,16 @@ const Index = () => {
           </div>
 
           {/* Channel Summary */}
-          <ChannelSummary 
-            channelId={currentChannelId}
-            channelName={currentChannelName}
-            videos={videoRows}
-            uploadFrequency={uploadFrequency}
-          />
+          <section className="mb-8">
+            <SectionCard title="Summary">
+              <ChannelSummary 
+                channelId={currentChannelId}
+                channelName={currentChannelName}
+                videos={videoRows}
+                uploadFrequency={uploadFrequency}
+              />
+            </SectionCard>
+          </section>
 
           {/* Quantity Section */}
           <section className="mb-8">
