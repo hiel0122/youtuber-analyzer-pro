@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { SectionCard } from "@/components/ui/card";
 import Footer from "@/components/Footer";
 import ChannelSummary from "@/components/ChannelSummary";
+import { useChannelBundle } from "@/hooks/useChannelBundle";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -53,6 +54,9 @@ const Index = () => {
   const [pendingUrl, setPendingUrl] = useState<string>("");
   const [isHydrating, setIsHydrating] = useState(false);
   const { isSyncing, progress: syncProgress, currentCount, totalCount, error: syncError, startSync } = useSync();
+
+  // Summary 데이터 훅
+  const { loading: loadingSummary, channelName: summaryChannelName, videos: summaryVideos, uploadFrequency: summaryUploadFreq } = useChannelBundle(currentChannelId);
 
   // 전역 busy 상태
   const isBusy = isSyncing || isHydrating;
@@ -345,10 +349,13 @@ const Index = () => {
             <SectionCard title="Summary">
               <ChannelSummary 
                 channelId={currentChannelId}
-                channelName={currentChannelName}
-                videos={videoRows}
-                uploadFrequency={uploadFrequency}
+                channelName={summaryChannelName || currentChannelName}
+                videos={summaryVideos as any}
+                uploadFrequency={summaryUploadFreq as any}
               />
+              {loadingSummary && (
+                <div className="mt-2 text-sm text-muted-foreground">요약 데이터를 불러오는 중…</div>
+              )}
             </SectionCard>
           </section>
 

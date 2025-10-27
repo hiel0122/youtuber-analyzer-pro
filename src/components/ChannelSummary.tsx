@@ -94,8 +94,13 @@ export default function ChannelSummary({
   uploadFrequency,
 }: Props) {
   const hasVideos = Array.isArray(videos) && videos.length > 0;
-  
-  if (!hasVideos) return null;
+  if (!hasVideos) {
+    return (
+      <div className="text-sm text-muted-foreground">
+        아직 불러온 동영상 데이터가 없습니다. 채널을 분석하거나 잠시 후 다시 시도해 주세요.
+      </div>
+    );
+  }
 
   // ① 첫 업로드 날짜 → 운영기간
   const firstUpload = new Date(
