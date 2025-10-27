@@ -591,7 +591,8 @@ Deno.serve(async (req) => {
           dislikes: null,
           upload_date: v.publishedAt.slice(0, 10),
           duration: s?.duration ?? '',
-          url: `https://www.youtube.com/watch?v=${v.videoId}`
+          url: `https://www.youtube.com/watch?v=${v.videoId}`,
+          comments: s?.commentCount ?? 0
         };
       });
 

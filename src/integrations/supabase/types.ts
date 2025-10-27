@@ -81,6 +81,60 @@ export type Database = {
           },
         ]
       }
+      channel_meta: {
+        Row: {
+          channel_id: string
+          created_at: string
+          manager_name: string | null
+          primary_topic: string | null
+          topic_tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          channel_id: string
+          created_at?: string
+          manager_name?: string | null
+          primary_topic?: string | null
+          topic_tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          channel_id?: string
+          created_at?: string
+          manager_name?: string | null
+          primary_topic?: string | null
+          topic_tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      channel_snapshots: {
+        Row: {
+          channel_id: string
+          created_at: string
+          snapshot_date: string
+          subscriber_count: number | null
+          video_count: number
+          view_count: number
+        }
+        Insert: {
+          channel_id: string
+          created_at?: string
+          snapshot_date?: string
+          subscriber_count?: number | null
+          video_count: number
+          view_count: number
+        }
+        Update: {
+          channel_id?: string
+          created_at?: string
+          snapshot_date?: string
+          subscriber_count?: number | null
+          video_count?: number
+          view_count?: number
+        }
+        Relationships: []
+      }
       channel_topic_counts: {
         Row: {
           channel_id: string
@@ -106,6 +160,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      channel_upload_stats: {
+        Row: {
+          avg_per_month: number
+          avg_per_month_long: number
+          avg_per_month_short: number
+          avg_per_week: number
+          channel_id: string
+          computed_at: string
+          uploads_12m: number
+          uploads_12m_long: number
+          uploads_12m_short: number
+          uploads_12w: number
+          window_months: number
+          window_weeks: number
+        }
+        Insert: {
+          avg_per_month?: number
+          avg_per_month_long?: number
+          avg_per_month_short?: number
+          avg_per_week?: number
+          channel_id: string
+          computed_at?: string
+          uploads_12m?: number
+          uploads_12m_long?: number
+          uploads_12m_short?: number
+          uploads_12w?: number
+          window_months?: number
+          window_weeks?: number
+        }
+        Update: {
+          avg_per_month?: number
+          avg_per_month_long?: number
+          avg_per_month_short?: number
+          avg_per_week?: number
+          channel_id?: string
+          computed_at?: string
+          uploads_12m?: number
+          uploads_12m_long?: number
+          uploads_12m_short?: number
+          uploads_12w?: number
+          window_months?: number
+          window_weeks?: number
+        }
+        Relationships: []
       }
       channels: {
         Row: {
@@ -146,9 +245,126 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      video_snapshots: {
+        Row: {
+          comment_count: number
+          created_at: string
+          like_count: number
+          snapshot_date: string
+          video_id: string
+          view_count: number
+        }
+        Insert: {
+          comment_count?: number
+          created_at?: string
+          like_count?: number
+          snapshot_date?: string
+          video_id: string
+          view_count?: number
+        }
+        Update: {
+          comment_count?: number
+          created_at?: string
+          like_count?: number
+          snapshot_date?: string
+          video_id?: string
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_snapshots_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "youtube_videos"
+            referencedColumns: ["video_id"]
+          },
+        ]
+      }
+      videos: {
+        Row: {
+          channel_id: string
+          created_at: string
+          duration_seconds: number | null
+          published_at: string | null
+          title: string | null
+          video_id: string
+        }
+        Insert: {
+          channel_id: string
+          created_at?: string
+          duration_seconds?: number | null
+          published_at?: string | null
+          title?: string | null
+          video_id: string
+        }
+        Update: {
+          channel_id?: string
+          created_at?: string
+          duration_seconds?: number | null
+          published_at?: string | null
+          title?: string | null
+          video_id?: string
+        }
+        Relationships: []
+      }
+      youtube_channels: {
+        Row: {
+          channel_id: string
+          channel_name: string
+          created_at: string | null
+          last_updated: string | null
+          subscriber_count: number | null
+          total_videos: number | null
+          total_views: number | null
+        }
+        Insert: {
+          channel_id: string
+          channel_name: string
+          created_at?: string | null
+          last_updated?: string | null
+          subscriber_count?: number | null
+          total_videos?: number | null
+          total_views?: number | null
+        }
+        Update: {
+          channel_id?: string
+          channel_name?: string
+          created_at?: string | null
+          last_updated?: string | null
+          subscriber_count?: number | null
+          total_videos?: number | null
+          total_views?: number | null
+        }
+        Relationships: []
+      }
       youtube_videos: {
         Row: {
           channel_id: string
+          comments: number | null
           created_at: string | null
           dislikes: number | null
           duration: string | null
@@ -164,6 +380,7 @@ export type Database = {
         }
         Insert: {
           channel_id: string
+          comments?: number | null
           created_at?: string | null
           dislikes?: number | null
           duration?: string | null
@@ -179,6 +396,7 @@ export type Database = {
         }
         Update: {
           channel_id?: string
+          comments?: number | null
           created_at?: string | null
           dislikes?: number | null
           duration?: string | null
@@ -196,17 +414,110 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_all_videos: {
+        Row: {
+          channel_id: string | null
+          created_at: string | null
+          duration_seconds: number | null
+          published_at: string | null
+          title: string | null
+          video_id: string | null
+        }
+        Relationships: []
+      }
+      v_channel_comment_stats: {
+        Row: {
+          avg_per_video: number | null
+          channel_id: string | null
+          max_per_video: number | null
+          min_per_video: number | null
+          total_comments: number | null
+          videos_with_snapshot: number | null
+        }
+        Relationships: []
+      }
+      v_channel_daily_delta: {
+        Row: {
+          channel_id: string | null
+          comment_delta: number | null
+          like_delta: number | null
+          snapshot_date: string | null
+          view_delta: number | null
+        }
+        Relationships: []
+      }
+      v_channel_videos: {
+        Row: {
+          channel_id: string | null
+          video_id: string | null
+        }
+        Relationships: []
+      }
+      v_latest_video_snapshot: {
+        Row: {
+          comment_count: number | null
+          created_at: string | null
+          like_count: number | null
+          snapshot_date: string | null
+          video_id: string | null
+          view_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_snapshots_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "youtube_videos"
+            referencedColumns: ["video_id"]
+          },
+        ]
+      }
+      v_subscription_deltas: {
+        Row: {
+          channel_id: string | null
+          day_delta: number | null
+          month_delta: number | null
+          week_delta: number | null
+          year_delta: number | null
+        }
+        Relationships: []
+      }
+      v_video_daily_delta: {
+        Row: {
+          comment_delta: number | null
+          like_delta: number | null
+          snapshot_date: string | null
+          video_id: string | null
+          view_delta: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_snapshots_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "youtube_videos"
+            referencedColumns: ["video_id"]
+          },
+        ]
+      }
     }
     Functions: {
-      parse_duration_seconds: {
-        Args: { t: string }
-        Returns: number
+      parse_duration_seconds: { Args: { t: string }; Returns: number }
+      resolve_channel_key: { Args: { p_input: string }; Returns: string }
+      snapshot_video: {
+        Args: {
+          p_channel_id: string
+          p_comment_count: number
+          p_like_count: number
+          p_snap_date?: string
+          p_title: string
+          p_url: string
+          p_video_id: string
+          p_view_count: number
+        }
+        Returns: undefined
       }
-      resolve_channel_key: {
-        Args: { p_input: string }
-        Returns: string
-      }
+      to_seconds: { Args: { t: string }; Returns: number }
       upsert_channel_stats: {
         Args: {
           p_channel_input: string
@@ -217,10 +528,7 @@ export type Database = {
         }
         Returns: undefined
       }
-      upsert_videos: {
-        Args: { p_rows: Json }
-        Returns: number
-      }
+      upsert_videos: { Args: { p_rows: Json }; Returns: number }
     }
     Enums: {
       [_ in never]: never

@@ -133,13 +133,10 @@ export default function ChannelSummary({
     if (likeRatio >= 3) traits.push("좋아요 반응 높음");
   }
 
-  // ④ channel_meta 연동 (manager_name / primary_topic / topic_tags)
-  const [managerEditing, setManagerEditing] = React.useState(false);
+  // ④ channel_meta 연동 (manager_name / topic_tags) - 표시만
   const [manager, setManager] = React.useState("");
-  const [primaryTopic, setPrimaryTopic] = React.useState<string | null>(null);
   const [topicTags, setTopicTags] = React.useState<string[]>([]);
   const [loadingMeta, setLoadingMeta] = React.useState(false);
-  const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     if (!channelId) return;
@@ -147,42 +144,23 @@ export default function ChannelSummary({
       setLoadingMeta(true);
       const { data, error } = await supabase
         .from("channel_meta" as any)
-        .select("manager_name, primary_topic, topic_tags")
+        .select("manager_name, topic_tags")
         .eq("channel_id", channelId)
         .maybeSingle();
       if (!error && data) {
         const metaData = data as any;
         setManager(metaData.manager_name ?? "");
-        setPrimaryTopic(metaData.primary_topic ?? null);
         setTopicTags(metaData.topic_tags ?? []);
       } else {
         setManager("");
-        setPrimaryTopic(null);
         setTopicTags([]);
       }
       setLoadingMeta(false);
     })();
   }, [channelId]);
 
-  const upsertMeta = async (patch: Partial<{manager_name:string|null; primary_topic:string|null; topic_tags:string[]|null;}>) => {
-    if (!channelId) return;
-    setSaving(true);
-    await supabase.from("channel_meta" as any).upsert({
-      channel_id: channelId,
-      manager_name: patch.manager_name ?? (manager || null),
-      primary_topic: patch.primary_topic ?? (primaryTopic || null),
-      topic_tags: patch.topic_tags ?? (topicTags.length ? topicTags : null),
-      updated_at: new Date().toISOString(),
-    });
-    setSaving(false);
-  };
-
-  const saveManager = async () => {
-    await upsertMeta({ manager_name: manager.trim() || null });
-    setManagerEditing(false);
-  };
-
-  const resolvedTopic = primaryTopic || topicCandidates[0] || null;
+  // 표시할 태그: channel_meta의 topic_tags 또는 자동 추출된 topicCandidates
+  const displayTags = (topicTags?.length ? topicTags : topicCandidates) ?? [];
   const fmt = (d: Date) => d.toISOString().slice(0, 10);
 
   return (
@@ -201,26 +179,9 @@ export default function ChannelSummary({
             <div className="text-xl font-semibold text-white">{channelName || "—"}</div>
             <div className="mt-2 text-sm text-slate-400">
               관리자:&nbsp;
-              {managerEditing ? (
-                <input
-                  className="bg-slate-700/60 px-2 py-1 rounded-md outline-none text-white"
-                  value={manager}
-                  onChange={(e) => setManager(e.target.value)}
-                  onBlur={saveManager}
-                  onKeyDown={(e) => e.key === "Enter" && saveManager()}
-                  autoFocus
-                />
-              ) : (
-                <>
-                  {loadingMeta ? "로딩 중…" : (manager || "—")}
-                  {channelId && (
-                    <button className="underline ml-2 hover:text-violet-400" onClick={() => setManagerEditing(true)}>
-                      편집
-                    </button>
-                  )}
-                </>
-              )}
-              {saving && <span className="ml-2 text-slate-500">저장 중…</span>}
+              <span className="text-white">
+                {loadingMeta ? "로딩 중…" : (manager || channelName || "—")}
+              </span>
             </div>
           </div>
 
@@ -238,31 +199,15 @@ export default function ChannelSummary({
           {/* 우: 주제 & 특징 */}
           <div>
             <div className="text-base text-slate-300">주제</div>
-            <div className="text-xl font-semibold text-white">{resolvedTopic || "—"}</div>
-
-            {/* 후보 토픽 뱃지 + 저장 */}
-            {!!topicCandidates.length && (
+            
+            {/* 토픽 태그 뱃지만 표시 */}
+            {displayTags.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-2">
-                {topicCandidates.map((t) => (
+                {displayTags.map((t) => (
                   <span key={t} className="text-xs px-2.5 py-1 rounded-full bg-slate-700/60 text-slate-200 border border-slate-600">
                     {t}
                   </span>
                 ))}
-                {channelId && (
-                  <button
-                    className="text-xs px-2 py-1 rounded-md bg-violet-600 text-white hover:bg-violet-700"
-                    onClick={async () => {
-                      await upsertMeta({
-                        primary_topic: resolvedTopic,
-                        topic_tags: Array.from(new Set([...(topicTags || []), ...topicCandidates])),
-                      });
-                      if (resolvedTopic) setPrimaryTopic(resolvedTopic);
-                      setTopicTags(Array.from(new Set([...(topicTags || []), ...topicCandidates])));
-                    }}
-                  >
-                    주제 저장
-                  </button>
-                )}
               </div>
             )}
 
