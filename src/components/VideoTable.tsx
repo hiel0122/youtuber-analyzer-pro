@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Copy } from "lucide-react";
 import { YouTubeVideo } from "@/lib/youtubeApi";
 import { formatInt } from "@/utils/format";
+import { toast } from "sonner";
 
 interface VideoTableProps {
   videos: YouTubeVideo[];
@@ -15,6 +16,15 @@ export const VideoTable = ({ videos, loading }: VideoTableProps) => {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
   const totalPages = Math.ceil(videos.length / pageSize);
+
+  const handleCopyLink = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("링크를 복사했어요");
+    } catch (error) {
+      toast.error("복사에 실패했어요");
+    }
+  };
 
   const startIdx = (currentPage - 1) * pageSize;
   const endIdx = startIdx + pageSize;
@@ -59,7 +69,6 @@ export const VideoTable = ({ videos, loading }: VideoTableProps) => {
               <TableRow className="bg-secondary/50">
                 <TableHead className="text-center whitespace-nowrap">주제</TableHead>
                 <TableHead className="text-center whitespace-nowrap min-w-[300px]">제목</TableHead>
-                <TableHead className="text-center whitespace-nowrap">출연자</TableHead>
                 <TableHead className="text-center whitespace-nowrap">조회수</TableHead>
                 <TableHead className="text-center whitespace-nowrap">좋아요</TableHead>
                 <TableHead className="text-center whitespace-nowrap">업로드 날짜</TableHead>
@@ -71,14 +80,14 @@ export const VideoTable = ({ videos, loading }: VideoTableProps) => {
               {loading ? (
                 [...Array(10)].map((_, idx) => (
                   <TableRow key={idx}>
-                    <TableCell colSpan={8} className="py-4">
+                    <TableCell colSpan={7} className="py-4">
                       <div className="h-6 bg-muted/50 rounded animate-pulse" />
                     </TableCell>
                   </TableRow>
                 ))
               ) : videos.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center text-sm text-muted-foreground py-8">
+                  <TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-8">
                     데이터가 없습니다.
                   </TableCell>
                 </TableRow>
@@ -89,20 +98,30 @@ export const VideoTable = ({ videos, loading }: VideoTableProps) => {
                     <TableCell className="max-w-[400px] truncate" title={video.title}>
                       {video.title}
                     </TableCell>
-                    <TableCell className="text-center whitespace-nowrap">{video.presenter}</TableCell>
                     <TableCell className="text-center whitespace-nowrap">{formatInt(video.views)}</TableCell>
                     <TableCell className="text-center whitespace-nowrap">{formatInt(video.likes)}</TableCell>
                     <TableCell className="text-center whitespace-nowrap">{video.uploadDate}</TableCell>
                     <TableCell className="text-center whitespace-nowrap">{video.duration}</TableCell>
                     <TableCell className="text-center whitespace-nowrap">
-                      <a
-                        href={video.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:text-primary/80 transition-colors underline decoration-dotted"
-                      >
-                        열기
-                      </a>
+                      <div className="flex items-center justify-center gap-2">
+                        <a
+                          href={video.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:text-primary/80 transition-colors underline decoration-dotted"
+                        >
+                          보기
+                        </a>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => handleCopyLink(video.url)}
+                          aria-label="링크 복사"
+                        >
+                          <Copy className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))

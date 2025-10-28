@@ -5,6 +5,7 @@ import { SectionCard } from "@/components/ui/card";
 import { MetricsCard } from "@/components/MetricsCard";
 import { RowHeader } from "@/components/RowHeader";
 import { CalendarCheck, Video, ThumbsUp, UserPlus, MessageSquare } from "lucide-react";
+import { formatInt, formatIntOrDash } from "@/utils/format";
 
 function secsToLabel(secs: number) {
   if (secs <= 0) return "0s";
@@ -18,9 +19,10 @@ function secsToLabel(secs: number) {
 
 function formatSigned(n: number) {
   const s = Math.round(n);
-  if (s > 0) return `+${formatNumber(s)}`;
-  if (s < 0) return `-${formatNumber(Math.abs(s))}`;
-  return "0";
+  if (s === 0) return "—";
+  if (s > 0) return `+${formatInt(s)}`;
+  if (s < 0) return `-${formatInt(Math.abs(s))}`;
+  return "—";
 }
 
 export default function QuantityQuality({
@@ -113,7 +115,7 @@ export default function QuantityQuality({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <MetricsCard 
               title="General/Shorts" 
-              value={`${formatNumber(stats.longCount)}/${formatNumber(stats.shortCount)}`} 
+              value={`${formatInt(stats.longCount)}/${formatInt(stats.shortCount)}`} 
             />
             <MetricsCard title="Maximum Image Length" value={secsToLabel(stats.maxDur)} />
             <MetricsCard title="Minimum Image Length" value={secsToLabel(stats.minLongDur)} />
@@ -125,10 +127,10 @@ export default function QuantityQuality({
         <div>
           <RowHeader title="[Hits & Likes]" Icon={ThumbsUp} />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <MetricsCard title="Maximum hits" value={formatNumber(stats.maxViews)} />
-            <MetricsCard title="Minimum hits" value={formatNumber(stats.minViews)} />
-            <MetricsCard title="Avg. hits" value={formatNumber(stats.avgViews)} />
-            <MetricsCard title="Avg. Likes" value={formatNumber(stats.avgLikes)} />
+            <MetricsCard title="Maximum hits" value={formatInt(stats.maxViews)} />
+            <MetricsCard title="Minimum hits" value={formatInt(stats.minViews)} />
+            <MetricsCard title="Avg. hits" value={formatInt(stats.avgViews)} />
+            <MetricsCard title="Avg. Likes" value={formatInt(stats.avgLikes)} />
           </div>
         </div>
 
@@ -138,19 +140,19 @@ export default function QuantityQuality({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <MetricsCard
               title="Upload(Week)"
-              value={uploadFrequency ? `${uploadFrequency.averages.perWeek.toFixed(2)}/주` : "0.00개/주"}
+              value={uploadFrequency ? `${formatInt(Math.round(uploadFrequency.averages.perWeek))}/주` : "—"}
             />
             <MetricsCard
               title="Upload(Month)"
-              value={uploadFrequency ? `${uploadFrequency.averages.perMonth.toFixed(2)}/월` : "0.00개/월"}
+              value={uploadFrequency ? `${formatInt(Math.round(uploadFrequency.averages.perMonth))}/월` : "—"}
             />
             <MetricsCard
               title="Upload(Quarter)"
-              value={uploadFrequency ? `${uploadFrequency.averages.perQuarter.toFixed(2)}/분기` : "0.00개/분기"}
+              value={uploadFrequency ? `${formatInt(Math.round(uploadFrequency.averages.perQuarter))}/분기` : "—"}
             />
             <MetricsCard
               title="Upload(Year)"
-              value={uploadFrequency ? `${uploadFrequency.averages.perYearAvg.toFixed(2)}/년` : "0.00개/년"}
+              value={uploadFrequency ? `${formatInt(Math.round(uploadFrequency.averages.perYearAvg))}/년` : "—"}
             />
           </div>
         </div>
@@ -186,19 +188,19 @@ export default function QuantityQuality({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <MetricsCard 
               title="All Comments" 
-              value={commentStats ? formatNumber(commentStats.total) : "0"} 
+              value={commentStats ? formatInt(commentStats.total) : "—"} 
             />
             <MetricsCard 
               title="Maximum Comments (per video)" 
-              value={commentStats ? formatNumber(commentStats.maxPerVideo) : "0"} 
+              value={commentStats ? formatInt(commentStats.maxPerVideo) : "—"} 
             />
             <MetricsCard 
               title="Minimum Comments (per video)" 
-              value={commentStats ? formatNumber(commentStats.minPerVideo) : "0"} 
+              value={commentStats ? formatInt(commentStats.minPerVideo) : "—"} 
             />
             <MetricsCard 
               title="Avg. comment (per video)" 
-              value={commentStats ? formatNumber(Math.round(commentStats.avgPerVideo)) : "0"} 
+              value={commentStats ? formatInt(Math.round(commentStats.avgPerVideo)) : "—"} 
             />
           </div>
         </div>

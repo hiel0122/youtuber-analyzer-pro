@@ -1,6 +1,14 @@
-export const formatInt = (n?: number | string) => {
+export const formatInt = (n?: number | string | null) => {
   const num = typeof n === 'string' ? parseInt(n) : (n ?? 0);
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  if (!Number.isFinite(num)) return '—';
+  return new Intl.NumberFormat('ko-KR', { maximumFractionDigits: 0 }).format(num);
+};
+
+// Format number with optional dash for zero
+export const formatIntOrDash = (n?: number | null, showDashForZero = false) => {
+  if (n == null || !Number.isFinite(n)) return '—';
+  if (n === 0 && showDashForZero) return '—';
+  return new Intl.NumberFormat('ko-KR', { maximumFractionDigits: 0 }).format(n);
 };
 
 export const formatMMDD = (iso: string) => {

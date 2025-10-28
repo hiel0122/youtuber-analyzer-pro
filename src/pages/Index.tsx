@@ -367,7 +367,7 @@ const Index = () => {
                   title="총 구독자 수"
                   value={
                     <div className="flex items-center gap-2">
-                      <span>{formatInt(subscriberCount)}</span>
+                      <span>{formatInt(subscriberCount)}+</span>
                       {hiddenSubscriber && (
                         <Badge variant="secondary" className="text-xs">
                           숨김
@@ -377,6 +377,7 @@ const Index = () => {
                   }
                   icon={Users}
                   description="채널 구독자"
+                  tooltip="YouTube API 특성상 대형 채널의 구독자 수는 반올림/비공개 등으로 정확치 않을 수 있습니다."
                 />
                 <MetricsCard title="총 영상 수" value={formatInt(totalVideos)} icon={Video} description="분석된 영상" />
                 <MetricsCard
