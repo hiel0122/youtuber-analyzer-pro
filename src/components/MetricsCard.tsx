@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LucideIcon, Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
 
 interface MetricsCardProps {
   title: string;
@@ -8,14 +9,39 @@ interface MetricsCardProps {
   icon?: LucideIcon;
   description?: string;
   tooltip?: string;
+  infoTooltip?: string;
 }
 
-export const MetricsCard = ({ title, value, icon: Icon, description, tooltip }: MetricsCardProps) => {
+export const MetricsCard = ({ title, value, icon: Icon, description, tooltip, infoTooltip }: MetricsCardProps) => {
   return (
     <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow transition-all duration-300">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
-          {title}
+          <span className="flex items-center gap-1.5">
+            {title}
+            {infoTooltip && (
+              <TooltipProvider delayDuration={150}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-5 w-5 p-0 hover:bg-white/5 rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      aria-label={`${title} 안내`}
+                    >
+                      <Info className="h-3.5 w-3.5 text-muted-foreground/70" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent 
+                    role="tooltip"
+                    className="max-w-[280px] text-xs leading-5"
+                  >
+                    {infoTooltip}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </span>
           {tooltip && (
             <TooltipProvider>
               <Tooltip>

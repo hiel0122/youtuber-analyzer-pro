@@ -12,6 +12,8 @@ import { fetchAllVideosByChannel } from "@/lib/supabasePaging";
 import { Video, Eye, Calendar, Users } from "lucide-react";
 import { toast } from "sonner";
 import { formatInt } from "@/utils/format";
+import { formatMetric } from "@/utils/formatMetric";
+import { useDataContext } from "@/contexts/DataContext";
 import { Badge } from "@/components/ui/badge";
 import { useSync } from "@/hooks/useSync";
 import SyncProgress from "@/components/SyncProgress";
@@ -54,6 +56,9 @@ const Index = () => {
   const [pendingUrl, setPendingUrl] = useState<string>("");
   const [isHydrating, setIsHydrating] = useState(false);
   const { isSyncing, progress: syncProgress, currentCount, totalCount, error: syncError, startSync } = useSync();
+  
+  // DataContext for global isLoaded/hasData state
+  const { isLoaded, hasData, setIsLoaded, setHasData } = useDataContext();
 
   // Summary 데이터 훅
   const { loading: loadingSummary, channelName: summaryChannelName, videos: summaryVideos, uploadFrequency: summaryUploadFreq } = useChannelBundle(currentChannelId);
@@ -106,6 +111,10 @@ const Index = () => {
         url: v.url,
       }));
       setVideoRows(mappedRows);
+
+      // Update data context
+      setIsLoaded(true);
+      setHasData(allVideos.length > 0);
     } catch (error) {
       console.error("❌ Load videos error:", error);
     } finally {
@@ -367,7 +376,13 @@ const Index = () => {
                   title="총 구독자 수"
                   value={
                     <div className="flex items-center gap-2">
-                      <span>{formatInt(subscriberCount)}+</span>
+                      <span>
+                        {formatMetric(subscriberCount, {
+                          showPlus: true,
+                          isLoaded,
+                          hasData
+                        })}
+                      </span>
                       {hiddenSubscriber && (
                         <Badge variant="secondary" className="text-xs">
                           숨김
@@ -377,16 +392,26 @@ const Index = () => {
                   }
                   icon={Users}
                   description="채널 구독자"
-                  tooltip="YouTube API 특성상 대형 채널의 구독자 수는 반올림/비공개 등으로 정확치 않을 수 있습니다."
+                  infoTooltip="YouTube API 특성상 대형 채널의 구독자 수는 반올림/비공개 등으로 정확치 않을 수 있습니다."
                 />
-                <MetricsCard title="총 영상 수" value={formatInt(totalVideos)} icon={Video} description="분석된 영상" />
+                <MetricsCard 
+                  title="총 영상 수" 
+                  value={formatMetric(totalVideos, { isLoaded, hasData })} 
+                  icon={Video} 
+                  description="분석된 영상" 
+                />
                 <MetricsCard
                   title="총 조회수"
-                  value={formatInt(channelTotalViews || totalViews)}
+                  value={formatMetric(channelTotalViews || totalViews, { isLoaded, hasData })}
                   icon={Eye}
                   description="전체 조회수"
                 />
-                <MetricsCard title="최근 업로드" value={latestUpload} icon={Calendar} description="마지막 업로드일" />
+                <MetricsCard 
+                  title="최근 업로드" 
+                  value={latestUpload} 
+                  icon={Calendar} 
+                  description="마지막 업로드일" 
+                />
               </div>
             </SectionCard>
           </section>
@@ -399,6 +424,8 @@ const Index = () => {
               uploadFrequency={uploadFrequency}
               subscriptionRates={subscriptionRates}
               commentStats={commentStats}
+              isLoaded={isLoaded}
+              hasData={hasData}
             />
           </section>
 
