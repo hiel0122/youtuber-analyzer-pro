@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,7 +33,6 @@ export function AuthCard({ onSuccess }: AuthCardProps) {
 
       if (error) throw error;
 
-      // Backup: upsert profile in case trigger doesn't work
       if (data.user) {
         await supabase.from('profiles').upsert({
           id: data.user.id,
@@ -84,7 +83,7 @@ export function AuthCard({ onSuccess }: AuthCardProps) {
 
       if (error) throw error;
 
-      toast.success('비밀번호 재설정 이메일을 발송했습니다.');
+      toast.success('비밀번호 재설정 이메일을 발송했습니다. 이메일을 확인해 주세요.');
     } catch (error: any) {
       toast.error(error.message || '비밀번호 재설정에 실패했습니다.');
     } finally {
