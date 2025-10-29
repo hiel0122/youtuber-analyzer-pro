@@ -6,6 +6,8 @@ interface Profile {
   id: string;
   email: string | null;
   display_name: string | null;
+  nickname: string | null;
+  tier: string | null;
   created_at: string;
   updated_at: string;
 }

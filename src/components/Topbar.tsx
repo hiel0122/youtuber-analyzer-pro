@@ -42,42 +42,11 @@ export function Topbar() {
             </h1>
           </div>
 
-          <div className="flex items-center gap-4">
-            {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                    <Avatar className="h-10 w-10">
-                      <AvatarFallback className="bg-primary/10 text-primary">
-                        {getInitials(user.email)}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <div className="flex flex-col space-y-1 p-2">
-                    <p className="text-sm font-medium leading-none">{user.email}</p>
-                  </div>
-                  <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>로그아웃</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Button onClick={() => setAuthDialogOpen(true)}>
-                로그인/회원가입
-              </Button>
-            )}
-          </div>
+          {/* Empty - auth moved to sidebar */}
         </div>
       </div>
 
-      <Dialog open={authDialogOpen} onOpenChange={setAuthDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <AuthCard onSuccess={() => setAuthDialogOpen(false)} />
-        </DialogContent>
-      </Dialog>
+      {/* Auth modal removed - now in sidebar */}
     </>
   );
 }

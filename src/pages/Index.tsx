@@ -27,6 +27,8 @@ import { SectionCard } from "@/components/ui/card";
 import Footer from "@/components/Footer";
 import ChannelSummary from "@/components/ChannelSummary";
 import { useChannelBundle } from "@/hooks/useChannelBundle";
+import { useAuth } from "@/hooks/useAuth";
+import { AuthGateModal } from "@/components/AuthGateModal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,6 +41,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const Index = () => {
+  const { user } = useAuth();
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
   const [videoRows, setVideoRows] = useState<VideoRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -55,6 +58,7 @@ const Index = () => {
   const [showResyncDialog, setShowResyncDialog] = useState(false);
   const [pendingUrl, setPendingUrl] = useState<string>("");
   const [isHydrating, setIsHydrating] = useState(false);
+  const [showAuthGate, setShowAuthGate] = useState(false);
   const { isSyncing, progress: syncProgress, currentCount, totalCount, error: syncError, startSync } = useSync();
   
   // DataContext for global isLoaded/hasData state
@@ -220,6 +224,12 @@ const Index = () => {
   };
 
   const handleAnalyze = async (url: string) => {
+    // Check if user is logged in
+    if (!user) {
+      setShowAuthGate(true);
+      return;
+    }
+
     try {
       if (!hasSupabaseCredentials()) {
         toast.error("Settings에서 Supabase URL/Anon Key를 설정하세요");
@@ -317,6 +327,9 @@ const Index = () => {
         aria-busy={isBusy}
       >
         <SettingsModal />
+
+        {/* Auth Gate Modal */}
+        <AuthGateModal open={showAuthGate} onOpenChange={setShowAuthGate} />
 
         {/* 재분석 확인 다이얼로그 */}
         <AlertDialog open={showResyncDialog} onOpenChange={setShowResyncDialog}>
