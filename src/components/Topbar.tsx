@@ -1,35 +1,22 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/lib/supabase';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { AuthCard } from './AuthCard';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { LogOut, User } from 'lucide-react';
+import { Settings } from 'lucide-react';
 
 export function Topbar() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
 
-  const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast.success('로그아웃되었습니다.');
-    } catch (error) {
-      toast.error('로그아웃에 실패했습니다.');
+  const handleSettingsClick = () => {
+    if (user) {
+      navigate('/settings');
+    } else {
+      setAuthDialogOpen(true);
     }
-  };
-
-  const getInitials = (email: string | undefined) => {
-    if (!email) return 'U';
-    return email.charAt(0).toUpperCase();
   };
 
   return (
@@ -42,11 +29,23 @@ export function Topbar() {
             </h1>
           </div>
 
-          {/* Empty - auth moved to sidebar */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleSettingsClick}
+            className="rounded-full"
+            aria-label="설정"
+          >
+            <Settings className="h-5 w-5" />
+          </Button>
         </div>
       </div>
 
-      {/* Auth modal removed - now in sidebar */}
+      <Dialog open={authDialogOpen} onOpenChange={setAuthDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <AuthCard onSuccess={() => setAuthDialogOpen(false)} />
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

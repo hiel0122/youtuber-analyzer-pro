@@ -3,7 +3,6 @@ import { ChannelInput } from "@/components/ChannelInput";
 import { MetricsCard } from "@/components/MetricsCard";
 import { VideoTable } from "@/components/VideoTable";
 import { TopicChart } from "@/components/TopicChart";
-import { SettingsModal } from "@/components/SettingsModal";
 import { YouTubeVideo } from "@/lib/youtubeApi";
 import { VideoRow, SyncResponse, UploadFrequency, SubscriptionRates, CommentStats } from "@/lib/types";
 import { getSupabaseClient, hasSupabaseCredentials } from "@/lib/supabaseClient";
@@ -326,8 +325,6 @@ const Index = () => {
         className={cn("transition duration-200", isBusy ? "blur-sm pointer-events-none select-none" : "")}
         aria-busy={isBusy}
       >
-        <SettingsModal />
-
         {/* Auth Gate Modal */}
         <AuthGateModal open={showAuthGate} onOpenChange={setShowAuthGate} />
 

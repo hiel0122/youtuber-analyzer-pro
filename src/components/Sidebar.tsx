@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/lib/supabase';
@@ -57,6 +58,7 @@ interface AnalysisLog {
 export function Sidebar() {
   const { user } = useAuth();
   const { profile } = useProfile();
+  const navigate = useNavigate();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [logs, setLogs] = useState<AnalysisLog[]>([]);
@@ -314,30 +316,45 @@ export function Sidebar() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onClick={() => toast.info('Coming Soon')}>
+                <DropdownMenuItem onClick={() => navigate('/settings?tab=account')}>
                   <User className="mr-2 h-4 w-4" />
                   프로필 수정
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => toast.info('Coming Soon')}>
+                <DropdownMenuItem onClick={() => navigate('/settings')}>
                   <Settings className="mr-2 h-4 w-4" />
                   설정
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut}>
+                <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
                   로그아웃
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button
-              onClick={() => setAuthDialogOpen(true)}
-              variant="secondary"
-              size={collapsed ? "icon" : "default"}
-              className="w-full"
-            >
-              {collapsed ? <User className="h-4 w-4" /> : '로그인/회원가입'}
-            </Button>
+            !collapsed && (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground text-center mb-2">
+                  채널 분석을 시작하려면 로그인해주세요.
+                </p>
+                <Button
+                  onClick={() => setAuthDialogOpen(true)}
+                  variant="default"
+                  size="sm"
+                  className="w-full"
+                >
+                  로그인
+                </Button>
+                <Button
+                  onClick={() => setAuthDialogOpen(true)}
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                >
+                  회원가입
+                </Button>
+              </div>
+            )
           )}
         </div>
       </aside>

@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      analysis_logs: {
+        Row: {
+          channel_name: string
+          created_at: string
+          id: number
+          user_id: string
+        }
+        Insert: {
+          channel_name: string
+          created_at?: string
+          id?: number
+          user_id: string
+        }
+        Update: {
+          channel_name?: string
+          created_at?: string
+          id?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       channel_daily_views: {
         Row: {
           channel_id: string
@@ -248,24 +269,99 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          deleted_at: string | null
           display_name: string | null
           email: string | null
           id: string
+          nickname: string | null
+          tier: Database["public"]["Enums"]["membership_tier"]
           updated_at: string
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
           display_name?: string | null
           email?: string | null
           id: string
+          nickname?: string | null
+          tier?: Database["public"]["Enums"]["membership_tier"]
           updated_at?: string
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
           display_name?: string | null
           email?: string | null
           id?: string
+          nickname?: string | null
+          tier?: Database["public"]["Enums"]["membership_tier"]
           updated_at?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          api_supabase_anon_key: string | null
+          api_supabase_url: string | null
+          api_youtube_key: string | null
+          channel_default_url: string | null
+          channel_include_shorts: boolean | null
+          channel_range_days: number | null
+          connect_discord_webhook: string | null
+          connect_ga_id: string | null
+          connect_slack_webhook: string | null
+          created_at: string | null
+          general_date_format: string | null
+          general_language: string | null
+          general_theme: string | null
+          general_timezone: string | null
+          id: string
+          updated_at: string | null
+          usage_api_calls_youtube: number | null
+          usage_videos_scanned: number | null
+          user_id: string
+        }
+        Insert: {
+          api_supabase_anon_key?: string | null
+          api_supabase_url?: string | null
+          api_youtube_key?: string | null
+          channel_default_url?: string | null
+          channel_include_shorts?: boolean | null
+          channel_range_days?: number | null
+          connect_discord_webhook?: string | null
+          connect_ga_id?: string | null
+          connect_slack_webhook?: string | null
+          created_at?: string | null
+          general_date_format?: string | null
+          general_language?: string | null
+          general_theme?: string | null
+          general_timezone?: string | null
+          id?: string
+          updated_at?: string | null
+          usage_api_calls_youtube?: number | null
+          usage_videos_scanned?: number | null
+          user_id: string
+        }
+        Update: {
+          api_supabase_anon_key?: string | null
+          api_supabase_url?: string | null
+          api_youtube_key?: string | null
+          channel_default_url?: string | null
+          channel_include_shorts?: boolean | null
+          channel_range_days?: number | null
+          connect_discord_webhook?: string | null
+          connect_ga_id?: string | null
+          connect_slack_webhook?: string | null
+          created_at?: string | null
+          general_date_format?: string | null
+          general_language?: string | null
+          general_theme?: string | null
+          general_timezone?: string | null
+          id?: string
+          updated_at?: string | null
+          usage_api_calls_youtube?: number | null
+          usage_videos_scanned?: number | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -502,6 +598,7 @@ export type Database = {
       }
     }
     Functions: {
+      is_admin: { Args: never; Returns: boolean }
       parse_duration_seconds: { Args: { t: string }; Returns: number }
       resolve_channel_key: { Args: { p_input: string }; Returns: string }
       snapshot_video: {
@@ -531,7 +628,7 @@ export type Database = {
       upsert_videos: { Args: { p_rows: Json }; Returns: number }
     }
     Enums: {
-      [_ in never]: never
+      membership_tier: "free" | "plus" | "pro" | "Earlybird" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -658,6 +755,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      membership_tier: ["free", "plus", "pro", "Earlybird", "admin"],
+    },
   },
 } as const

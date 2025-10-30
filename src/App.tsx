@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { DataProvider } from "@/contexts/DataContext";
 import { AppLayout } from "@/layouts/AppLayout";
 import Index from "./pages/Index";
+import Settings from "./pages/Settings";
 import AuthCallback from "./pages/AuthCallback";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
@@ -22,6 +23,7 @@ const App = () => (
           <Routes>
             <Route element={<AppLayout />}>
               <Route path="/" element={<Index />} />
+              <Route path="/settings" element={<Settings />} />
             </Route>
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/reset-password" element={<ResetPassword />} />
