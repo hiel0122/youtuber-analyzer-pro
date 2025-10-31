@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
+import { useI18n } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -9,12 +10,11 @@ import { Loader2 } from 'lucide-react';
 
 export function GeneralForm() {
   const { user } = useAuth();
+  const { language: currentLang, setLanguage: setI18nLanguage, t } = useI18n();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [language, setLanguage] = useState('ko');
   const [theme, setTheme] = useState('dark');
-  const [timezone, setTimezone] = useState('Asia/Seoul');
-  const [dateFormat, setDateFormat] = useState('YYYY-MM-DD');
 
   useEffect(() => {
     loadSettings();
@@ -27,17 +27,17 @@ export function GeneralForm() {
     try {
       const { data, error } = await supabase
         .from('user_settings')
-        .select('general_language, general_theme, general_timezone, general_date_format')
+        .select('general_language, general_theme')
         .eq('user_id', user.id)
         .maybeSingle();
 
       if (error && error.code !== 'PGRST116') throw error;
 
       if (data) {
-        setLanguage(data.general_language || 'ko');
+        const lang = data.general_language || 'ko';
+        setLanguage(lang);
+        setI18nLanguage(lang as 'ko' | 'en');
         setTheme(data.general_theme || 'dark');
-        setTimezone(data.general_timezone || 'Asia/Seoul');
-        setDateFormat(data.general_date_format || 'YYYY-MM-DD');
       }
     } catch (error) {
       console.error('Failed to load settings:', error);
@@ -57,13 +57,14 @@ export function GeneralForm() {
           user_id: user.id,
           general_language: language,
           general_theme: theme,
-          general_timezone: timezone,
-          general_date_format: dateFormat,
         }, {
           onConflict: 'user_id'
         });
 
       if (error) throw error;
+
+      // Apply language change
+      setI18nLanguage(language as 'ko' | 'en');
 
       // Apply theme change
       if (theme !== 'system') {
@@ -71,7 +72,7 @@ export function GeneralForm() {
         localStorage.setItem('theme', theme);
       }
 
-      toast.success('설정이 저장되었습니다.');
+      toast.success(t('settings.saved'));
     } catch (error: any) {
       toast.error(error.message || '설정 저장에 실패했습니다.');
     } finally {
@@ -90,65 +91,33 @@ export function GeneralForm() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold mb-4">일반 설정</h3>
-        <p className="text-sm text-muted-foreground mb-6">
-          언어, 테마 및 날짜 형식을 설정하세요.
-        </p>
+        <h3 className="text-lg font-semibold mb-4">{t('general.title')}</h3>
       </div>
 
       <div className="grid gap-4">
         <div className="space-y-2">
-          <Label htmlFor="language">언어</Label>
+          <Label htmlFor="language">{t('general.language')}</Label>
           <Select value={language} onValueChange={setLanguage}>
             <SelectTrigger id="language">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ko">한국어</SelectItem>
-              <SelectItem value="en">English</SelectItem>
+              <SelectItem value="ko">{t('general.korean')}</SelectItem>
+              <SelectItem value="en">{t('general.english')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="theme">테마</Label>
+          <Label htmlFor="theme">{t('general.theme')}</Label>
           <Select value={theme} onValueChange={setTheme}>
             <SelectTrigger id="theme">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="dark">Dark</SelectItem>
-              <SelectItem value="light">Light</SelectItem>
-              <SelectItem value="system">System</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="timezone">시간대</Label>
-          <Select value={timezone} onValueChange={setTimezone}>
-            <SelectTrigger id="timezone">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Asia/Seoul">Asia/Seoul (KST)</SelectItem>
-              <SelectItem value="America/New_York">America/New_York (EST)</SelectItem>
-              <SelectItem value="Europe/London">Europe/London (GMT)</SelectItem>
-              <SelectItem value="Asia/Tokyo">Asia/Tokyo (JST)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="dateFormat">날짜 형식</Label>
-          <Select value={dateFormat} onValueChange={setDateFormat}>
-            <SelectTrigger id="dateFormat">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
-              <SelectItem value="DD.MM.YYYY">DD.MM.YYYY</SelectItem>
-              <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
+              <SelectItem value="dark">{t('general.dark')}</SelectItem>
+              <SelectItem value="light">{t('general.light')}</SelectItem>
+              <SelectItem value="system">{t('general.system')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -159,10 +128,10 @@ export function GeneralForm() {
           {saving ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              저장 중...
+              {t('settings.saving')}
             </>
           ) : (
-            '저장'
+            t('settings.save')
           )}
         </Button>
       </div>

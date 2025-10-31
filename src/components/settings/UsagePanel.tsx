@@ -1,14 +1,42 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, BarChart3, Video, Database } from 'lucide-react';
+import { useI18n } from '@/lib/i18n';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Loader2, TrendingUp } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer 
+} from 'recharts';
+
+interface UsageData {
+  used: number;
+  allocated: number;
+}
+
+interface DailyMetrics {
+  date: string;
+  analysis_count: number;
+  data_api_calls: number;
+  analytics_api_calls: number;
+  data_save_count: number;
+}
 
 export function UsagePanel() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [loading, setLoading] = useState(true);
-  const [videosScanned, setVideosScanned] = useState(0);
-  const [apiCalls, setApiCalls] = useState(0);
+  const [credits, setCredits] = useState<UsageData>({ used: 0, allocated: 100 });
+  const [dailyMetrics, setDailyMetrics] = useState<DailyMetrics[]>([]);
+  const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
     loadUsage();
@@ -19,17 +47,40 @@ export function UsagePanel() {
     
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('user_settings')
-        .select('usage_videos_scanned, usage_api_calls_youtube')
+      // Load credits
+      const { data: creditData, error: creditError } = await supabase
+        .from('user_credits')
+        .select('used, allocated')
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (creditError && creditError.code !== 'PGRST116') throw creditError;
 
-      if (data) {
-        setVideosScanned(data.usage_videos_scanned || 0);
-        setApiCalls(data.usage_api_calls_youtube || 0);
+      if (creditData) {
+        setCredits(creditData);
+      }
+
+      // Load daily metrics (last 30 days)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const { data: metricsData, error: metricsError } = await supabase
+        .from('usage_daily')
+        .select('usage_date, analysis_count, data_api_calls, analytics_api_calls, data_save_count')
+        .eq('user_id', user.id)
+        .gte('usage_date', thirtyDaysAgo.toISOString().split('T')[0])
+        .order('usage_date', { ascending: true });
+
+      if (metricsError) throw metricsError;
+
+      if (metricsData) {
+        setDailyMetrics(metricsData.map(m => ({
+          date: m.usage_date,
+          analysis_count: m.analysis_count,
+          data_api_calls: m.data_api_calls,
+          analytics_api_calls: m.analytics_api_calls,
+          data_save_count: m.data_save_count,
+        })));
       }
     } catch (error) {
       console.error('Failed to load usage:', error);
@@ -37,6 +88,8 @@ export function UsagePanel() {
       setLoading(false);
     }
   };
+
+  const creditPercentage = (credits.used / credits.allocated) * 100;
 
   if (loading) {
     return (
@@ -49,59 +102,127 @@ export function UsagePanel() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold mb-4">사용량</h3>
-        <p className="text-sm text-muted-foreground mb-6">
-          API 사용량 및 분석 통계를 확인하세요.
-        </p>
+        <h3 className="text-lg font-semibold mb-4">{t('usage.title')}</h3>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">분석한 영상</CardTitle>
-            <Video className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{videosScanned.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              누적 분석 영상 수
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">YouTube API 호출</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{apiCalls.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              이번 달 API 호출 수
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">데이터 사용량</CardTitle>
-            <Database className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">N/A</div>
-            <p className="text-xs text-muted-foreground">
-              DB 저장 행 수
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="space-y-4">
-        <h4 className="text-sm font-semibold">사용량 추이</h4>
-        <div className="h-[200px] flex items-center justify-center border border-dashed rounded-lg">
-          <p className="text-sm text-muted-foreground">차트 영역 (구현 예정)</p>
+      {/* Credit Usage Card with Animation */}
+      <Card className="p-6">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">{t('usage.credit.label')}</span>
+            <span className="text-sm font-bold">
+              {credits.used} / {credits.allocated}
+            </span>
+          </div>
+          
+          <div className="h-3 bg-muted rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${creditPercentage}%` }}
+              transition={{ duration: 1, ease: "easeOut" }}
+            />
+          </div>
         </div>
+      </Card>
+
+      {/* Usage Trend Chart */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h4 className="text-sm font-semibold flex items-center gap-2">
+            <TrendingUp className="w-4 h-4" />
+            {t('usage.trend.title')}
+          </h4>
+          <Button variant="outline" size="sm" onClick={() => setShowDetails(true)}>
+            {t('usage.trend.details')}
+          </Button>
+        </div>
+
+        <Card className="p-4">
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={dailyMetrics}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+              <XAxis 
+                dataKey="date" 
+                tick={{ fontSize: 12 }}
+                tickFormatter={(value) => {
+                  const date = new Date(value);
+                  return `${date.getMonth() + 1}/${date.getDate()}`;
+                }}
+                interval={9}
+              />
+              <YAxis tick={{ fontSize: 12 }} />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'hsl(var(--card))', 
+                  border: '1px solid hsl(var(--border))' 
+                }}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="analysis_count" 
+                stroke="hsl(var(--primary))" 
+                name={t('usage.metrics.analysis')}
+                strokeWidth={2}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="data_api_calls" 
+                stroke="hsl(142, 76%, 36%)" 
+                name={t('usage.metrics.dataApi')}
+                strokeWidth={2}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="analytics_api_calls" 
+                stroke="hsl(217, 91%, 60%)" 
+                name={t('usage.metrics.analyticsApi')}
+                strokeWidth={2}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="data_save_count" 
+                stroke="hsl(45, 93%, 47%)" 
+                name={t('usage.metrics.dataSave')}
+                strokeWidth={2}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </Card>
       </div>
+
+      {/* Details Modal */}
+      <Dialog open={showDetails} onOpenChange={setShowDetails}>
+        <DialogContent className="max-w-3xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>{t('usage.trend.details')}</DialogTitle>
+          </DialogHeader>
+          <div className="overflow-auto max-h-[60vh]">
+            <table className="w-full text-sm">
+              <thead className="bg-muted sticky top-0">
+                <tr>
+                  <th className="p-2 text-left">날짜</th>
+                  <th className="p-2 text-right">{t('usage.metrics.analysis')}</th>
+                  <th className="p-2 text-right">{t('usage.metrics.dataApi')}</th>
+                  <th className="p-2 text-right">{t('usage.metrics.analyticsApi')}</th>
+                  <th className="p-2 text-right">{t('usage.metrics.dataSave')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dailyMetrics.map((metric, i) => (
+                  <tr key={i} className="border-b">
+                    <td className="p-2">{metric.date}</td>
+                    <td className="p-2 text-right">{metric.analysis_count}</td>
+                    <td className="p-2 text-right">{metric.data_api_calls}</td>
+                    <td className="p-2 text-right">{metric.analytics_api_calls}</td>
+                    <td className="p-2 text-right">{metric.data_save_count}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
