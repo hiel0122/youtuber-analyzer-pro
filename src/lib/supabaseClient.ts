@@ -1,33 +1,26 @@
-import { createClient } from '@supabase/supabase-js';
+// src/lib/supabaseClient.ts
+import { createClient } from '@supabase/supabase-js'
 
-// These will be set via the settings modal
-let supabaseUrl = localStorage.getItem('ya_supabase_url') || '';
-let supabaseKey = localStorage.getItem('ya_supabase_anon') || '';
+const url = import.meta.env.VITE_SUPABASE_URL as string
+const anon = import.meta.env.VITE_SUPABASE_ANON_KEY as string
 
-export const getSupabaseClient = () => {
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Supabase credentials not configured. Please set them in Settings.');
-  }
-  return createClient(supabaseUrl, supabaseKey);
-};
+// 개발(HMR)에서 중복 생성을 막기 위한 싱글톤 캐시
+const globalForSupabase = globalThis as unknown as {
+  __yap_supabase?: ReturnType<typeof createClient>
+}
 
-export const setSupabaseCredentials = (url: string, key: string) => {
-  localStorage.setItem('ya_supabase_url', url);
-  localStorage.setItem('ya_supabase_anon', key);
-  supabaseUrl = url;
-  supabaseKey = key;
-};
+export const supabase =
+  globalForSupabase.__yap_supabase ??
+  createClient(url, anon, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+      // (선택) 로컬스토리지 키 고정
+      storageKey: 'yap-auth',
+    },
+  })
 
-export const hasSupabaseCredentials = () => {
-  return !!(localStorage.getItem('ya_supabase_url') && localStorage.getItem('ya_supabase_anon'));
-};
-
-export const testSupabaseConnection = async (url: string, key: string): Promise<boolean> => {
-  try {
-    const testClient = createClient(url, key);
-    const { error } = await testClient.from('youtube_videos').select('id').limit(1);
-    return !error;
-  } catch {
-    return false;
-  }
-};
+if (!globalForSupabase.__yap_supabase) {
+  globalForSupabase.__yap_supabase = supabase
+}
