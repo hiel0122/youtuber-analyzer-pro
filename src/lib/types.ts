@@ -64,7 +64,7 @@ export type SyncResponse = {
 
 // 1) Supabase에서 생성된 전체 타입 정의 가져오기
 //    경로 별칭(@/...)이 안 먹으면 아래 주석 라인을 참고하세요.
-import type { Database } from "@/integrations/supabase/types";
+import type { Database } from "../integrations/supabase/types";
 // import type { Database } from "../../integrations/supabase/types"; // 상대경로 예시
 
 // 2) 자주 쓰는 테이블 타입을 별칭(alias)으로 정의 (필요한 것만 골라서)
