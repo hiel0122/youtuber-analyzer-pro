@@ -36,13 +36,13 @@ export function ApiForm() {
       if (error && error.code !== 'PGRST116') throw error;
 
       if (data) {
-        setSupabaseUrl(data.api_supabase_url || '');
-        // Mask keys for display
-        if (data.api_supabase_anon_key) {
-          setSupabaseKey(data.api_supabase_anon_key);
+        const settings = data as any;
+        setSupabaseUrl(settings.api_supabase_url || '');
+        if (settings.api_supabase_anon_key) {
+          setSupabaseKey(settings.api_supabase_anon_key);
         }
-        if (data.api_youtube_key) {
-          setYoutubeKey(data.api_youtube_key);
+        if (settings.api_youtube_key) {
+          setYoutubeKey(settings.api_youtube_key);
         }
       }
     } catch (error) {
@@ -88,7 +88,7 @@ export function ApiForm() {
           api_supabase_url: supabaseUrl,
           api_supabase_anon_key: supabaseKey,
           api_youtube_key: youtubeKey,
-        }, {
+        } as any, {
           onConflict: 'user_id'
         });
 

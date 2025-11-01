@@ -51,7 +51,7 @@ async function syncProfile(user: User) {
         email: user.email,
         display_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
         updated_at: new Date().toISOString(),
-      });
+      } as any);
     }
   } catch (error) {
     console.error('Profile sync error:', error);

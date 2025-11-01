@@ -22,20 +22,21 @@ export async function checkRequiredApis(userId: string): Promise<{ valid: boolea
   }
 
   const missing: string[] = [];
+  const settings = data as any;
   
-  if (!data.api_youtube_key) {
+  if (!settings.api_youtube_key) {
     missing.push('Youtube Data API');
   }
   
-  if (!data.api_youtube_analytics_key) {
+  if (!settings.api_youtube_analytics_key) {
     missing.push('Youtube Analytics API');
   }
   
-  if (!data.api_supabase_url) {
+  if (!settings.api_supabase_url) {
     missing.push('Supabase URL');
   }
   
-  if (!data.api_supabase_anon_key) {
+  if (!settings.api_supabase_anon_key) {
     missing.push('Supabase Anon Key');
   }
 

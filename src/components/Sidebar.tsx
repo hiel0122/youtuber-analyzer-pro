@@ -116,8 +116,8 @@ export function Sidebar() {
 
   const handleEditLog = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('analysis_logs')
+      const { error } = await (supabase
+        .from('analysis_logs') as any)
         .update({ channel_name: editValue })
         .eq('id', id);
       

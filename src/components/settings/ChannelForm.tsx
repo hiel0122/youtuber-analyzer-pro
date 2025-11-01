@@ -36,7 +36,8 @@ export function ChannelForm() {
       if (settingsError && settingsError.code !== 'PGRST116') throw settingsError;
 
       if (settings) {
-        setRangeDays(String(settings.channel_range_days || 90));
+        const settingsData = settings as any;
+        setRangeDays(String(settingsData.channel_range_days || 90));
       }
 
       // Load competitor channels
@@ -50,7 +51,7 @@ export function ChannelForm() {
       if (competitorError) throw competitorError;
 
       if (competitorData && competitorData.length > 0) {
-        setCompetitors(competitorData.map(c => c.channel_url));
+        setCompetitors(competitorData.map((c: any) => c.channel_url));
       }
     } catch (error) {
       console.error('Failed to load settings:', error);
@@ -107,7 +108,7 @@ export function ChannelForm() {
         .upsert({
           user_id: user.id,
           channel_range_days: rangeDays === 'all' ? 9999 : parseInt(rangeDays),
-        }, {
+        } as any, {
           onConflict: 'user_id'
         });
 
@@ -127,7 +128,7 @@ export function ChannelForm() {
             validCompetitors.map(url => ({
               user_id: user.id,
               channel_url: url,
-            }))
+            })) as any
           );
 
         if (competitorError) throw competitorError;

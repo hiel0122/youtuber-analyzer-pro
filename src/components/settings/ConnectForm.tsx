@@ -35,10 +35,11 @@ export function ConnectForm() {
       if (error && error.code !== 'PGRST116') throw error;
 
       if (data) {
-        setGaId(data.connect_ga_id || '');
-        setGaEnabled(!!data.connect_ga_id);
-        setSlackWebhook(data.connect_slack_webhook || '');
-        setDiscordWebhook(data.connect_discord_webhook || '');
+        const settings = data as any;
+        setGaId(settings.connect_ga_id || '');
+        setGaEnabled(!!settings.connect_ga_id);
+        setSlackWebhook(settings.connect_slack_webhook || '');
+        setDiscordWebhook(settings.connect_discord_webhook || '');
       }
     } catch (error) {
       console.error('Failed to load settings:', error);
@@ -59,7 +60,7 @@ export function ConnectForm() {
           connect_ga_id: gaEnabled ? gaId : null,
           connect_slack_webhook: slackWebhook,
           connect_discord_webhook: discordWebhook,
-        }, {
+        } as any, {
           onConflict: 'user_id'
         });
 

@@ -74,7 +74,7 @@ export function UsagePanel() {
       if (metricsError) throw metricsError;
 
       if (metricsData) {
-        setDailyMetrics(metricsData.map(m => ({
+        setDailyMetrics(metricsData.map((m: any) => ({
           date: m.usage_date,
           analysis_count: m.analysis_count,
           data_api_calls: m.data_api_calls,

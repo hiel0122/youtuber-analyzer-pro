@@ -63,8 +63,8 @@ export function AccountPanel() {
 
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
+      const { error } = await (supabase
+        .from('profiles') as any)
         .update({
           display_name: displayName,
           nickname: nickname,

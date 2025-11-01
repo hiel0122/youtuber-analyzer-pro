@@ -183,12 +183,13 @@ const Index = () => {
       console.log("📈 Channel data:", channelData);
 
       if (channelData) {
+        const channel = channelData as any;
         setChannelStats({
-          subscriberCount: channelData.subscriber_count || 0,
-          totalViews: channelData.total_views || 0,
+          subscriberCount: channel.subscriber_count || 0,
+          totalViews: channel.total_views || 0,
           hiddenSubscriber: false,
         });
-        setCurrentChannelName(channelData.channel_name || "");
+        setCurrentChannelName(channel.channel_name || "");
       }
 
       // 모든 데이터 로딩 (병렬)

@@ -34,10 +34,11 @@ export function GeneralForm() {
       if (error && error.code !== 'PGRST116') throw error;
 
       if (data) {
-        const lang = data.general_language || 'ko';
+        const settings = data as any;
+        const lang = settings.general_language || 'ko';
         setLanguage(lang);
         setI18nLanguage(lang as 'ko' | 'en');
-        setTheme(data.general_theme || 'dark');
+        setTheme(settings.general_theme || 'dark');
       }
     } catch (error) {
       console.error('Failed to load settings:', error);
@@ -57,7 +58,7 @@ export function GeneralForm() {
           user_id: user.id,
           general_language: language,
           general_theme: theme,
-        }, {
+        } as any, {
           onConflict: 'user_id'
         });
 

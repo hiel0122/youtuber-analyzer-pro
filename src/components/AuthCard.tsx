@@ -60,7 +60,7 @@ export function AuthCard({ onSuccess }: AuthCardProps) {
           display_name: displayName || email.split('@')[0],
           nickname: nickname || displayName || email.split('@')[0],
           updated_at: new Date().toISOString(),
-        });
+        } as any);
       }
 
       toast.success('회원가입이 완료되었습니다. 이메일을 확인해 주세요.');
