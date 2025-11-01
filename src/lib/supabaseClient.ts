@@ -24,3 +24,12 @@ export const supabase =
 if (!globalForSupabase.__yap_supabase) {
   globalForSupabase.__yap_supabase = supabase
 }
+
+// Export helper functions for compatibility
+export function getSupabaseClient() {
+  return supabase
+}
+
+export function hasSupabaseCredentials(): boolean {
+  return !!(url && anon && url.includes('supabase') && anon.length > 20)
+}

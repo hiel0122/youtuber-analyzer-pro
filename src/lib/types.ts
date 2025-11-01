@@ -68,12 +68,12 @@ import type { Database } from "../integrations/supabase/types";
 // import type { Database } from "../../integrations/supabase/types"; // 상대경로 예시
 
 // 2) 자주 쓰는 테이블 타입을 별칭(alias)으로 정의 (필요한 것만 골라서)
-export type UserRow = Database["public"]["Tables"]["users"]["Row"];
-export type UserInsert = Database["public"]["Tables"]["users"]["Insert"];
-export type UserUpdate = Database["public"]["Tables"]["users"]["Update"];
+export type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
+export type ProfileInsert = Database["public"]["Tables"]["profiles"]["Insert"];
+export type ProfileUpdate = Database["public"]["Tables"]["profiles"]["Update"];
 
 // 3) 앱 전용 타입(DB에 없는 추가 정보 등)
 export type Role = "admin" | "editor" | "viewer";
 
 // 4) 조합 타입 예시: DB 사용자(Row)에 앱 전용 역할 필드 붙이기
-export type CurrentUser = UserRow & { role: Role };
+export type CurrentUser = ProfileRow & { role: Role };
