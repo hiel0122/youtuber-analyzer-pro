@@ -84,14 +84,9 @@ export default {
   },
   plugins: [require("tailwindcss-animate")],
   safelist: [
-    {
-      pattern: /(grid-cols|col-span|row-span|gap|p|px|py|pt|pb|pl|pr)-(1|2|3|4|5|6|8|10|12|16|20|24)/,
-    },
-    {
-      pattern: /(w|h|min-w|min-h|max-w|max-h)-(full|screen|[0-9]+)$/,
-    },
-    {
-      pattern: /(text|bg|border)-(primary|secondary|accent|muted|foreground|background)/,
-    },
+    { pattern: /(grid-cols|col-span|row-span|gap|p|px|py|pt|pb|pl|pr)-(1|2|3|4|5|6|8|10|12|16|20|24)/ },
+    { pattern: /(w|h|min-w|min-h|max-w|max-h)-(full|screen|[0-9]+)$/ },
+    { pattern: /(text|bg|border)-(primary|secondary|accent|muted|foreground|background)/ },
+    { pattern: /(justify|items|content)-(start|center|end|between)/ },
   ],
 } satisfies Config;
