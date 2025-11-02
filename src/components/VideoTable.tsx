@@ -67,13 +67,13 @@ export const VideoTable = ({ videos, loading }: VideoTableProps) => {
           <Table>
             <TableHeader>
               <TableRow className="bg-secondary/50">
-                <TableHead className="text-center whitespace-nowrap">주제</TableHead>
-                <TableHead className="text-center whitespace-nowrap min-w-[300px]">제목</TableHead>
-                <TableHead className="text-center whitespace-nowrap">조회수</TableHead>
-                <TableHead className="text-center whitespace-nowrap">좋아요</TableHead>
-                <TableHead className="text-center whitespace-nowrap">업로드 날짜</TableHead>
-                <TableHead className="text-center whitespace-nowrap">영상 길이</TableHead>
-                <TableHead className="text-center whitespace-nowrap">링크</TableHead>
+                <TableHead className="text-center whitespace-nowrap font-semibold text-foreground">주제</TableHead>
+                <TableHead className="text-center whitespace-nowrap min-w-[300px] font-semibold text-foreground">제목</TableHead>
+                <TableHead className="text-center whitespace-nowrap font-semibold text-foreground">조회수</TableHead>
+                <TableHead className="text-center whitespace-nowrap font-semibold text-foreground">좋아요</TableHead>
+                <TableHead className="text-center whitespace-nowrap font-semibold text-foreground">업로드 날짜</TableHead>
+                <TableHead className="text-center whitespace-nowrap font-semibold text-foreground">영상 길이</TableHead>
+                <TableHead className="text-center whitespace-nowrap font-semibold text-foreground">링크</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -94,14 +94,14 @@ export const VideoTable = ({ videos, loading }: VideoTableProps) => {
               ) : (
                 currentVideos.map((video) => (
                   <TableRow key={video.videoId} className="hover:bg-secondary/30 transition-colors">
-                    <TableCell className="text-center whitespace-nowrap">{video.topic}</TableCell>
-                    <TableCell className="max-w-[400px] truncate" title={video.title}>
+                    <TableCell className="text-center whitespace-nowrap text-foreground">{video.topic}</TableCell>
+                    <TableCell className="max-w-[400px] truncate text-foreground" title={video.title}>
                       {video.title}
                     </TableCell>
-                    <TableCell className="text-center whitespace-nowrap">{formatInt(video.views)}</TableCell>
-                    <TableCell className="text-center whitespace-nowrap">{formatInt(video.likes)}</TableCell>
-                    <TableCell className="text-center whitespace-nowrap">{video.uploadDate}</TableCell>
-                    <TableCell className="text-center whitespace-nowrap">{video.duration}</TableCell>
+                    <TableCell className="text-center whitespace-nowrap text-foreground font-medium">{formatInt(video.views)}</TableCell>
+                    <TableCell className="text-center whitespace-nowrap text-foreground font-medium">{formatInt(video.likes)}</TableCell>
+                    <TableCell className="text-center whitespace-nowrap text-foreground">{video.uploadDate}</TableCell>
+                    <TableCell className="text-center whitespace-nowrap text-foreground">{video.duration}</TableCell>
                     <TableCell className="text-center whitespace-nowrap">
                       <div className="flex items-center justify-center gap-2">
                         <a

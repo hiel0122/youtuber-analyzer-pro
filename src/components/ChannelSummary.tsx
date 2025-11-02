@@ -164,10 +164,10 @@ export default function ChannelSummary({
   const fmt = (d: Date) => d.toISOString().slice(0, 10);
 
   return (
-    <div className="rounded-2xl bg-slate-800/60 border border-slate-700 px-6 py-5 mb-6">
+    <div className="rounded-2xl bg-card border border-border px-6 py-5 mb-6">
       <div className="flex items-start gap-4">
         {/* 아바타 */}
-        <div className="h-12 w-12 rounded-xl bg-violet-600 flex items-center justify-center text-white text-lg font-semibold shrink-0">
+        <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground text-lg font-semibold shrink-0">
           {(channelName?.trim()?.[0] || "?").toUpperCase()}
         </div>
 
@@ -175,11 +175,11 @@ export default function ChannelSummary({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
           {/* 좌: 기본 정보 */}
           <div>
-            <div className="text-base text-slate-300">채널명</div>
-            <div className="text-xl font-semibold text-white">{channelName || "—"}</div>
-            <div className="mt-2 text-sm text-slate-400">
+            <div className="text-sm text-muted-foreground mb-1">채널명</div>
+            <div className="text-lg md:text-xl font-semibold text-foreground">{channelName || "—"}</div>
+            <div className="mt-2 text-sm text-muted-foreground">
               관리자:&nbsp;
-              <span className="text-white">
+              <span className="text-foreground font-medium">
                 {loadingMeta ? "로딩 중…" : (manager || channelName || "—")}
               </span>
             </div>
@@ -187,24 +187,24 @@ export default function ChannelSummary({
 
           {/* 중: 운영기간 */}
           <div>
-            <div className="text-base text-slate-300">운영기간</div>
-            <div className="text-xl font-semibold text-white">
+            <div className="text-sm text-muted-foreground mb-1">운영기간</div>
+            <div className="text-lg md:text-xl font-semibold text-foreground">
               {period ? `${period.years}년 ${period.months}개월 ${period.days}일` : "—"}
             </div>
-            <div className="mt-2 text-sm text-slate-400">
+            <div className="mt-2 text-sm text-muted-foreground">
               {hasStart ? `${fmt(firstUpload)} ~ ${fmt(new Date())}` : "업로드 이력 없음"}
             </div>
           </div>
 
           {/* 우: 주제 & 특징 */}
           <div>
-            <div className="text-base text-slate-300">주제</div>
+            <div className="text-sm text-muted-foreground mb-1">주제</div>
             
             {/* 토픽 태그 뱃지만 표시 */}
             {displayTags.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-2">
                 {displayTags.map((t) => (
-                  <span key={t} className="text-xs px-2.5 py-1 rounded-full bg-slate-700/60 text-slate-200 border border-slate-600">
+                  <span key={t} className="text-xs px-2.5 py-1 rounded-full bg-secondary text-foreground border border-border font-medium">
                     {t}
                   </span>
                 ))}
@@ -215,7 +215,7 @@ export default function ChannelSummary({
             {!!traits.length && (
               <div className="mt-3 flex flex-wrap gap-2">
                 {traits.map((t) => (
-                  <span key={t} className="text-xs px-2.5 py-1 rounded-full bg-slate-700/60 text-slate-200 border border-slate-600">
+                  <span key={t} className="text-xs px-2.5 py-1 rounded-full bg-secondary text-foreground border border-border font-medium">
                     {t}
                   </span>
                 ))}

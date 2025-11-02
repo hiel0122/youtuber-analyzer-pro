@@ -170,7 +170,7 @@ export function Sidebar() {
     <>
       <aside 
         className={cn(
-          "hidden lg:flex flex-col h-screen bg-slate-900/60 border border-slate-800/60 rounded-2xl p-4 transition-all duration-300 overflow-y-auto sticky top-0",
+          "sidebar hidden lg:flex flex-col h-screen border border-border rounded-2xl p-4 transition-all duration-300 overflow-y-auto sticky top-0",
           collapsed ? "w-20" : "w-64"
         )}
       >
@@ -200,11 +200,10 @@ export function Sidebar() {
               key={item.title}
               onClick={() => handleNavClick(item)}
               className={cn(
-                "w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-[13px] sm:text-sm",
-                item.active
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
+                "nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-colors text-sm",
+                item.active && "font-medium"
               )}
+              aria-current={item.active ? "page" : undefined}
             >
               <item.icon className="h-5 w-5 flex-shrink-0" />
               {!collapsed && <span>{item.title}</span>}
@@ -215,13 +214,13 @@ export function Sidebar() {
         {/* Analysis Logs - Second Section */}
         {!collapsed && user && (
           <div className="flex-1 mb-4 min-h-0">
-            <div className="text-xs text-muted-foreground mb-2 px-3">분석 기록</div>
+            <div className="text-xs font-medium text-muted-foreground mb-2 px-3">분석 기록</div>
             <ScrollArea className="h-full">
               <div className="space-y-1">
                 {logs.map((log) => (
                   <div
                     key={log.id}
-                    className="group flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 transition-colors"
+                    className="group flex items-center justify-between px-3 py-2 rounded-lg hover:bg-accent transition-colors"
                   >
                     {editingId === log.id ? (
                       <div className="flex-1 flex items-center gap-2">
@@ -229,7 +228,7 @@ export function Sidebar() {
                           type="text"
                           value={editValue}
                           onChange={(e) => setEditValue(e.target.value)}
-                          className="flex-1 bg-slate-800 text-sm px-2 py-1 rounded border border-slate-700 focus:outline-none focus:ring-1 focus:ring-primary"
+                          className="flex-1 bg-background text-sm px-2 py-1 rounded border border-input focus:outline-none focus:ring-1 focus:ring-ring"
                           autoFocus
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') handleEditLog(log.id);
@@ -292,11 +291,11 @@ export function Sidebar() {
         )}
 
         {/* User section / Footer */}
-        <div className="border-t border-slate-700/40 pt-4">
+        <div className="border-t border-border pt-4">
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="w-full flex items-center gap-3 hover:bg-white/5 p-2 rounded-lg transition-colors">
+                <button className="w-full flex items-center gap-3 hover:bg-accent p-2 rounded-lg transition-colors">
                   <Avatar className="h-10 w-10 flex-shrink-0">
                     <AvatarFallback className="bg-primary/10 text-primary">
                       {getInitials(user.email)}
