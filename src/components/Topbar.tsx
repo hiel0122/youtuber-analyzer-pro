@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { AuthCard } from './AuthCard';
+import ThemeSwitcher from './ThemeSwitcher';
 
 export function Topbar() {
   const { user } = useAuth();
@@ -16,6 +17,7 @@ export function Topbar() {
               YouTube Analytics
             </h1>
           </div>
+          <ThemeSwitcher />
         </div>
       </div>
 

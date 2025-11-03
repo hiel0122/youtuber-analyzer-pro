@@ -1,0 +1,131 @@
+/* 공통 토큰 이름: shadcn/tailwind 의미 토큰과 맞춤 */
+:root {
+  /* 디폴트는 nordic과 동일하게 시작 - 페이지 깜빡임 방지 */
+  --background: #F8FAFC;
+  --foreground: #0F172A;
+  --card: #FFFFFF;
+  --card-foreground: #0F172A;
+  --muted: #F1F5F9;
+  --muted-foreground: #475569;
+  --border: #E2E8F0;
+  --input: #E2E8F0;
+  --primary: #4F46E5;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F1F5F9;
+  --secondary-foreground: #0F172A;
+  --accent: #4338CA;
+  --accent-foreground: #FFFFFF;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --ring: #C7D2FE;
+  --radius: 0.75rem;
+
+  /* Sidebar 전용 토큰 */
+  --sidebar: #FEFEFE;
+  --sidebar-foreground: #0F172A;
+  --sidebar-muted-foreground: #475569;
+  --sidebar-active: #0F172A;
+
+  /* 차트 시리즈(최대 5개 기준) */
+  --chart-1: #3B82F6; /* blue-500 */
+  --chart-2: #10B981; /* emerald-500 */
+  --chart-3: #F59E0B; /* amber-500 */
+  --chart-4: #EF4444; /* red-500 */
+  --chart-5: #8B5CF6; /* violet-500 */
+}
+
+/* 1) Nordic Indigo (밝고 선명, 기본) */
+html[data-theme="nordic"] {
+  --background: #F8FAFC;  /* slate-50 */
+  --foreground: #0F172A;  /* slate-900 */
+  --card: #FFFFFF;
+  --card-foreground: #0F172A;
+  --muted: #F1F5F9;       /* slate-100 */
+  --muted-foreground: #475569; /* slate-600 */
+  --border: #E2E8F0;      /* slate-200 */
+  --input: #E2E8F0;
+  --primary: #4F46E5;     /* indigo-600 */
+  --primary-foreground: #FFFFFF;
+  --secondary: #F1F5F9;
+  --secondary-foreground: #0F172A;
+  --accent: #4338CA;      /* indigo-700 */
+  --accent-foreground: #FFFFFF;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --ring: #C7D2FE;
+
+  --sidebar: #FEFEFE;
+  --sidebar-foreground: #0F172A;
+  --sidebar-muted-foreground: #475569;
+  --sidebar-active: #0F172A;
+
+  --chart-1: #3B82F6;     /* blue-500 */
+  --chart-2: #10B981;     /* emerald-500 */
+  --chart-3: #F59E0B;     /* amber-500 */
+  --chart-4: #EF4444;     /* red-500 */
+  --chart-5: #8B5CF6;     /* violet-500 */
+}
+
+/* 2) Sand & Teal (차분한 모래색 + 포인트 틸) */
+html[data-theme="sand"] {
+  --background: #FAFAF7;      /* off-white sand */
+  --foreground: #1F2937;      /* gray-800 */
+  --card: #FFFFFF;
+  --card-foreground: #1F2937;
+  --muted: #F3F4F6;           /* gray-100 */
+  --muted-foreground: #6B7280;/* gray-500 */
+  --border: #E5E7EB;          /* gray-200 */
+  --input: #E5E7EB;
+  --primary: #0D9488;         /* teal-600 */
+  --primary-foreground: #FFFFFF;
+  --secondary: #F3F4F6;
+  --secondary-foreground: #1F2937;
+  --accent: #14B8A6;          /* teal-500 */
+  --accent-foreground: #FFFFFF;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --ring: #99F6E4;            /* teal-200 */
+
+  --sidebar: #FFFFFE;
+  --sidebar-foreground: #1F2937;
+  --sidebar-muted-foreground: #6B7280;
+  --sidebar-active: #1F2937;
+
+  --chart-1: #0EA5E9;         /* sky-500 */
+  --chart-2: #22C55E;         /* green-500 */
+  --chart-3: #F59E0B;         /* amber-500 */
+  --chart-4: #84CC16;         /* lime-500 */
+  --chart-5: #64748B;         /* slate-500 */
+}
+
+/* 3) Charcoal & Lime Pop (다크 + 라임 포인트) */
+html[data-theme="charcoal"] {
+  --background: #0B1220;        /* 아주 짙은 네이비/차콜 */
+  --foreground: #E5E7EB;        /* gray-200 */
+  --card: #111827;              /* gray-900 */
+  --card-foreground: #E5E7EB;
+  --muted: #1F2937;
+  --muted-foreground: #9CA3AF;  /* gray-400 */
+  --border: #374151;            /* gray-700 */
+  --input: #374151;
+  --primary: #A3E635;           /* lime-400 */
+  --primary-foreground: #111827;/* 라임 위 텍스트는 어두운색 */
+  --secondary: #1F2937;
+  --secondary-foreground: #E5E7EB;
+  --accent: #22C55E;            /* green-500 */
+  --accent-foreground: #111827;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --ring: #6EE7B7;              /* emerald-300 */
+
+  --sidebar: #111827;
+  --sidebar-foreground: #E5E7EB;
+  --sidebar-muted-foreground: #9CA3AF;
+  --sidebar-active: #A3E635;
+
+  --chart-1: #A3E635;           /* lime-400 */
+  --chart-2: #60A5FA;           /* blue-400 */
+  --chart-3: #F59E0B;           /* amber-500 */
+  --chart-4: #34D399;           /* emerald-400 */
+  --chart-5: #F87171;           /* rose-400 */
+}

@@ -1,39 +1,10 @@
+@import "./styles/palettes.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ----- shadcn tokens ----- */
 @layer base {
-  :root {
-    /* Light theme (라이트 유지, 텍스트 대비 강화) */
-    --background: 0 0% 100%;
-    --foreground: 222.2 47.4% 11.2%;            /* 본문 텍스트: 거의 블랙 */
-    --muted: 210 40% 97%;                        /* 옅은 박스/배경 */
-    --muted-foreground: 215.4 16.3% 35%;         /* 라벨/보조 텍스트: 더 진하게 */
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 47.4% 11.2%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 47.4% 11.2%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --accent: 210 40% 96.5%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.75rem;
-
-    /* Sidebar 전용 토큰 (더 밝게) */
-    --sidebar: 210 40% 98%;
-    --sidebar-foreground: 222.2 47.4% 11.2%;
-    --sidebar-muted-foreground: 215.4 16.3% 45%;
-    --sidebar-active: 222.2 47.4% 11.2%;
-  }
-
   body { @apply bg-background text-foreground antialiased; }
   * { @apply border-border; }
 }
