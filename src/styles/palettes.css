@@ -1,4 +1,4 @@
-/* 공통 토큰 이름: shadcn/tailwind 의미 토큰과 맞춤 */
+/* CSS Variables + Light-first design — default: nordic */
 :root {
   /* 디폴트는 nordic과 동일하게 시작 - 페이지 깜빡임 방지 */
   --background: #F8FAFC;
@@ -21,17 +21,20 @@
   --radius: 0.75rem;
 
   /* Sidebar 전용 토큰 */
-  --sidebar: #FEFEFE;
+  --sidebar: #F6F7FB;
   --sidebar-foreground: #0F172A;
   --sidebar-muted-foreground: #475569;
   --sidebar-active: #0F172A;
 
-  /* 차트 시리즈(최대 5개 기준) */
-  --chart-1: #3B82F6; /* blue-500 */
-  --chart-2: #10B981; /* emerald-500 */
-  --chart-3: #F59E0B; /* amber-500 */
-  --chart-4: #EF4444; /* red-500 */
-  --chart-5: #8B5CF6; /* violet-500 */
+  /* 차트 시리즈(최대 8개) */
+  --chart-1: #2563eb; /* blue-600 */
+  --chart-2: #22c55e; /* green-500 */
+  --chart-3: #f59e0b; /* amber-500 */
+  --chart-4: #ef4444; /* red-500 */
+  --chart-5: #14b8a6; /* teal-500 */
+  --chart-6: #a855f7; /* purple-500 */
+  --chart-7: #0ea5e9; /* sky-500 */
+  --chart-8: #f97316; /* orange-500 */
 }
 
 /* 1) Nordic Indigo (밝고 선명, 기본) */
@@ -54,16 +57,19 @@ html[data-theme="nordic"] {
   --destructive-foreground: #FFFFFF;
   --ring: #C7D2FE;
 
-  --sidebar: #FEFEFE;
+  --sidebar: #F6F7FB;
   --sidebar-foreground: #0F172A;
   --sidebar-muted-foreground: #475569;
   --sidebar-active: #0F172A;
 
-  --chart-1: #3B82F6;     /* blue-500 */
-  --chart-2: #10B981;     /* emerald-500 */
-  --chart-3: #F59E0B;     /* amber-500 */
-  --chart-4: #EF4444;     /* red-500 */
-  --chart-5: #8B5CF6;     /* violet-500 */
+  --chart-1: #2563eb;
+  --chart-2: #22c55e;
+  --chart-3: #f59e0b;
+  --chart-4: #ef4444;
+  --chart-5: #14b8a6;
+  --chart-6: #a855f7;
+  --chart-7: #0ea5e9;
+  --chart-8: #f97316;
 }
 
 /* 2) Sand & Teal (차분한 모래색 + 포인트 틸) */
@@ -86,46 +92,52 @@ html[data-theme="sand"] {
   --destructive-foreground: #FFFFFF;
   --ring: #99F6E4;            /* teal-200 */
 
-  --sidebar: #FFFFFE;
+  --sidebar: #FBF7EF;
   --sidebar-foreground: #1F2937;
   --sidebar-muted-foreground: #6B7280;
   --sidebar-active: #1F2937;
 
-  --chart-1: #0EA5E9;         /* sky-500 */
-  --chart-2: #22C55E;         /* green-500 */
-  --chart-3: #F59E0B;         /* amber-500 */
-  --chart-4: #84CC16;         /* lime-500 */
-  --chart-5: #64748B;         /* slate-500 */
+  --chart-1: #7c3aed;
+  --chart-2: #f59e0b;
+  --chart-3: #10b981;
+  --chart-4: #ef4444;
+  --chart-5: #8b5cf6;
+  --chart-6: #22d3ee;
+  --chart-7: #a3e635;
+  --chart-8: #fb7185;
 }
 
-/* 3) Charcoal & Lime Pop (다크 + 라임 포인트) */
+/* 3) Charcoal & Lime Pop (모던 모노톤, 라이트 유지) */
 html[data-theme="charcoal"] {
-  --background: #0B1220;        /* 아주 짙은 네이비/차콜 */
-  --foreground: #E5E7EB;        /* gray-200 */
-  --card: #111827;              /* gray-900 */
-  --card-foreground: #E5E7EB;
-  --muted: #1F2937;
-  --muted-foreground: #9CA3AF;  /* gray-400 */
-  --border: #374151;            /* gray-700 */
-  --input: #374151;
-  --primary: #A3E635;           /* lime-400 */
-  --primary-foreground: #111827;/* 라임 위 텍스트는 어두운색 */
-  --secondary: #1F2937;
-  --secondary-foreground: #E5E7EB;
-  --accent: #22C55E;            /* green-500 */
-  --accent-foreground: #111827;
+  --background: #F6F7F9;
+  --foreground: #14182F;
+  --card: #FFFFFF;
+  --card-foreground: #14182F;
+  --muted: #EEF0F3;
+  --muted-foreground: #64748B;
+  --border: #E5E7EB;
+  --input: #E5E7EB;
+  --primary: #111827;
+  --primary-foreground: #FFFFFF;
+  --secondary: #EEF0F3;
+  --secondary-foreground: #14182F;
+  --accent: #111827;
+  --accent-foreground: #FFFFFF;
   --destructive: #EF4444;
   --destructive-foreground: #FFFFFF;
-  --ring: #6EE7B7;              /* emerald-300 */
+  --ring: #E5E7EB;
 
-  --sidebar: #111827;
-  --sidebar-foreground: #E5E7EB;
-  --sidebar-muted-foreground: #9CA3AF;
-  --sidebar-active: #A3E635;
+  --sidebar: #F2F3F6;
+  --sidebar-foreground: #1C222D;
+  --sidebar-muted-foreground: #64748B;
+  --sidebar-active: #111827;
 
-  --chart-1: #A3E635;           /* lime-400 */
-  --chart-2: #60A5FA;           /* blue-400 */
-  --chart-3: #F59E0B;           /* amber-500 */
-  --chart-4: #34D399;           /* emerald-400 */
-  --chart-5: #F87171;           /* rose-400 */
+  --chart-1: #111827;
+  --chart-2: #4b5563;
+  --chart-3: #0ea5e9;
+  --chart-4: #22c55e;
+  --chart-5: #f59e0b;
+  --chart-6: #ef4444;
+  --chart-7: #a855f7;
+  --chart-8: #14b8a6;
 }

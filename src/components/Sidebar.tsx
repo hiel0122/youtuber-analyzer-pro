@@ -19,7 +19,6 @@ import {
   Menu,
   MoreVertical,
   User,
-  Settings,
   Edit2,
   Trash2
 } from 'lucide-react';
@@ -169,6 +168,7 @@ export function Sidebar() {
   return (
     <>
       <aside 
+        data-sidebar
         className={cn(
           "sidebar hidden lg:flex flex-col h-screen border border-border rounded-2xl p-4 transition-all duration-300 overflow-y-auto sticky top-0",
           collapsed ? "w-20" : "w-64"
@@ -318,10 +318,6 @@ export function Sidebar() {
                 <DropdownMenuItem onClick={() => navigate('/settings?tab=account')}>
                   <User className="mr-2 h-4 w-4" />
                   프로필 수정
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/settings')}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  설정
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
