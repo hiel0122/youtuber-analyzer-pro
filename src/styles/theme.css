@@ -101,3 +101,27 @@ input::placeholder {
   color: var(--ink);
   font-weight: 500;
 }
+
+/* ===== Gradient 클래스 ===== */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  color: #ffffff;
+}
+
+.bg-gradient-card {
+  background: linear-gradient(135deg, var(--surface) 0%, color-mix(in oklab, var(--primary) 5%, var(--surface)) 100%);
+}
+
+/* ===== Shadow 클래스 ===== */
+.shadow-card {
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+}
+
+.shadow-glow {
+  box-shadow: 0 0 20px 0 color-mix(in oklab, var(--primary) 20%, transparent);
+  transition: box-shadow 0.3s ease;
+}
+
+.shadow-glow:hover {
+  box-shadow: 0 0 30px 0 color-mix(in oklab, var(--primary) 35%, transparent);
+}
