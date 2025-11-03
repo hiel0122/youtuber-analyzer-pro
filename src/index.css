@@ -1,47 +1,11 @@
-@import "./styles/palettes.css";
+@import "./styles/theme.css";
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  body { @apply bg-background text-foreground antialiased; }
-  * { @apply border-border; }
+  body { @apply antialiased; }
 }
 
-/* 차트/표 기본 글자색을 전경색으로 보정 */
-.recharts-default-tooltip, 
-.recharts-cartesian-axis-tick tspan,
-.recharts-legend-item-text {
-  fill: hsl(var(--foreground)) !important;
-  color: hsl(var(--foreground)) !important;
-}
-
-table { 
-  color: hsl(var(--foreground)); 
-}
-
-th, td { 
-  @apply text-foreground; 
-}
-
-input::placeholder { 
-  color: color-mix(in oklab, hsl(var(--muted-foreground)) 70%, transparent); 
-}
-
-/* 사이드바 유틸 클래스 */
-.sidebar {
-  background-color: hsl(var(--sidebar));
-  color: hsl(var(--sidebar-foreground));
-}
-
-.sidebar .nav-item {
-  color: hsl(var(--sidebar-muted-foreground));
-}
-
-.sidebar .nav-item:hover,
-.sidebar .nav-item[aria-current="page"] {
-  background-color: hsl(var(--accent));
-  color: hsl(var(--sidebar-active));
-  font-weight: 500;
-}
+/* Theme-specific styles are now in theme.css */
