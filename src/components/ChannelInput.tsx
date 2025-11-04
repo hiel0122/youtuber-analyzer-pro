@@ -36,7 +36,7 @@ export const ChannelInput = ({ onAnalyze, loading }: ChannelInputProps) => {
       <Button
         type="submit"
         disabled={loading}
-        className="h-12 px-8 bg-gradient-primary hover:opacity-90 shadow-glow"
+        className="btn-primary h-12 px-8 hover:opacity-90 focus-visible:ring-2 ring-primary"
       >
         <Search className="mr-2 h-5 w-5" />
         {loading ? '분석 중...' : '분석하기'}

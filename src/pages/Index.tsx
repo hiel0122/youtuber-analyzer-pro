@@ -353,7 +353,7 @@ const Index = () => {
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
           <header className="text-center mb-12">
-            <h1 className="text-5xl font-bold mb-4 bg-gradient-primary bg-clip-text text-transparent">
+            <h1 className="section-title text-5xl font-bold mb-4">
               YouTube Channel Analyzer
             </h1>
             <p className="text-muted-foreground text-lg">유튜브 채널의 영상 데이터를 분석하고 시각화하세요</p>

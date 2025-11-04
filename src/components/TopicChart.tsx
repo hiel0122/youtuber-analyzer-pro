@@ -3,12 +3,12 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recha
 import { YouTubeVideo } from "@/lib/youtubeApi";
 import { formatInt } from "@/utils/format";
 
+import { pickChartColor } from "@/lib/chartColors";
+
 interface TopicChartProps {
   videos: YouTubeVideo[];
   loading?: boolean;
 }
-
-const COLORS = ["#A855F7", "#8B5CF6", "#7C3AED", "#6D28D9", "#5B21B6", "#4C1D95"];
 
 const renderLabel = ({ cx, cy, midAngle, outerRadius, percent, name }: any) => {
   const RADIAN = Math.PI / 180;
@@ -65,7 +65,7 @@ export const TopicChart = ({ videos, loading }: TopicChartProps) => {
 
   return (
     <SectionCard title="주제별 분포">
-      <div className="h-72">
+      <div className="chart-root h-72">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -82,7 +82,7 @@ export const TopicChart = ({ videos, loading }: TopicChartProps) => {
               isAnimationActive={false}
             >
               {chartData.map((_, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                <Cell key={`cell-${index}`} fill={pickChartColor(index)} />
               ))}
             </Pie>
             <Tooltip

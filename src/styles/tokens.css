@@ -1,65 +1,94 @@
-:root {
-  /* Brand / semantic tokens (locked) */
-  --primary:   #2563EB !important; /* Indigo (links, primary buttons) */
-  --secondary: #0F172A !important; /* Deep Slate (main text/heading) */
-  --accent:    #14B8A6 !important; /* Teal (secondary highlights) */
-  --warning:   #F59E0B !important; /* Amber (soft warnings/badges) */
-  --destructive: #EF4444 !important; /* ALWAYS red for critical alerts */
-  --background: #F1F5F9 !important;  /* Cloud page background */
-  --card:       #FFFFFF !important;  /* Card/Panel surface */
-  --muted:      #64748B !important;  /* Secondary text */
-  --border:     #E5E7EB !important;  /* Default border */
-  --ring:       #2563EB !important;  /* Focus ring */
+:root{
+  /* Semantic tokens (Dim) */
+  --background:#0E1525 !important;   /* page bg - deep navy */
+  --card:#111826 !important;          /* panels/cards - near black slate */
+  --secondary:#E5E7EB !important;     /* main text on dark */
+  --muted:#94A3B8 !important;         /* secondary text */
+  --border:#1F2A3A !important;        /* borders & dividers */
+  --ring:#60A5FA !important;          /* focus ring */
 
-  /* Chart palette (8 colors, repeated) */
-  --chart-1: #2563EB !important;
-  --chart-2: #14B8A6 !important;
-  --chart-3: #F59E0B !important;
-  --chart-4: #93C5FD !important; /* blue-300 */
-  --chart-5: #A78BFA !important; /* violet-400 */
-  --chart-6: #34D399 !important; /* emerald-400 */
-  --chart-7: #FB923C !important; /* orange-400 */
-  --chart-8: #6B7280 !important; /* gray-500 */
+  /* Brand */
+  --primary:#60A5FA !important;       /* primary (indigo-400 on dark) */
+  --accent:#2DD4BF !important;        /* accent (teal-400) */
+  --warning:#F59E0B !important;       /* amber for soft warn */
+  --destructive:#EF4444 !important;   /* critical red */
 
-  /* Shape/typography tokens */
-  --radius: 12px !important;
-  --container-max: 1240px !important;
+  /* Elevation & overlays */
+  --card-shadow:0 6px 16px rgba(0,0,0,.28) !important;
+  --hover-tint:rgba(96,165,250,.12) !important;   /* primary tint */
+  --active-tint:rgba(96,165,250,.24) !important;  /* stronger */
+
+  /* Radius/width */
+  --radius:12px !important;
+  --container-max:1240px !important;
+
+  /* Charts on dark */
+  --chart-bg:#0E1525 !important;
+  --chart-grid:#22304A !important;
+  --chart-1:#60A5FA !important;  /* indigo-400 */
+  --chart-2:#2DD4BF !important;  /* teal-400  */
+  --chart-3:#F59E0B !important;  /* amber-500 */
+  --chart-4:#A78BFA !important;  /* violet-400*/
+  --chart-5:#34D399 !important;  /* emerald-400 */
+  --chart-6:#FB923C !important;  /* orange-400 */
+  --chart-7:#F472B6 !important;  /* pink-400   */
+  --chart-8:#93C5FD !important;  /* blue-300   */
 }
 
-/* Global glue – apply tokens without changing layout */
-html, body {
-  background: var(--background);
-  color: var(--secondary);
+/* Global glue */
+html,body{background:var(--background);color:var(--secondary);}
+.container,.wrapper,.page,.card,.panel,.box{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius); box-shadow:var(--card-shadow);
 }
-.container,
-.wrapper,
-.page,
-.card,
-.panel,
-.box {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-}
-a, .link, button.primary {
-  color: var(--primary);
-}
-button, .btn {
-  border-radius: var(--radius);
-}
-.btn-primary, .btn[variant="primary"] { background: var(--primary); color: #fff; }
-.btn-accent, .btn[variant="accent"]   { background: var(--accent);  color: #0B1020; }
-.badge-warning { background: var(--warning); color:#111827; }
-
-/* CRITICAL messages must always be red regardless of anything */
-.alert-danger, .critical, [data-importance="critical"] {
-  color: #fff !important;
-  background: var(--destructive) !important;
-  border-color: var(--destructive) !important;
-}
+/* Links & buttons */
+a,.link,button.primary{color:var(--primary);}
+.btn,.button,button{border-radius:var(--radius);}
+.btn-primary,.btn[variant="primary"]{background:var(--primary);color:#0B1020;}
+.btn-secondary,.btn[variant="secondary"]{background:var(--card);color:var(--secondary);border:1px solid var(--border);}
+.btn-ghost{background:transparent;color:var(--secondary);}
+.btn-accent,.btn[variant="accent"]{background:var(--accent);color:#0B1020;}
+.badge-warning{background:var(--warning);color:#0B1020;}
+.alert-danger,.critical,[data-importance="critical"]{color:#fff!important;background:var(--destructive)!important;border-color:var(--destructive)!important;}
 
 /* Focus ring */
-:where(button, a, input, select, textarea):focus-visible {
-  outline: 3px solid var(--ring);
-  outline-offset: 2px;
+:where(button,a,input,select,textarea):focus-visible{outline:3px solid var(--ring);outline-offset:2px;}
+
+/* Section titles (e.g., card headers, h2 inside header bars) */
+.section-title, .card-header h2, .stat-title{
+  color:#F1F5F9; letter-spacing:.2px;
+  text-shadow:0 1px 0 rgba(0,0,0,.35);
 }
+
+/* Left sidebar navigation */
+.sidebar .nav-item{
+  display:flex; align-items:center; gap:.6rem;
+  padding:.6rem .9rem; border-radius:10px; color:var(--muted);
+}
+.sidebar .nav-item:hover{background:var(--hover-tint); color:var(--secondary);}
+.sidebar .nav-item[aria-current="page"],
+.sidebar .nav-item.active{
+  background:var(--active-tint); color:#EAF2FF;
+  border-left:3px solid var(--primary);
+}
+.sidebar .nav-section-title{color:#9AA9C0; opacity:.9;}
+
+/* Top search bar / inputs */
+input,select,textarea{
+  background:#0F1A2C; color:var(--secondary); border:1px solid var(--border);
+}
+input::placeholder{color:#7C8AA3;}
+
+/* Tables (channel video list) */
+table{border-color:var(--border);}
+thead th{color:#C7D2FE; background:#0F1B30;}
+tbody tr:hover{background:var(--hover-tint);}
+tbody td{color:var(--secondary);}
+
+/* Charts */
+.chart-root{background:var(--chart-bg);}
+.chart-grid line{stroke:var(--chart-grid);}
+
+/* Small helpers */
+.kicker, .metric-label{color:#9AA9C0;}
+.help-text{color:#7C8AA3;}

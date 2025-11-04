@@ -16,7 +16,7 @@ export const MetricsCard = ({ title, value, icon: Icon, description, tooltip, in
   return (
     <Card className="bg-gradient-card border-border shadow-card hover:shadow-glow transition-all duration-300">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+        <CardTitle className="stat-title text-xs md:text-sm font-medium flex items-center gap-1.5">
           <span className="flex items-center gap-1.5">
             {title}
             {infoTooltip && (

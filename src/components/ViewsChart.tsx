@@ -41,15 +41,15 @@ export const ViewsChart = ({ videos }: ViewsChartProps) => {
   return (
     <Card className="bg-gradient-card border-border shadow-card">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="section-title flex items-center gap-2">
           <BarChart3 className="h-5 w-5 text-primary" />
           조회수 추이
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="chart-root">
         <ResponsiveContainer width="100%" height={300}>
           <ComposedChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.2} />
+            <CartesianGrid strokeDasharray="3 3" className="chart-grid" stroke="var(--chart-grid)" opacity={0.6} />
             <XAxis
               dataKey="date"
               tickFormatter={formatMMDD}
@@ -75,7 +75,7 @@ export const ViewsChart = ({ videos }: ViewsChartProps) => {
               formatter={(value: number) => [formatInt(value), "조회수"]}
             />
             <Bar dataKey="views" barSize={6} radius={[3, 3, 0, 0]} fill="hsl(var(--primary))" opacity={0.3} />
-            <Line type="monotone" dataKey="views" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="views" stroke="var(--chart-1)" strokeWidth={2.5} dot={false} />
           </ComposedChart>
         </ResponsiveContainer>
       </CardContent>
