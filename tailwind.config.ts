@@ -19,56 +19,29 @@ export default {
     },
     extend: {
       colors: {
-        app: {
-          bg: "var(--bg)",
-          surface: "var(--surface)",
-          ink: "var(--ink)",
-          muted: "var(--muted)",
-          border: "var(--border)",
-          primary: "var(--primary)",
-          accent: "var(--accent)",
-          warning: "var(--warning)",
-          danger: "var(--danger)",
-        },
-        // Keep legacy tokens for compatibility
-        background: "var(--bg)",
-        foreground: "var(--ink)",
+        primary: "var(--primary)",
+        secondary: "var(--secondary)",
+        accent: "var(--accent)",
+        warning: "var(--warning)",
+        destructive: "var(--destructive)",
+        background: "var(--background)",
+        foreground: "var(--secondary)",
+        card: "var(--card)",
+        "card-foreground": "var(--secondary)",
+        muted: "var(--muted)",
+        "muted-foreground": "var(--muted)",
         border: "var(--border)",
         input: "var(--border)",
-        ring: "var(--primary)",
-        primary: {
-          DEFAULT: "var(--primary)",
-          foreground: "#FFFFFF",
-        },
-        secondary: {
-          DEFAULT: "#F1F5F9",
-          foreground: "var(--ink)",
-        },
-        destructive: {
-          DEFAULT: "var(--danger)",
-          foreground: "#FFFFFF",
-        },
-        muted: {
-          DEFAULT: "#F1F5F9",
-          foreground: "var(--muted)",
-        },
-        accent: {
-          DEFAULT: "var(--accent)",
-          foreground: "#FFFFFF",
-        },
+        ring: "var(--ring)",
         popover: {
-          DEFAULT: "var(--surface)",
-          foreground: "var(--ink)",
-        },
-        card: {
-          DEFAULT: "var(--surface)",
-          foreground: "var(--ink)",
+          DEFAULT: "var(--card)",
+          foreground: "var(--secondary)",
         },
         sidebar: {
-          DEFAULT: "var(--surface)",
-          foreground: "var(--ink)",
+          DEFAULT: "var(--card)",
+          foreground: "var(--secondary)",
           "muted-foreground": "var(--muted)",
-          active: "var(--ink)",
+          active: "var(--secondary)",
         },
         chart: {
           "1": "var(--chart-1)",
@@ -82,8 +55,9 @@ export default {
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
+        DEFAULT: "var(--radius)",
+        lg: "calc(var(--radius) + 4px)",
+        md: "var(--radius)",
         sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
@@ -114,7 +88,8 @@ export default {
   safelist: [
     { pattern: /(grid-cols|col-span|row-span|gap|p|px|py|pt|pb|pl|pr)-(1|2|3|4|5|6|8|10|12|16|20|24)/ },
     { pattern: /(w|h|min-w|min-h|max-w|max-h)-(full|screen|[0-9]+)$/ },
-    { pattern: /(text|bg|border)-(primary|secondary|accent|muted|foreground|background)/ },
+    { pattern: /^(bg|text|border|ring)-(primary|secondary|accent|warning|destructive|muted|card|background)$/ },
+    { pattern: /^(fill|stroke)-(primary|accent|warning|destructive)$/ },
     { pattern: /(justify|items|content)-(start|center|end|between)/ },
   ],
 } satisfies Config;

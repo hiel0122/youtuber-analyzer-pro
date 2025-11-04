@@ -1,4 +1,4 @@
-@import "./styles/theme.css";
+@import "./styles/tokens.css";
 
 @tailwind base;
 @tailwind components;
@@ -8,4 +8,4 @@
   body { @apply antialiased; }
 }
 
-/* Theme-specific styles are now in theme.css */
+/* Design tokens locked in tokens.css */

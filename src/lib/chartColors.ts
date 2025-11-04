@@ -1,13 +1,8 @@
-export const CHART_COLORS = [
-  getComputedStyle(document.documentElement).getPropertyValue("--chart-1").trim() || "#2563EB",
-  getComputedStyle(document.documentElement).getPropertyValue("--chart-2").trim() || "#14B8A6",
-  getComputedStyle(document.documentElement).getPropertyValue("--chart-3").trim() || "#F59E0B",
-  getComputedStyle(document.documentElement).getPropertyValue("--chart-4").trim() || "#0F172A",
-  getComputedStyle(document.documentElement).getPropertyValue("--chart-5").trim() || "#93C5FD",
-  getComputedStyle(document.documentElement).getPropertyValue("--chart-6").trim() || "#A78BFA",
-  getComputedStyle(document.documentElement).getPropertyValue("--chart-7").trim() || "#34D399",
-  getComputedStyle(document.documentElement).getPropertyValue("--chart-8").trim() || "#FB923C",
-];
+export const CHART_COLORS = Array.from({ length: 8 }, (_, i) => {
+  const k = `--chart-${i + 1}`;
+  const v = getComputedStyle(document.documentElement).getPropertyValue(k).trim();
+  return v || ['#2563EB','#14B8A6','#F59E0B','#93C5FD','#A78BFA','#34D399','#FB923C','#6B7280'][i];
+});
 
 export const pickChartColor = (i: number) => CHART_COLORS[i % CHART_COLORS.length];
 
