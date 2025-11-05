@@ -6,6 +6,10 @@
   --muted:#94A3B8 !important;         /* secondary text */
   --border:#1F2A3A !important;        /* borders & dividers */
   --ring:#60A5FA !important;          /* focus ring */
+  
+  /* Modal/overlay tokens */
+  --overlay-dim:#0B1220 !important;
+  --ring-brand:#1D348F !important;
 
   /* Brand */
   --primary:#60A5FA !important;       /* primary (indigo-400 on dark) */
@@ -92,3 +96,9 @@ tbody td{color:var(--secondary);}
 /* Small helpers */
 .kicker, .metric-label{color:#9AA9C0;}
 .help-text{color:#7C8AA3;}
+
+/* Focus ring global */
+*:focus-visible{
+  outline: none !important;
+  box-shadow: 0 0 0 2px var(--ring-brand) !important;
+}
