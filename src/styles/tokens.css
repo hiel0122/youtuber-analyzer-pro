@@ -10,6 +10,15 @@
   /* Modal/overlay tokens */
   --overlay-dim:#0B1220 !important;
   --ring-brand:#1D348F !important;
+  
+  /* Dim palette tokens (lock) */
+  --brand-ink: #1D348F;
+  --accent-teal: #3DA0C1;
+  --accent-coral: #EB7B64;
+  --accent-rose: #E1868C;
+  --surface-ice: #F0F6F8;
+  --overlay: #0B1220;
+  --modal-bg: #0F1117;
 
   /* Brand */
   --primary:#60A5FA !important;       /* primary (indigo-400 on dark) */
