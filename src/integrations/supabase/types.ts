@@ -35,6 +35,33 @@ export type Database = {
         }
         Relationships: []
       }
+      api_keys: {
+        Row: {
+          created_at: string | null
+          id: string
+          key_encrypted: string
+          provider: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          key_encrypted: string
+          provider: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          key_encrypted?: string
+          provider?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       channel_daily_views: {
         Row: {
           channel_id: string
@@ -299,69 +326,237 @@ export type Database = {
         }
         Relationships: []
       }
+      usage_daily: {
+        Row: {
+          analysis_count: number
+          analytics_api_calls: number
+          created_at: string | null
+          data_api_calls: number
+          data_save_count: number
+          id: string
+          updated_at: string | null
+          usage_date: string
+          user_id: string
+        }
+        Insert: {
+          analysis_count?: number
+          analytics_api_calls?: number
+          created_at?: string | null
+          data_api_calls?: number
+          data_save_count?: number
+          id?: string
+          updated_at?: string | null
+          usage_date: string
+          user_id: string
+        }
+        Update: {
+          analysis_count?: number
+          analytics_api_calls?: number
+          created_at?: string | null
+          data_api_calls?: number
+          data_save_count?: number
+          id?: string
+          updated_at?: string | null
+          usage_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      usage_stats: {
+        Row: {
+          analytics_api_calls: number | null
+          analyzed_channels: number | null
+          data_api_calls: number | null
+          data_save: number | null
+          day: string
+          user_id: string
+        }
+        Insert: {
+          analytics_api_calls?: number | null
+          analyzed_channels?: number | null
+          data_api_calls?: number | null
+          data_save?: number | null
+          day: string
+          user_id: string
+        }
+        Update: {
+          analytics_api_calls?: number | null
+          analyzed_channels?: number | null
+          data_api_calls?: number | null
+          data_save?: number | null
+          day?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_competitor_channels: {
+        Row: {
+          channel_url: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          channel_url: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          channel_url?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_credits: {
+        Row: {
+          allocated: number
+          updated_at: string | null
+          used: number
+          user_id: string
+        }
+        Insert: {
+          allocated?: number
+          updated_at?: string | null
+          used?: number
+          user_id: string
+        }
+        Update: {
+          allocated?: number
+          updated_at?: string | null
+          used?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_secrets: {
+        Row: {
+          created_at: string | null
+          id: string
+          supabase_anon_key_enc: string | null
+          supabase_url_enc: string | null
+          updated_at: string | null
+          user_id: string
+          youtube_analytics_api_enc: string | null
+          youtube_data_api_enc: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          supabase_anon_key_enc?: string | null
+          supabase_url_enc?: string | null
+          updated_at?: string | null
+          user_id: string
+          youtube_analytics_api_enc?: string | null
+          youtube_data_api_enc?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          supabase_anon_key_enc?: string | null
+          supabase_url_enc?: string | null
+          updated_at?: string | null
+          user_id?: string
+          youtube_analytics_api_enc?: string | null
+          youtube_data_api_enc?: string | null
+        }
+        Relationships: []
+      }
       user_settings: {
         Row: {
           api_supabase_anon_key: string | null
           api_supabase_url: string | null
           api_youtube_key: string | null
+          avatar_url: string | null
           channel_default_url: string | null
           channel_include_shorts: boolean | null
           channel_range_days: number | null
+          competitor_channels: Json | null
           connect_discord_webhook: string | null
           connect_ga_id: string | null
           connect_slack_webhook: string | null
           created_at: string | null
+          credits_total: number | null
+          credits_used: number | null
+          default_range: string | null
+          display_name: string | null
           general_date_format: string | null
           general_language: string | null
           general_theme: string | null
           general_timezone: string | null
           id: string
+          supabase_anon_enc: string | null
+          supabase_url_enc: string | null
           updated_at: string | null
           usage_api_calls_youtube: number | null
           usage_videos_scanned: number | null
           user_id: string
+          yt_analytics_api_enc: string | null
+          yt_data_api_enc: string | null
         }
         Insert: {
           api_supabase_anon_key?: string | null
           api_supabase_url?: string | null
           api_youtube_key?: string | null
+          avatar_url?: string | null
           channel_default_url?: string | null
           channel_include_shorts?: boolean | null
           channel_range_days?: number | null
+          competitor_channels?: Json | null
           connect_discord_webhook?: string | null
           connect_ga_id?: string | null
           connect_slack_webhook?: string | null
           created_at?: string | null
+          credits_total?: number | null
+          credits_used?: number | null
+          default_range?: string | null
+          display_name?: string | null
           general_date_format?: string | null
           general_language?: string | null
           general_theme?: string | null
           general_timezone?: string | null
           id?: string
+          supabase_anon_enc?: string | null
+          supabase_url_enc?: string | null
           updated_at?: string | null
           usage_api_calls_youtube?: number | null
           usage_videos_scanned?: number | null
           user_id: string
+          yt_analytics_api_enc?: string | null
+          yt_data_api_enc?: string | null
         }
         Update: {
           api_supabase_anon_key?: string | null
           api_supabase_url?: string | null
           api_youtube_key?: string | null
+          avatar_url?: string | null
           channel_default_url?: string | null
           channel_include_shorts?: boolean | null
           channel_range_days?: number | null
+          competitor_channels?: Json | null
           connect_discord_webhook?: string | null
           connect_ga_id?: string | null
           connect_slack_webhook?: string | null
           created_at?: string | null
+          credits_total?: number | null
+          credits_used?: number | null
+          default_range?: string | null
+          display_name?: string | null
           general_date_format?: string | null
           general_language?: string | null
           general_theme?: string | null
           general_timezone?: string | null
           id?: string
+          supabase_anon_enc?: string | null
+          supabase_url_enc?: string | null
           updated_at?: string | null
           usage_api_calls_youtube?: number | null
           usage_videos_scanned?: number | null
           user_id?: string
+          yt_analytics_api_enc?: string | null
+          yt_data_api_enc?: string | null
         }
         Relationships: []
       }

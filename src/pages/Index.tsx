@@ -230,6 +230,15 @@ const Index = () => {
       return;
     }
 
+    // Check if API keys are configured
+    const { ensureApiConfigured } = await import('@/lib/settings/actions');
+    const supabase = getSupabaseClient();
+    const apiConfigured = await ensureApiConfigured(supabase);
+    if (!apiConfigured) {
+      toast.error("API가 설정되지 않아 분석을 실행할 수 없습니다. 설정 > API에서 키를 등록해 주세요.");
+      return;
+    }
+
     try {
       if (!hasSupabaseCredentials()) {
         toast.error("Settings에서 Supabase URL/Anon Key를 설정하세요");

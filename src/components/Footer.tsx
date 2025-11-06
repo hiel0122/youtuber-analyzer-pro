@@ -5,21 +5,86 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Settings, LogOut, User } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/lib/supabase";
+import { SettingsModal } from "@/components/settings/SettingsModal";
+import { toast } from "sonner";
 
 export default function Footer() {
+  const { user } = useAuth();
   const [open, setOpen] = useState<"privacy" | "tos" | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success("로그아웃되었습니다");
+    } catch (error) {
+      toast.error("로그아웃 실패");
+    }
+  };
+
+  const getUserDisplayName = () => {
+    if (!user) return "";
+    return user.user_metadata?.display_name || user.email?.split('@')[0] || "User";
+  };
+
+  const getUserInitials = () => {
+    const name = getUserDisplayName();
+    return name.slice(0, 2).toUpperCase();
+  };
 
   return (
     <>
       <footer className="border-t border-border bg-card/30 mt-12">
         <div className="mx-auto w-full max-w-screen-xl px-4 py-6">
-          {/* 간단 고지 2줄 */}
-          <p className="text-xs text-muted-foreground">
-            Data via YouTube API • © All content belongs to the respective owners.
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            This service is not affiliated with, endorsed, or sponsored by YouTube or Google.
-          </p>
+          <div className="flex items-center justify-between mb-4">
+            {/* 간단 고지 */}
+            <div>
+              <p className="text-xs text-muted-foreground">
+                Data via YouTube API • © All content belongs to the respective owners.
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                This service is not affiliated with, endorsed, or sponsored by YouTube or Google.
+              </p>
+            </div>
+
+            {/* 프로필 드롭다운 (로그인 시에만 표시) */}
+            {user && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.user_metadata?.avatar_url} />
+                      <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm">{getUserDisplayName()}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    설정
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    로그아웃
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
 
           {/* 링크 */}
           <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
@@ -99,6 +164,9 @@ export default function Footer() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Settings Modal */}
+      <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
     </>
   );
 }
