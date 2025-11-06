@@ -91,5 +91,9 @@ export default {
     { pattern: /^(bg|text|border|ring)-(primary|secondary|accent|warning|destructive|muted|card|background)$/ },
     { pattern: /^(fill|stroke)-(primary|accent|warning|destructive)$/ },
     { pattern: /(justify|items|content)-(start|center|end|between)/ },
+    "bg-[var(--overlay,#0B1220)]/60",
+    "bg-[var(--modal-bg,#0F1117)]",
+    "backdrop-blur-md",
+    "focus-visible:ring-[var(--brand-ink,#1D348F)]",
   ],
 } satisfies Config;
