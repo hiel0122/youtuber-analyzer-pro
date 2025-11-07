@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { AuthCard } from './AuthCard';
+import { SettingsModal } from '@/components/settings/SettingsModal';
 import { cn } from '@/lib/utils';
 import { 
   LayoutDashboard, 
@@ -59,6 +60,7 @@ export function Sidebar() {
   const { profile } = useProfile();
   const navigate = useNavigate();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [logs, setLogs] = useState<AnalysisLog[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -315,9 +317,9 @@ export function Sidebar() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onClick={() => navigate('/settings?tab=account')}>
+                <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
                   <User className="mr-2 h-4 w-4" />
-                  프로필 수정
+                  설정
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
@@ -359,6 +361,8 @@ export function Sidebar() {
           <AuthCard onSuccess={() => setAuthDialogOpen(false)} />
         </DialogContent>
       </Dialog>
+
+      <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
     </>
   );
 }
