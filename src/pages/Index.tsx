@@ -6,6 +6,7 @@ import { TopicChart } from "@/components/TopicChart";
 import { YouTubeVideo } from "@/lib/youtubeApi";
 import { VideoRow, SyncResponse, UploadFrequency, SubscriptionRates, CommentStats } from "@/lib/types";
 import { getSupabaseClient, hasSupabaseCredentials } from "@/lib/supabaseClient";
+import { ensureApiConfigured } from "@/lib/settings/actions";
 import { syncNewVideos, syncQuickCheck } from "@/lib/edge";
 import { fetchAllVideosByChannel } from "@/lib/supabasePaging";
 import { Video, Eye, Calendar, Users } from "lucide-react";
@@ -240,8 +241,11 @@ const Index = () => {
     }
 
     try {
-      if (!hasSupabaseCredentials()) {
-        toast.error("Settings에서 Supabase URL/Anon Key를 설정하세요");
+      // API 설정 검증
+      const supabase = getSupabaseClient();
+      const apiConfigured = await ensureApiConfigured(supabase);
+      if (!apiConfigured) {
+        toast.error("API가 설정되지 않아 분석을 실행할 수 없습니다. 설정 > API에서 키를 등록해 주세요.");
         return;
       }
 
@@ -251,7 +255,6 @@ const Index = () => {
       const { channelId, totalVideos } = await syncQuickCheck(url);
       console.log("📡 QuickCheck result:", { channelId, totalVideos });
 
-      const supabase = getSupabaseClient();
       const { count: existingCount } = await supabase
         .from("youtube_videos")
         .select("video_id", { count: "exact", head: true })
