@@ -10,7 +10,7 @@ import { saveSettings, fetchSettings } from '@/lib/settings/actions';
 import { fetchUsageLast30 } from '@/lib/settings/usage';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip, Brush, ResponsiveContainer, Legend } from 'recharts';
 import { Settings, Globe, Youtube, Key, User, BarChart3 } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from "@/lib/toast";
 
 type Tab = 'general' | 'channel' | 'api' | 'account' | 'usage';
 
@@ -100,6 +100,11 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
 
   const t = i18n[language];
 
+  const reqFilled =
+    Boolean(supabaseUrl?.trim()) &&
+    Boolean(supabaseAnon?.trim()) &&
+    Boolean(ytDataApi?.trim());
+
   useEffect(() => {
     if (!open) return;
     (async () => {
@@ -131,6 +136,16 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
   };
 
   const onSave = async () => {
+    if (!reqFilled) {
+      const miss = [
+        !supabaseUrl?.trim() ? "Supabase URL" : null,
+        !supabaseAnon?.trim() ? "Supabase Anon Key" : null,
+        !ytDataApi?.trim() ? "YouTube Data API" : null,
+      ].filter(Boolean).join(", ");
+      toast.error(`필수 항목을 입력해 주세요: ${miss}`);
+      return;
+    }
+
     setLoading(true);
     try {
       await saveSettings(supabase, {
@@ -147,7 +162,7 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
       });
       toast.success(t.saved);
     } catch (e) {
-      toast.error('저장 실패');
+      toast.error("저장 실패");
     } finally {
       setLoading(false);
     }
@@ -274,7 +289,7 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
                     <div className="grid grid-cols-1 gap-4">
                       <div>
                         <Label className="mb-1 inline-flex items-center gap-2">
-                          {t.supabase_url}
+                          {t.supabase_url} <span className="text-red-400 text-xs">*</span>
                           <Tooltip>
                             <TooltipTrigger className="text-xs">?</TooltipTrigger>
                             <TooltipContent>Supabase 프로젝트 URL. 프로젝트 생성 시 제공됩니다.</TooltipContent>
@@ -285,12 +300,14 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
                           placeholder="https://xxxx.supabase.co"
                           value={supabaseUrl}
                           onChange={(e) => setSupabaseUrl(e.target.value)}
+                          aria-required="true"
+                          className={cn(!supabaseUrl?.trim() && "border-red-500 focus-visible:ring-red-500")}
                         />
                       </div>
 
                       <div>
                         <Label className="mb-1 inline-flex items-center gap-2">
-                          {t.supabase_anon}
+                          {t.supabase_anon} <span className="text-red-400 text-xs">*</span>
                           <Tooltip>
                             <TooltipTrigger className="text-xs">?</TooltipTrigger>
                             <TooltipContent>Supabase 프로젝트의 anon public key.</TooltipContent>
@@ -301,12 +318,14 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
                           placeholder="supabase anon key"
                           value={supabaseAnon}
                           onChange={(e) => setSupabaseAnon(e.target.value)}
+                          aria-required="true"
+                          className={cn(!supabaseAnon?.trim() && "border-red-500 focus-visible:ring-red-500")}
                         />
                       </div>
 
                       <div>
                         <Label className="mb-1 inline-flex items-center gap-2">
-                          {t.yt_data}
+                          {t.yt_data} <span className="text-red-400 text-xs">*</span>
                           <Tooltip>
                             <TooltipTrigger className="text-xs">?</TooltipTrigger>
                             <TooltipContent>
@@ -319,12 +338,14 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
                           placeholder="YouTube Data API key"
                           value={ytDataApi}
                           onChange={(e) => setYtDataApi(e.target.value)}
+                          aria-required="true"
+                          className={cn(!ytDataApi?.trim() && "border-red-500 focus-visible:ring-red-500")}
                         />
                       </div>
 
                       <div>
                         <Label className="mb-1 inline-flex items-center gap-2">
-                          {t.yt_analytics}
+                          {t.yt_analytics} <span className="text-xs text-muted-foreground">(선택)</span>
                           <Tooltip>
                             <TooltipTrigger className="text-xs">?</TooltipTrigger>
                             <TooltipContent>
@@ -334,7 +355,7 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
                         </Label>
                         <Input
                           type="password"
-                          placeholder="YouTube Analytics API key"
+                          placeholder="YouTube Analytics API key (optional)"
                           value={ytAnalyticsApi}
                           onChange={(e) => setYtAnalyticsApi(e.target.value)}
                         />
@@ -422,7 +443,7 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
               <Button variant="secondary" onClick={() => onOpenChange(false)}>
                 닫기
               </Button>
-              <Button onClick={onSave} disabled={loading}>
+              <Button onClick={onSave} disabled={loading || !reqFilled}>
                 {loading ? "저장 중..." : t.save}
               </Button>
             </div>

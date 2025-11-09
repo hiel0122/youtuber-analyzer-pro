@@ -6,11 +6,11 @@ import { TopicChart } from "@/components/TopicChart";
 import { YouTubeVideo } from "@/lib/youtubeApi";
 import { VideoRow, SyncResponse, UploadFrequency, SubscriptionRates, CommentStats } from "@/lib/types";
 import { getSupabaseClient, hasSupabaseCredentials } from "@/lib/supabaseClient";
-import { ensureApiConfigured } from "@/lib/settings/actions";
+import { ensureApiConfiguredDetailed } from "@/lib/settings/actions";
+import { toast } from "@/lib/toast";
 import { syncNewVideos, syncQuickCheck } from "@/lib/edge";
 import { fetchAllVideosByChannel } from "@/lib/supabasePaging";
 import { Video, Eye, Calendar, Users } from "lucide-react";
-import { toast } from "sonner";
 import { formatInt } from "@/utils/format";
 import { formatMetric } from "@/utils/formatMetric";
 import { useDataContext } from "@/contexts/DataContext";
@@ -243,9 +243,14 @@ const Index = () => {
     try {
       // API 설정 검증
       const supabase = getSupabaseClient();
-      const apiConfigured = await ensureApiConfigured(supabase);
-      if (!apiConfigured) {
-        toast.error("API가 설정되지 않아 분석을 실행할 수 없습니다. 설정 > API에서 키를 등록해 주세요.");
+      const { ok, missing } = await ensureApiConfiguredDetailed(supabase);
+      if (!ok) {
+        const miss = [
+          missing.supabaseUrl ? "Supabase URL" : null,
+          missing.supabaseAnon ? "Supabase Anon Key" : null,
+          missing.ytDataApi ? "YouTube Data API" : null,
+        ].filter(Boolean).join(", ");
+        toast.error(`다음 필수 항목을 설정해 주세요: ${miss}`);
         return;
       }
 

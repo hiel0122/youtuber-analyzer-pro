@@ -86,3 +86,15 @@ export async function ensureApiConfigured(supabase: SupabaseClient): Promise<boo
   const ok = Boolean(s?.yt_data_api_enc) && Boolean(s?.supabase_url_enc) && Boolean(s?.supabase_anon_enc);
   return ok;
 }
+
+export async function ensureApiConfiguredDetailed(supabase: SupabaseClient) {
+  const s = await fetchSettings(supabase);
+  const missing = {
+    supabaseUrl: !Boolean(s?.supabase_url_enc),
+    supabaseAnon: !Boolean(s?.supabase_anon_enc),
+    ytDataApi: !Boolean(s?.yt_data_api_enc),
+    ytAnalyticsApi: !Boolean(s?.yt_analytics_api_enc), // 참고(선택)
+  };
+  const ok = !missing.supabaseUrl && !missing.supabaseAnon && !missing.ytDataApi;
+  return { ok, missing };
+}
