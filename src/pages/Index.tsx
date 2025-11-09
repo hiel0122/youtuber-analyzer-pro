@@ -231,17 +231,8 @@ const Index = () => {
       return;
     }
 
-    // Check if API keys are configured
-    const supabase = getSupabaseClient();
-    const { ensureApiConfigured } = await import('@/lib/settings/actions');
-    const apiConfigured = await ensureApiConfigured(supabase);
-    if (!apiConfigured) {
-      toast.error("API가 설정되지 않아 분석을 실행할 수 없습니다. 설정 > API에서 키를 등록해 주세요.");
-      return;
-    }
-
     try {
-      // API 설정 검증
+      // API 설정 검증 (필수 3종만)
       const supabase = getSupabaseClient();
       const { ok, missing } = await ensureApiConfiguredDetailed(supabase);
       if (!ok) {
@@ -252,6 +243,11 @@ const Index = () => {
         ].filter(Boolean).join(", ");
         toast.error(`다음 필수 항목을 설정해 주세요: ${miss}`);
         return;
+      }
+
+      // Analytics API는 선택 사항
+      if (missing.ytAnalyticsApi) {
+        toast.info("YouTube Analytics API가 없어 Data API 기반 분석만 수행합니다.");
       }
 
       console.log("🔍 Analyzing:", url);
