@@ -172,7 +172,7 @@ export function Sidebar() {
       <aside 
         data-sidebar
         className={cn(
-          "sidebar hidden lg:flex flex-col h-screen border border-border rounded-2xl p-4 transition-all duration-300 overflow-y-auto sticky top-0",
+          "sidebar hidden lg:flex flex-col h-screen border border-border rounded-2xl p-4 transition-all duration-300 sticky top-0",
           collapsed ? "w-20" : "w-64"
         )}
       >
@@ -195,109 +195,118 @@ export function Sidebar() {
           </Button>
         </div>
 
-        {/* Navigation - First Section */}
-        <nav className="space-y-1 mb-6">
-          {navItems.map((item) => (
-            <button
-              key={item.title}
-              onClick={() => handleNavClick(item)}
-              className={cn(
-                "nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-colors text-sm",
-                item.active && "font-medium"
-              )}
-              aria-current={item.active ? "page" : undefined}
-            >
-              <item.icon className="h-5 w-5 flex-shrink-0" />
-              {!collapsed && <span>{item.title}</span>}
-            </button>
-          ))}
-        </nav>
+        {/* Main Content Area - Scrollable */}
+        <div className="flex-1 overflow-y-auto min-h-0">
+          {/* Navigation - First Section */}
+          <nav className="space-y-1 mb-6">
+            {navItems.map((item) => (
+              <button
+                key={item.title}
+                onClick={() => handleNavClick(item)}
+                className={cn(
+                  "nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-colors text-sm",
+                  item.active && "font-medium"
+                )}
+                aria-current={item.active ? "page" : undefined}
+              >
+                <item.icon className="h-5 w-5 flex-shrink-0" />
+                {!collapsed && <span>{item.title}</span>}
+              </button>
+            ))}
+          </nav>
 
-        {/* Analysis Logs - Second Section */}
-        {!collapsed && user && (
-          <div className="flex-1 mb-4 min-h-0">
-            <div className="text-xs font-medium text-muted-foreground mb-2 px-3">분석 기록</div>
-            <ScrollArea className="h-full">
-              <div className="space-y-1">
-                {logs.map((log) => (
-                  <div
-                    key={log.id}
-                    className="group flex items-center justify-between px-3 py-2 rounded-lg hover:bg-accent transition-colors"
-                  >
-                    {editingId === log.id ? (
-                      <div className="flex-1 flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={editValue}
-                          onChange={(e) => setEditValue(e.target.value)}
-                          className="flex-1 bg-background text-sm px-2 py-1 rounded border border-input focus:outline-none focus:ring-1 focus:ring-ring"
-                          autoFocus
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleEditLog(log.id);
-                            if (e.key === 'Escape') {
-                              setEditingId(null);
-                              setEditValue('');
-                            }
-                          }}
-                        />
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleEditLog(log.id)}
-                          className="h-6 px-2"
-                        >
-                          저장
-                        </Button>
-                      </div>
-                    ) : (
-                      <>
-                        <span className="text-sm text-foreground truncate flex-1">
-                          {log.channel_name}
-                        </span>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setEditingId(log.id);
-                                setEditValue(log.channel_name);
-                              }}
-                            >
-                              <Edit2 className="mr-2 h-4 w-4" />
-                              편집
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleDeleteLog(log.id)}
-                              className="text-destructive"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              삭제
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </div>
-        )}
+          {/* Analysis Logs - Second Section */}
+          {!collapsed && user && (
+            <div className="mb-4">
+              <div className="text-xs font-medium text-muted-foreground mb-2 px-3">분석 기록</div>
+              <ScrollArea className="h-[200px]">
+                <div className="space-y-1">
+                  {logs.map((log) => (
+                    <div
+                      key={log.id}
+                      className="group flex items-center justify-between px-3 py-2 rounded-lg hover:bg-accent transition-colors"
+                    >
+                      {editingId === log.id ? (
+                        <div className="flex-1 flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            className="flex-1 bg-background text-sm px-2 py-1 rounded border border-input focus:outline-none focus:ring-1 focus:ring-ring"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleEditLog(log.id);
+                              if (e.key === 'Escape') {
+                                setEditingId(null);
+                                setEditValue('');
+                              }
+                            }}
+                          />
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleEditLog(log.id)}
+                            className="h-6 px-2"
+                          >
+                            저장
+                          </Button>
+                        </div>
+                      ) : (
+                        <>
+                          <span className="text-sm text-foreground truncate flex-1">
+                            {log.channel_name}
+                          </span>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setEditingId(log.id);
+                                  setEditValue(log.channel_name);
+                                }}
+                              >
+                                <Edit2 className="mr-2 h-4 w-4" />
+                                편집
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleDeleteLog(log.id)}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                삭제
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+          )}
+        </div>
 
-        {/* User section / Footer */}
-        <div className="border-t border-border pt-4">
+        {/* Footer - Fixed at Bottom */}
+        <div className="mt-auto border-t border-border pt-3">
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="w-full flex items-center gap-3 hover:bg-accent p-2 rounded-lg transition-colors">
+                <button 
+                  className={cn(
+                    "w-full flex items-center gap-3 p-2 rounded-lg transition-colors",
+                    "hover:bg-accent focus-visible:outline-none focus-visible:ring-2",
+                    "focus-visible:ring-ring"
+                  )}
+                >
                   <Avatar className="h-10 w-10 flex-shrink-0">
                     <AvatarFallback className="bg-primary/10 text-primary">
                       {getInitials(user.email)}
@@ -316,7 +325,7 @@ export function Sidebar() {
                   )}
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent side="top" align="start" className="w-56">
                 <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
                   <User className="mr-2 h-4 w-4" />
                   설정
@@ -329,29 +338,24 @@ export function Sidebar() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            !collapsed && (
-              <div className="space-y-2">
-                <p className="text-xs text-muted-foreground text-center mb-2">
-                  채널 분석을 시작하려면 로그인해주세요.
-                </p>
-                <Button
-                  onClick={() => setAuthDialogOpen(true)}
-                  variant="default"
-                  size="sm"
-                  className="w-full"
-                >
-                  로그인
-                </Button>
-                <Button
-                  onClick={() => setAuthDialogOpen(true)}
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                >
-                  회원가입
-                </Button>
-              </div>
-            )
+            <div className="space-y-2">
+              <Button
+                onClick={() => setAuthDialogOpen(true)}
+                variant="default"
+                size="sm"
+                className="w-full"
+              >
+                로그인
+              </Button>
+              <Button
+                onClick={() => setAuthDialogOpen(true)}
+                variant="outline"
+                size="sm"
+                className="w-full"
+              >
+                회원가입
+              </Button>
+            </div>
           )}
         </div>
       </aside>
