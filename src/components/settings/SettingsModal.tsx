@@ -160,9 +160,11 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
         display_name: displayName,
         avatar_file: avatarFile ?? undefined,
       });
+
       toast.success(t.saved);
-    } catch (e) {
-      toast.error("저장 실패");
+      onOpenChange(false);
+    } catch (e: any) {
+      toast.error(e?.message || "설정 저장에 실패했습니다. (스키마/RLS/프로젝트 연결 확인)");
     } finally {
       setLoading(false);
     }

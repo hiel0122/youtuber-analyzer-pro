@@ -14,9 +14,20 @@ type SavePayload = {
 };
 
 export async function fetchSettings(supabase: SupabaseClient) {
+  const readLocal = () => {
+    try { return JSON.parse(localStorage.getItem("yap:settings") || "null"); } catch { return null; }
+  };
+
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-  const { data } = await supabase.from("user_settings").select("*").eq("user_id", user.id).maybeSingle();
+  if (!user) return readLocal();
+
+  const { data, error } = await supabase
+    .from("user_settings")
+    .select("*")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (error) return readLocal();
   
   // 암호화된 값을 복호화 (임시로 enc: 접두사 제거)
   if (data) {
@@ -28,7 +39,7 @@ export async function fetchSettings(supabase: SupabaseClient) {
       yt_analytics_api_plain: data.yt_analytics_api_enc?.replace(/^enc:/, '') || '',
     };
   }
-  return data;
+  return readLocal();
 }
 
 export async function saveSettings(supabase: SupabaseClient, p: SavePayload) {
@@ -69,7 +80,33 @@ export async function saveSettings(supabase: SupabaseClient, p: SavePayload) {
     updated_at: new Date().toISOString(),
   };
 
-  await supabase.from("user_settings").upsert(row, { onConflict: "user_id" });
+  const { error } = await supabase
+    .from("user_settings")
+    .upsert(row, { onConflict: "user_id" })
+    .select("user_id")
+    .single();
+
+  if (error) {
+    console.error("saveSettings upsert error:", error);
+    throw error;
+  }
+
+  // 로컬 백업 (가드/클라이언트 즉시 반영)
+  try {
+    localStorage.setItem("yap:settings", JSON.stringify({
+      language: p.language,
+      theme: p.theme,
+      competitor_channels: p.competitor_channels,
+      default_range: p.default_range,
+      supabase_url_plain: p.supabase_url || "",
+      supabase_anon_plain: p.supabase_anon || "",
+      yt_data_api_plain: p.yt_data_api || "",
+      yt_analytics_api_plain: p.yt_analytics_api || "",
+      display_name: p.display_name || "",
+      avatar_url: avatar_url || "",
+      updated_at: Date.now(),
+    }));
+  } catch {}
 
   // 표시 이름은 auth user_metadata에도 반영
   if (p.display_name) {
@@ -83,17 +120,18 @@ export async function saveSettings(supabase: SupabaseClient, p: SavePayload) {
 
 export async function ensureApiConfigured(supabase: SupabaseClient): Promise<boolean> {
   const s = await fetchSettings(supabase);
-  const ok = Boolean(s?.yt_data_api_enc) && Boolean(s?.supabase_url_enc) && Boolean(s?.supabase_anon_enc);
-  return ok;
+  return Boolean(s?.supabase_url_plain || s?.supabase_url_enc)
+      && Boolean(s?.supabase_anon_plain || s?.supabase_anon_enc)
+      && Boolean(s?.yt_data_api_plain || s?.yt_data_api_enc);
 }
 
 export async function ensureApiConfiguredDetailed(supabase: SupabaseClient) {
   const s = await fetchSettings(supabase);
   const missing = {
-    supabaseUrl: !Boolean(s?.supabase_url_enc),
-    supabaseAnon: !Boolean(s?.supabase_anon_enc),
-    ytDataApi: !Boolean(s?.yt_data_api_enc),
-    ytAnalyticsApi: !Boolean(s?.yt_analytics_api_enc), // 참고(선택)
+    supabaseUrl: !Boolean(s?.supabase_url_plain || s?.supabase_url_enc),
+    supabaseAnon: !Boolean(s?.supabase_anon_plain || s?.supabase_anon_enc),
+    ytDataApi: !Boolean(s?.yt_data_api_plain || s?.yt_data_api_enc),
+    ytAnalyticsApi: !Boolean(s?.yt_analytics_api_plain || s?.yt_analytics_api_enc), // 참고(선택)
   };
   const ok = !missing.supabaseUrl && !missing.supabaseAnon && !missing.ytDataApi;
   return { ok, missing };
