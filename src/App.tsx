@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Settings from "./pages/Settings";
 import AuthCallback from "./pages/AuthCallback";
 import ResetPassword from "./pages/ResetPassword";
+import DoctorDebug from "./pages/DoctorDebug";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => (
           <Route element={<AppLayout />}>
             <Route path="/" element={<Index />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/debug/doctor" element={<DoctorDebug />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
           <Route path="/auth/callback" element={<AuthCallback />} />

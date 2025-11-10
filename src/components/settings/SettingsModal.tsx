@@ -442,6 +442,13 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
 
             {/* Footer buttons */}
             <div className="border-t p-4 flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => window.open("/debug/doctor", "_blank")}
+                type="button"
+              >
+                진단
+              </Button>
               <Button variant="secondary" onClick={() => onOpenChange(false)}>
                 닫기
               </Button>
