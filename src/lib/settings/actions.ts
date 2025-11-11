@@ -21,117 +21,92 @@ export async function fetchSettings(supabase: SupabaseClient) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return readLocal();
 
+  // 최소 컬럼만 select (스키마 캐시 문제 회피)
   const { data, error } = await supabase
     .from("user_settings")
-    .select("*")
+    .select("supabase_url_enc,supabase_anon_enc,yt_data_api_enc,yt_analytics_api_enc,updated_at,display_name")
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (error) return readLocal();
-  
-  // 암호화된 값을 복호화 (임시로 enc: 접두사 제거)
-  if (data) {
-    return {
-      ...data,
-      supabase_url_plain: data.supabase_url_enc?.replace(/^enc:/, '') || '',
-      supabase_anon_plain: data.supabase_anon_enc?.replace(/^enc:/, '') || '',
-      yt_data_api_plain: data.yt_data_api_enc?.replace(/^enc:/, '') || '',
-      yt_analytics_api_plain: data.yt_analytics_api_enc?.replace(/^enc:/, '') || '',
-    };
+  if (error && error.message) {
+    console.warn("fetchSettings:", error.message);
   }
-  return readLocal();
+
+  const db = data ? {
+    supabase_url_plain: data.supabase_url_enc?.replace(/^enc:/, '') || '',
+    supabase_anon_plain: data.supabase_anon_enc?.replace(/^enc:/, '') || '',
+    yt_data_api_plain: data.yt_data_api_enc?.replace(/^enc:/, '') || '',
+    yt_analytics_api_plain: data.yt_analytics_api_enc?.replace(/^enc:/, '') || '',
+    display_name: data.display_name || '',
+    updated_at: data.updated_at || null,
+  } : null;
+
+  return db ?? readLocal();
 }
 
 export async function saveSettings(supabase: SupabaseClient, p: SavePayload) {
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("no user");
+  if (!user) throw new Error("로그인이 필요합니다.");
 
-  // 아바타 업로드 (선택)
-  let avatar_url: string | undefined;
-  if (p.avatar_file) {
-    const ext = p.avatar_file.name.split(".").pop() || "png";
-    const path = `${user.id}/${Date.now()}.${ext}`;
-    
-    // avatars 버킷 존재 확인, 없으면 생성하지 않고 스킵
-    try {
-      const { data: up } = await supabase.storage.from("avatars").upload(path, p.avatar_file, { upsert: true });
-      if (up) {
-        const { data: pub } = supabase.storage.from("avatars").getPublicUrl(up.path);
-        avatar_url = pub.publicUrl;
-      }
-    } catch (e) {
-      console.warn('Avatar upload failed:', e);
-    }
-  }
-
-  // 키는 여기서 평문 저장하지 말고, 임시로 enc: 접두사만 붙여서 저장
-  const row = {
+  // ✅ 1단계: 필수/선택 키만 최소 업서트 (DB 누락 컬럼 차단)
+  const minimalRow = {
     user_id: user.id,
-    language: p.language,
-    theme: p.theme,
-    competitor_channels: p.competitor_channels,
-    default_range: p.default_range,
-    supabase_url_enc: p.supabase_url ? `enc:${p.supabase_url}` : undefined,
-    supabase_anon_enc: p.supabase_anon ? `enc:${p.supabase_anon}` : undefined,
-    yt_data_api_enc: p.yt_data_api ? `enc:${p.yt_data_api}` : undefined,
-    yt_analytics_api_enc: p.yt_analytics_api ? `enc:${p.yt_analytics_api}` : undefined,
-    display_name: p.display_name,
-    avatar_url: avatar_url || undefined,
+    supabase_url_enc: p.supabase_url ? `enc:${p.supabase_url}` : null,
+    supabase_anon_enc: p.supabase_anon ? `enc:${p.supabase_anon}` : null,
+    yt_data_api_enc: p.yt_data_api ? `enc:${p.yt_data_api}` : null,
+    yt_analytics_api_enc: p.yt_analytics_api ? `enc:${p.yt_analytics_api}` : null,
     updated_at: new Date().toISOString(),
   };
 
   const { error } = await supabase
     .from("user_settings")
-    .upsert(row, { onConflict: "user_id" })
+    .upsert(minimalRow, { onConflict: "user_id" })
     .select("user_id")
     .single();
 
   if (error) {
-    console.error("saveSettings upsert error:", error);
-    throw error;
+    console.error("saveSettings (minimal upsert) error:", error);
+    throw new Error(error.message || "설정 저장 실패");
   }
 
-  // 로컬 백업 (가드/클라이언트 즉시 반영)
+  // ✅ 2단계: 로컬 백업 (언어/테마/기타 포함) — 분석/화면 즉시 반영
   try {
     localStorage.setItem("yap:settings", JSON.stringify({
-      language: p.language,
-      theme: p.theme,
-      competitor_channels: p.competitor_channels,
-      default_range: p.default_range,
+      language: p.language ?? "ko",
+      theme: p.theme ?? "dark",
+      competitor_channels: p.competitor_channels ?? [],
+      default_range: p.default_range ?? "30d",
       supabase_url_plain: p.supabase_url || "",
       supabase_anon_plain: p.supabase_anon || "",
       yt_data_api_plain: p.yt_data_api || "",
       yt_analytics_api_plain: p.yt_analytics_api || "",
       display_name: p.display_name || "",
-      avatar_url: avatar_url || "",
       updated_at: Date.now(),
     }));
   } catch {}
 
-  // 표시 이름은 auth user_metadata에도 반영
+  // (선택) 표시 이름은 Auth metadata에 동기화
   if (p.display_name) {
     try {
       await supabase.auth.updateUser({ data: { display_name: p.display_name } });
-    } catch (e) {
-      console.warn('User metadata update failed:', e);
-    }
+    } catch {}
   }
 }
 
 export async function ensureApiConfigured(supabase: SupabaseClient): Promise<boolean> {
   const s = await fetchSettings(supabase);
-  return Boolean(s?.supabase_url_plain || s?.supabase_url_enc)
-      && Boolean(s?.supabase_anon_plain || s?.supabase_anon_enc)
-      && Boolean(s?.yt_data_api_plain || s?.yt_data_api_enc);
+  return Boolean(s?.supabase_url_plain) 
+      && Boolean(s?.supabase_anon_plain) 
+      && Boolean(s?.yt_data_api_plain);
 }
 
 export async function ensureApiConfiguredDetailed(supabase: SupabaseClient) {
   const s = await fetchSettings(supabase);
   const missing = {
-    supabaseUrl: !Boolean(s?.supabase_url_plain || s?.supabase_url_enc),
-    supabaseAnon: !Boolean(s?.supabase_anon_plain || s?.supabase_anon_enc),
-    ytDataApi: !Boolean(s?.yt_data_api_plain || s?.yt_data_api_enc),
-    ytAnalyticsApi: !Boolean(s?.yt_analytics_api_plain || s?.yt_analytics_api_enc), // 참고(선택)
+    supabaseUrl: !Boolean(s?.supabase_url_plain),
+    supabaseAnon: !Boolean(s?.supabase_anon_plain),
+    ytDataApi: !Boolean(s?.yt_data_api_plain),
+    ytAnalyticsApi: !Boolean(s?.yt_analytics_api_plain), // 옵션
   };
   const ok = !missing.supabaseUrl && !missing.supabaseAnon && !missing.ytDataApi;
   return { ok, missing };
