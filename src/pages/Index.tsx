@@ -245,11 +245,6 @@ const Index = () => {
         return;
       }
 
-      // Analytics API는 선택 사항
-      if (missing.ytAnalyticsApi) {
-        toast.info("YouTube Analytics API가 없어 Data API 기반 분석만 수행합니다.");
-      }
-
       console.log("🔍 Analyzing:", url);
 
       // 채널 존재 확인 & 기존 개수 체크 (quickCheck 사용)
