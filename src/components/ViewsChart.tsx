@@ -3,6 +3,7 @@ import { BarChart3 } from "lucide-react";
 import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { YouTubeVideo } from "@/lib/youtubeApi";
 import { formatMMDD, yTicks200kTo2M, yTickLabel, formatInt } from "@/utils/format";
+import { pickColor } from "@/lib/charts/palette";
 
 interface ViewsChartProps {
   videos: YouTubeVideo[];
@@ -74,8 +75,8 @@ export const ViewsChart = ({ videos }: ViewsChartProps) => {
               labelFormatter={(v) => `업로드: ${formatMMDD(v as string)}`}
               formatter={(value: number) => [formatInt(value), "조회수"]}
             />
-            <Bar dataKey="views" barSize={6} radius={[3, 3, 0, 0]} fill="hsl(var(--primary))" opacity={0.3} />
-            <Line type="monotone" dataKey="views" stroke="var(--chart-1)" strokeWidth={2.5} dot={false} />
+            <Bar dataKey="views" barSize={6} radius={[3, 3, 0, 0]} fill={pickColor(0)} opacity={0.3} />
+            <Line type="monotone" dataKey="views" stroke={pickColor(1)} strokeWidth={2.5} dot={false} />
           </ComposedChart>
         </ResponsiveContainer>
       </CardContent>

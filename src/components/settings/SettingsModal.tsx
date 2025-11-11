@@ -175,7 +175,7 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
       <DialogContent className="max-w-5xl h-[85vh] p-0">
         <div className="flex h-full">
           {/* Left Sidebar - 30% */}
-          <div className="w-48 border-r bg-muted/30 p-4">
+          <div className="w-48 border-r border-white/10 bg-muted/30 p-4">
             <DialogHeader className="mb-6 px-2">
               <DialogTitle className="flex items-center gap-2 text-lg">
                 <Settings className="w-5 h-5" />
@@ -441,17 +441,14 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
             </div>
 
             {/* Footer buttons */}
-            <div className="border-t p-4 flex justify-end gap-2">
-              <Button 
-                variant="outline" 
-                onClick={() => window.open("/debug/doctor", "_blank")}
+            <div className="border-t border-white/10 p-4 flex justify-end gap-2">
+              <button
                 type="button"
+                onClick={() => onOpenChange(false)}
+                className="px-3 py-2 rounded-md bg-transparent text-neutral-300 hover:bg-white/10"
               >
-                진단
-              </Button>
-              <Button variant="secondary" onClick={() => onOpenChange(false)}>
                 닫기
-              </Button>
+              </button>
               <Button onClick={onSave} disabled={loading || !reqFilled}>
                 {loading ? "저장 중..." : t.save}
               </Button>

@@ -102,11 +102,17 @@ export async function ensureApiConfigured(supabase: SupabaseClient): Promise<boo
 
 export async function ensureApiConfiguredDetailed(supabase: SupabaseClient) {
   const s = await fetchSettings(supabase);
+  const clean = (v: string | undefined) => (v || "").replace(/[*.•\s]/g, "");
+  const supabaseUrl    = clean(s?.supabase_url_plain);
+  const supabaseAnon   = clean(s?.supabase_anon_plain);
+  const ytDataApi      = clean(s?.yt_data_api_plain);
+  const ytAnalyticsApi = clean(s?.yt_analytics_api_plain);
+
   const missing = {
-    supabaseUrl: !Boolean(s?.supabase_url_plain),
-    supabaseAnon: !Boolean(s?.supabase_anon_plain),
-    ytDataApi: !Boolean(s?.yt_data_api_plain),
-    ytAnalyticsApi: !Boolean(s?.yt_analytics_api_plain), // 옵션
+    supabaseUrl:    !supabaseUrl,
+    supabaseAnon:   !supabaseAnon,
+    ytDataApi:      !ytDataApi,
+    ytAnalyticsApi: !ytAnalyticsApi, // 선택
   };
   const ok = !missing.supabaseUrl && !missing.supabaseAnon && !missing.ytDataApi;
   return { ok, missing };

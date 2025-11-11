@@ -2,8 +2,7 @@ import { SectionCard } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { YouTubeVideo } from "@/lib/youtubeApi";
 import { formatInt } from "@/utils/format";
-
-import { pickChartColor } from "@/lib/chartColors";
+import { pickColor } from "@/lib/charts/palette";
 
 interface TopicChartProps {
   videos: YouTubeVideo[];
@@ -82,7 +81,7 @@ export const TopicChart = ({ videos, loading }: TopicChartProps) => {
               isAnimationActive={false}
             >
               {chartData.map((_, index) => (
-                <Cell key={`cell-${index}`} fill={pickChartColor(index)} />
+                <Cell key={`cell-${index}`} fill={pickColor(index)} />
               ))}
             </Pie>
             <Tooltip
