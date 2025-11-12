@@ -1,5 +1,7 @@
 import * as React from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { pickTagColor, textOn } from "@/lib/ui/tagPalette";
+import { cn } from "@/lib/utils";
 
 type Video = {
   upload_date?: string | null;
@@ -203,22 +205,56 @@ export default function ChannelSummary({
             {/* 토픽 태그 뱃지만 표시 */}
             {displayTags.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-2">
-                {displayTags.map((t) => (
-                  <span key={t} className="text-xs px-2.5 py-1 rounded-full bg-secondary text-foreground border border-border font-medium">
-                    {t}
-                  </span>
-                ))}
+                {displayTags.map((t, i) => {
+                  const bg = pickTagColor(i);
+                  const fg = textOn(bg);
+                  return (
+                    <span
+                      key={`${t}-${i}`}
+                      className={cn(
+                        "inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium",
+                        "border focus-visible:outline-none focus-visible:ring-2",
+                        "focus-visible:ring-[var(--brand-ink,#1D348F)] focus-visible:ring-offset-0"
+                      )}
+                      style={{
+                        backgroundColor: bg,
+                        color: fg,
+                        borderColor: bg
+                      }}
+                      title={t}
+                    >
+                      {t}
+                    </span>
+                  );
+                })}
               </div>
             )}
 
             {/* 특징 태그 */}
             {!!traits.length && (
               <div className="mt-3 flex flex-wrap gap-2">
-                {traits.map((t) => (
-                  <span key={t} className="text-xs px-2.5 py-1 rounded-full bg-secondary text-foreground border border-border font-medium">
-                    {t}
-                  </span>
-                ))}
+                {traits.map((t, i) => {
+                  const bg = pickTagColor(i + displayTags.length);
+                  const fg = textOn(bg);
+                  return (
+                    <span
+                      key={`${t}-${i}`}
+                      className={cn(
+                        "inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium",
+                        "border focus-visible:outline-none focus-visible:ring-2",
+                        "focus-visible:ring-[var(--brand-ink,#1D348F)] focus-visible:ring-offset-0"
+                      )}
+                      style={{
+                        backgroundColor: bg,
+                        color: fg,
+                        borderColor: bg
+                      }}
+                      title={t}
+                    >
+                      {t}
+                    </span>
+                  );
+                })}
               </div>
             )}
           </div>

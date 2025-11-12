@@ -37,10 +37,9 @@ const AlertDialogContent = React.forwardRef<
       ref={ref}
       className={cn(
         "fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2",
-        "rounded-2xl bg-[var(--modal-bg,#0F1117)] p-6 shadow-xl outline-none",
-        "border border-transparent",
-        "focus-visible:ring-2 focus-visible:ring-[var(--brand-ink,#1D348F)]",
-        "focus-visible:ring-offset-0 focus:outline-none",
+        "rounded-2xl bg-[var(--modal-bg,#0F1117)] p-6",
+        "border border-[var(--modal-bg,#0F1117)]",
+        "outline-none ring-0 ring-offset-0 shadow-none modal-seamless",
         className
       )}
       {...props}

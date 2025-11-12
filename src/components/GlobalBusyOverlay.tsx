@@ -26,7 +26,7 @@ export default function GlobalBusyOverlay({
       aria-label="분석 진행 중"
     >
       <div className="h-full w-full flex items-center justify-center p-6">
-        <div className="w-full max-w-md rounded-2xl border bg-card/85 shadow-xl p-6">
+        <div className="w-full max-w-md rounded-2xl bg-[var(--modal-bg,#0F1117)] border border-[var(--modal-bg,#0F1117)] outline-none ring-0 shadow-none modal-seamless p-6">
           <div className="flex items-center gap-3 mb-3">
             <Loader2 className="size-5 animate-spin" aria-hidden />
             <h2 className="text-lg font-semibold">{message}</h2>
