@@ -207,11 +207,11 @@ const Index = () => {
       // 성공 메시지
       const insertedCount = result?.inserted_or_updated || actualCount || 0;
       if (fullSync) {
-        toast.success(`✅ 전체 분석 완료: ${insertedCount}개 영상`);
+        toast.success(`전체 분석 완료: ${insertedCount}개 영상`);
       } else if (insertedCount > 0) {
-        toast.success(`✅ 분석 완료: ${insertedCount}개의 새 영상 추가`);
+        toast.success(`분석 완료: ${insertedCount}개의 새 영상 추가`);
       } else {
-        toast.success(`✅ 분석 완료: 새 영상이 없습니다`);
+        toast.success(`분석 완료: 새 영상이 없습니다`);
       }
 
       // ✅ 모든 데이터 로딩이 완료된 후 동기화 상태 종료

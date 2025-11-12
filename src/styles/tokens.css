@@ -7,6 +7,10 @@
   --border:#1F2A3A !important;        /* borders & dividers */
   --ring:#60A5FA !important;          /* focus ring */
   
+  /* Chart palette */
+  --chart-green-400: #34d399;  /* emerald-400 */
+  --chart-green-600: #059669;  /* emerald-600 */
+  
   /* Modal/overlay tokens */
   --overlay-dim:#0B1220 !important;
   --ring-brand:#1D348F !important;

@@ -105,6 +105,12 @@ export default function ViewsTrend({ videos, loading }: { videos: VideoRow[]; lo
       <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={display} margin={{ top: 28, right: 8, bottom: 36, left: 0 }} barCategoryGap={24}>
+            <defs>
+              <linearGradient id="viewsGreen" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--chart-green-400)" stopOpacity={0.9} />
+                <stop offset="100%" stopColor="var(--chart-green-600)" stopOpacity={0.8} />
+              </linearGradient>
+            </defs>
             <XAxis
               dataKey="dateLabel"
               angle={-35}
@@ -125,7 +131,7 @@ export default function ViewsTrend({ videos, loading }: { videos: VideoRow[]; lo
                 borderRadius: '8px'
               }}
             />
-            <Bar dataKey="views" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]}>
+            <Bar dataKey="views" fill="url(#viewsGreen)" radius={[8, 8, 0, 0]}>
               <LabelList dataKey="views" content={<TopLabel />} />
             </Bar>
             <Line
