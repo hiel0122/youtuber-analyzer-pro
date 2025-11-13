@@ -703,6 +703,108 @@ export type Database = {
         }
         Relationships: []
       }
+      yta_analysis_runs: {
+        Row: {
+          added_videos: number | null
+          channel_id: string
+          comments_delta: number | null
+          finished_at: string | null
+          id: string
+          run_type: string
+          started_at: string | null
+          total_comments_after: number | null
+          touched_videos: number | null
+          user_id: string | null
+        }
+        Insert: {
+          added_videos?: number | null
+          channel_id: string
+          comments_delta?: number | null
+          finished_at?: string | null
+          id?: string
+          run_type: string
+          started_at?: string | null
+          total_comments_after?: number | null
+          touched_videos?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          added_videos?: number | null
+          channel_id?: string
+          comments_delta?: number | null
+          finished_at?: string | null
+          id?: string
+          run_type?: string
+          started_at?: string | null
+          total_comments_after?: number | null
+          touched_videos?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      yta_channel_videos: {
+        Row: {
+          channel_id: string
+          comment_count: number
+          etag: string | null
+          published_at: string | null
+          updated_at: string | null
+          video_id: string
+        }
+        Insert: {
+          channel_id: string
+          comment_count?: number
+          etag?: string | null
+          published_at?: string | null
+          updated_at?: string | null
+          video_id: string
+        }
+        Update: {
+          channel_id?: string
+          comment_count?: number
+          etag?: string | null
+          published_at?: string | null
+          updated_at?: string | null
+          video_id?: string
+        }
+        Relationships: []
+      }
+      yta_channels: {
+        Row: {
+          channel_id: string
+          comments_total: number
+          created_at: string | null
+          last_delta_scan_at: string | null
+          last_full_scan_at: string | null
+          last_video_published_at: string | null
+          title: string | null
+          updated_at: string | null
+          uploads_playlist_id: string | null
+        }
+        Insert: {
+          channel_id: string
+          comments_total?: number
+          created_at?: string | null
+          last_delta_scan_at?: string | null
+          last_full_scan_at?: string | null
+          last_video_published_at?: string | null
+          title?: string | null
+          updated_at?: string | null
+          uploads_playlist_id?: string | null
+        }
+        Update: {
+          channel_id?: string
+          comments_total?: number
+          created_at?: string | null
+          last_delta_scan_at?: string | null
+          last_full_scan_at?: string | null
+          last_video_published_at?: string | null
+          title?: string | null
+          updated_at?: string | null
+          uploads_playlist_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       v_all_videos: {

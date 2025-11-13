@@ -167,12 +167,6 @@ const Index = () => {
         setSubscriptionRates(result.subscriptionRates);
       }
 
-      // ✅ commentStats 설정 추가!
-      if (result?.commentStats) {
-        console.log("📊 Setting commentStats:", result.commentStats);
-        setCommentStats(result.commentStats);
-      }
-
       // 채널 통계 갱신
       const supabase = getSupabaseClient();
       const { data: channelData } = await supabase
@@ -191,6 +185,68 @@ const Index = () => {
           hiddenSubscriber: false,
         });
         setCurrentChannelName(channel.channel_name || "");
+      }
+
+      // 📝 Incremental comment tracking
+      try {
+        console.log("💬 Starting comment scan...");
+        const { fullScanComments, deltaScanComments, logRun } = await import('@/lib/youtube/delta');
+        
+        // Get YouTube Data API key
+        const settings = await supabase.from('user_settings').select('api_youtube_key').eq('user_id', user?.id).maybeSingle();
+        const apiKey = (settings?.data as any)?.api_youtube_key || localStorage.getItem('ya_youtube_key') || '';
+        
+        if (apiKey) {
+          // Check if this channel has been scanned before
+          const { data: existingVideos } = await supabase
+            .from('yta_channel_videos')
+            .select('video_id', { count: 'exact', head: true })
+            .eq('channel_id', channelId);
+
+          let commentResult;
+          if ((existingVideos?.length ?? 0) === 0) {
+            // First scan: full
+            console.log("💬 First comment scan - full mode");
+            commentResult = await fullScanComments(supabase, apiKey, channelId);
+            await logRun(supabase, user?.id, channelId, 'full', {
+              added: commentResult.added,
+              touched: commentResult.added,
+              commentsDelta: commentResult.total,
+              totalAfter: commentResult.total
+            });
+          } else {
+            // Subsequent scans: delta + backfill
+            console.log("💬 Delta comment scan with backfill");
+            commentResult = await deltaScanComments(supabase, apiKey, channelId, 200);
+            await logRun(supabase, user?.id, channelId, 'delta', {
+              added: commentResult.added,
+              touched: commentResult.touched,
+              commentsDelta: commentResult.commentsDelta,
+              totalAfter: commentResult.totalAfter
+            });
+          }
+
+          // Update commentStats from DB
+          const { data: channelComments } = await supabase
+            .from('yta_channels')
+            .select('comments_total')
+            .eq('channel_id', channelId)
+            .maybeSingle();
+
+          if (channelComments) {
+            setCommentStats({
+              total: Number((channelComments as any).comments_total ?? 0),
+              maxPerVideo: 0,
+              minPerVideo: 0,
+              avgPerVideo: 0
+            });
+          }
+
+          console.log("✅ Comment scan completed:", commentResult);
+        }
+      } catch (commentError: any) {
+        console.warn("⚠️ Comment scan failed:", commentError);
+        // Continue with normal flow even if comment scan fails
       }
 
       // 모든 데이터 로딩 (병렬)
