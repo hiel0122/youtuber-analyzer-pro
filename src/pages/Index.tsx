@@ -191,6 +191,7 @@ const Index = () => {
       try {
         console.log("💬 Starting comment scan...");
         const { fullScanComments, deltaScanComments, logRun } = await import('@/lib/youtube/delta');
+        const { fetchCommentStats } = await import('@/lib/stats/comments');
         
         // Get YouTube Data API key
         const settings = await supabase.from('user_settings').select('api_youtube_key').eq('user_id', user?.id).maybeSingle();
@@ -226,21 +227,14 @@ const Index = () => {
             });
           }
 
-          // Update commentStats from DB
-          const { data: channelComments } = await supabase
-            .from('yta_channels')
-            .select('comments_total')
-            .eq('channel_id', channelId)
-            .maybeSingle();
-
-          if (channelComments) {
-            setCommentStats({
-              total: Number((channelComments as any).comments_total ?? 0),
-              maxPerVideo: 0,
-              minPerVideo: 0,
-              avgPerVideo: 0
-            });
-          }
+          // Update commentStats from DB aggregation
+          const stats = await fetchCommentStats(supabase, channelId);
+          setCommentStats({
+            total: stats.total,
+            maxPerVideo: stats.max,
+            minPerVideo: stats.min,
+            avgPerVideo: stats.avg
+          });
 
           console.log("✅ Comment scan completed:", commentResult);
         }

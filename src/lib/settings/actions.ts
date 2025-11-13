@@ -106,13 +106,11 @@ export async function ensureApiConfiguredDetailed(supabase: SupabaseClient) {
   const supabaseUrl    = clean(s?.supabase_url_plain);
   const supabaseAnon   = clean(s?.supabase_anon_plain);
   const ytDataApi      = clean(s?.yt_data_api_plain);
-  const ytAnalyticsApi = clean(s?.yt_analytics_api_plain);
 
   const missing = {
     supabaseUrl:    !supabaseUrl,
     supabaseAnon:   !supabaseAnon,
     ytDataApi:      !ytDataApi,
-    ytAnalyticsApi: !ytAnalyticsApi, // 선택
   };
   const ok = !missing.supabaseUrl && !missing.supabaseAnon && !missing.ytDataApi;
   return { ok, missing };
