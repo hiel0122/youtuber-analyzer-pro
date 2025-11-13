@@ -15,8 +15,6 @@ import {
   BarChart3,
   GitCompare,
   LogOut,
-  ChevronLeft,
-  ChevronRight,
   Menu,
   MoreVertical,
   User,
@@ -61,10 +59,18 @@ export function Sidebar() {
   const navigate = useNavigate();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState<boolean>(() =>
+    typeof window !== "undefined" && localStorage.getItem("sb-collapsed") === "1"
+  );
   const [logs, setLogs] = useState<AnalysisLog[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
+
+  useEffect(() => {
+    try { 
+      localStorage.setItem("sb-collapsed", collapsed ? "1" : "0"); 
+    } catch {}
+  }, [collapsed]);
 
   useEffect(() => {
     if (user) {
@@ -177,21 +183,15 @@ export function Sidebar() {
         )}
       >
         {/* Toggle button */}
-        <div className="flex items-center justify-between mb-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-          >
-            <Menu className="h-4 w-4" />
-          </Button>
+        <div className="flex items-center justify-start mb-4">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setCollapsed(!collapsed)}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             className="h-8 w-8"
           >
-            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            <Menu className="h-4 w-4" />
           </Button>
         </div>
 
