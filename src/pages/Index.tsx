@@ -28,7 +28,7 @@ import Footer from "@/components/Footer";
 import ChannelSummary from "@/components/ChannelSummary";
 import { useChannelBundle } from "@/hooks/useChannelBundle";
 import { useAuth } from "@/hooks/useAuth";
-import { useAnalysisHistory } from "@/hooks/useAnalysisHistory";
+import { useAnalysisLogs } from "@/hooks/useAnalysisLogs";
 import { AuthGateModal } from "@/components/AuthGateModal";
 import {
   AlertDialog,
@@ -43,7 +43,7 @@ import {
 
 const Index = () => {
   const { user } = useAuth();
-  const { add: addToHistory } = useAnalysisHistory();
+  const { addOptimistic, commitInsert } = useAnalysisLogs(user?.id);
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
   const [videoRows, setVideoRows] = useState<VideoRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -137,7 +137,7 @@ const Index = () => {
     }
   };
 
-  const performSync = async (url: string, fullSync: boolean, knownChannelId?: string) => {
+  const performSync = async (url: string, fullSync: boolean, knownChannelId?: string, optimisticId?: string) => {
     let finish: (() => void) | undefined;
 
     try {
@@ -269,9 +269,9 @@ const Index = () => {
       // ✅ 모든 데이터 로딩이 완료된 후 동기화 상태 종료
       finish?.();
 
-      // Add to analysis history
-      if (url) {
-        addToHistory(url, currentChannelName || url);
+      // Commit to database (analysis history)
+      if (optimisticId && currentChannelName) {
+        await commitInsert(currentChannelName, optimisticId);
       }
     } catch (error: any) {
       console.error("❌ Sync error:", error);
@@ -287,6 +287,9 @@ const Index = () => {
       setShowAuthGate(true);
       return;
     }
+
+    // Optimistic update: add to sidebar immediately
+    const optimisticId = addOptimistic(url.trim());
 
     try {
       // API 설정 검증 (필수 3종만)
@@ -324,7 +327,7 @@ const Index = () => {
 
       // 최초 분석 - 바로 실행
       console.log("🆕 First time analysis - full sync");
-      await performSync(url, true, channelId);
+      await performSync(url, true, channelId, optimisticId);
     } catch (error: any) {
       console.error("❌ Analysis error:", error);
       toast.error(error.message || "채널 분석 중 오류가 발생했습니다");
@@ -341,10 +344,13 @@ const Index = () => {
       toast.info("새로운 영상만 확인합니다...");
     }
 
+    // Optimistic update for resync too
+    const optimisticId = addOptimistic(pendingUrl.trim());
+
     // quickCheck로 channelId 먼저 가져오기
     try {
       const { channelId } = await syncQuickCheck(pendingUrl);
-      await performSync(pendingUrl, fullSync, channelId);
+      await performSync(pendingUrl, fullSync, channelId, optimisticId);
     } catch (error: any) {
       console.error("Resync error:", error);
       toast.error(error.message || "재분석 중 오류가 발생했습니다");
