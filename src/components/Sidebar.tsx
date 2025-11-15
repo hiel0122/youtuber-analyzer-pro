@@ -149,12 +149,15 @@ export function Sidebar() {
       <aside 
         data-sidebar
         className={cn(
-          "sidebar hidden lg:flex flex-col h-screen border border-border rounded-2xl p-4 transition-all duration-300 sticky top-0 overflow-y-auto overflow-x-visible",
+          "sidebar hidden lg:flex flex-col h-screen border border-border rounded-2xl transition-all duration-300 sticky top-0",
           collapsed ? "w-16" : "w-64"
         )}
       >
         {/* Header with Toggle & Brand */}
-        <div className="flex items-center gap-2 mb-6">
+        <div className={cn(
+          "flex items-center gap-2 mb-6 pt-4",
+          collapsed ? "justify-center px-0" : "px-4"
+        )}>
           <Button
             variant="ghost"
             size="icon"
@@ -172,7 +175,7 @@ export function Sidebar() {
         </div>
 
         {/* Main Content Area - Scrollable */}
-        <ScrollArea className="flex-1 -mx-2 px-2">
+        <div className="flex-1 overflow-y-auto overflow-x-visible">
           {/* Youtube Analytics Group */}
           {navGroups.map((group) => (
             <Collapsible
@@ -184,8 +187,8 @@ export function Sidebar() {
               <CollapsibleTrigger asChild>
                 <button
                   className={cn(
-                    "w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-accent transition-colors text-sm font-medium text-muted-foreground",
-                    collapsed && "justify-center"
+                    "w-full flex items-center justify-between rounded-lg hover:bg-accent transition-colors text-sm font-medium text-muted-foreground",
+                    collapsed ? "justify-center px-0 py-2" : "px-3 py-2"
                   )}
                 >
                   {!collapsed && <span>{group.label}</span>}
@@ -237,7 +240,7 @@ export function Sidebar() {
 
           {/* Analysis History - Second Section */}
           {!collapsed && user && historyItems.length > 0 && (
-            <div className="mt-6">
+            <div className="mt-6 px-2">
               <div className="text-xs font-medium text-muted-foreground mb-2 px-3">분석 기록</div>
               <div className="space-y-1">
                 {historyItems.map((item) => (
@@ -283,20 +286,23 @@ export function Sidebar() {
               </div>
             </div>
           )}
-        </ScrollArea>
+        </div>
 
         {/* Footer - Fixed at Bottom */}
-        <div className="mt-auto border-t border-border pt-3">
+        <div className={cn(
+          "mt-auto border-t border-border pt-3",
+          collapsed ? "pb-3" : "pb-3 px-4"
+        )}>
           {user ? (
             collapsed ? (
               // Collapsed: Avatar only, centered
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
-                    className="w-full flex items-center justify-center p-2 rounded-lg hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="flex items-center justify-center mx-auto p-2 rounded-lg hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     aria-label="User menu"
                   >
-                    <Avatar className="h-8 w-8">
+                    <Avatar className="h-9 w-9">
                       <AvatarFallback className="bg-primary/10 text-primary text-xs">
                         {getInitials(user.email)}
                       </AvatarFallback>
@@ -353,7 +359,7 @@ export function Sidebar() {
             )
           ) : (
             !collapsed && (
-              <div className="space-y-2">
+              <div className="space-y-2 px-0">
                 <Button
                   onClick={() => setAuthDialogOpen(true)}
                   variant="default"
