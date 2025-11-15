@@ -104,7 +104,7 @@ export function useAnalysisLogs(userId?: string) {
 
       const { data, error } = await supabase
         .from('analysis_logs')
-        .insert(insertData)
+        .insert([insertData])
         .select('id, channel_name, created_at')
         .single();
 
@@ -130,10 +130,21 @@ export function useAnalysisLogs(userId?: string) {
     if (!userId) return;
 
     try {
+      // Convert to number if it's a string (but not a temp id)
+      const numericId = typeof id === 'string' && !id.startsWith('temp-') 
+        ? parseInt(id, 10) 
+        : id;
+      
+      if (typeof numericId === 'string') {
+        // It's a temp id, just remove from state
+        setLogs((prev) => prev.filter((x) => x.id !== id));
+        return;
+      }
+
       const { error } = await supabase
         .from('analysis_logs')
         .delete()
-        .eq('id', id)
+        .eq('id', numericId)
         .eq('user_id', userId);
 
       if (error) throw error;

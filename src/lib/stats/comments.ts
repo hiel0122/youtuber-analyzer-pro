@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
+import type { Database } from '@/integrations/supabase/types';
 
-type Supa = ReturnType<typeof createClient>;
+type Supa = ReturnType<typeof createClient<Database>>;
 
 export async function fetchCommentStats(supabase: Supa, channelId: string) {
   const { data, error } = await supabase

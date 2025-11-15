@@ -1,5 +1,6 @@
 // src/lib/supabaseClient.ts
 import { createClient } from '@supabase/supabase-js'
+import type { Database } from '@/integrations/supabase/types'
 
 // 로컬 스토리지에서 사용자 설정 읽기 (우선 순위)
 const readLocal = () => {
@@ -14,12 +15,12 @@ const anon = ls?.supabase_anon_plain || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ey
 
 // 개발(HMR)에서 중복 생성을 막기 위한 싱글톤 캐시
 const globalForSupabase = globalThis as unknown as {
-  __yap_supabase?: ReturnType<typeof createClient>
+  __yap_supabase?: ReturnType<typeof createClient<Database>>
 }
 
 export const supabase =
   globalForSupabase.__yap_supabase ??
-  createClient(url, anon, {
+  createClient<Database>(url, anon, {
     auth: {
       autoRefreshToken: true,
       persistSession: true,
