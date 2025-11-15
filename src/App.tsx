@@ -36,10 +36,13 @@ const App = () => (
         />
         <Routes>
           <Route element={<AppLayout />}>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<Navigate to="/analytics/channel" replace />} />
+            <Route path="/analytics/channel" element={<Index />} />
+            <Route path="/analytics/video" element={<Index />} />
+            <Route path="/analytics/compare" element={<Index />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/debug/doctor" element={<DoctorDebug />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/analytics/channel" replace />} />
           </Route>
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/reset-password" element={<ResetPassword />} />

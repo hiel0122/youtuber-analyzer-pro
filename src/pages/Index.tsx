@@ -28,6 +28,7 @@ import Footer from "@/components/Footer";
 import ChannelSummary from "@/components/ChannelSummary";
 import { useChannelBundle } from "@/hooks/useChannelBundle";
 import { useAuth } from "@/hooks/useAuth";
+import { useAnalysisHistory } from "@/hooks/useAnalysisHistory";
 import { AuthGateModal } from "@/components/AuthGateModal";
 import {
   AlertDialog,
@@ -42,6 +43,7 @@ import {
 
 const Index = () => {
   const { user } = useAuth();
+  const { add: addToHistory } = useAnalysisHistory();
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
   const [videoRows, setVideoRows] = useState<VideoRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -266,6 +268,11 @@ const Index = () => {
 
       // ✅ 모든 데이터 로딩이 완료된 후 동기화 상태 종료
       finish?.();
+
+      // Add to analysis history
+      if (url) {
+        addToHistory(url, currentChannelName || url);
+      }
     } catch (error: any) {
       console.error("❌ Sync error:", error);
       toast.error(error.message || "동기화 중 오류가 발생했습니다");
@@ -350,6 +357,18 @@ const Index = () => {
       loadVideos(currentChannelId);
     }
   }, [isSyncing]);
+
+  // Listen for history item clicks
+  useEffect(() => {
+    const handleLoadFromHistory = (event: CustomEvent<{ url: string }>) => {
+      handleAnalyze(event.detail.url);
+    };
+
+    window.addEventListener('loadAnalysisFromHistory', handleLoadFromHistory as EventListener);
+    return () => {
+      window.removeEventListener('loadAnalysisFromHistory', handleLoadFromHistory as EventListener);
+    };
+  }, [user]);
 
   // Basic metrics
   const totalVideos = videos.length;

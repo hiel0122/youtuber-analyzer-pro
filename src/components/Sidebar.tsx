@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
+import { useAnalysisHistory } from '@/hooks/useAnalysisHistory';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { AuthCard } from './AuthCard';
 import { SettingsModal } from '@/components/settings/SettingsModal';
+import { HistoryRenameDialog } from './HistoryRenameDialog';
 import { cn } from '@/lib/utils';
 import { 
-  LayoutDashboard, 
   Video,
   BarChart3,
   GitCompare,
@@ -18,8 +19,8 @@ import {
   Menu,
   MoreVertical,
   User,
-  Edit2,
-  Trash2
+  Trash2,
+  ChevronRight
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -31,69 +32,50 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface NavItem {
   title: string;
   icon: React.ElementType;
-  active?: boolean;
-  onClick?: () => void;
+  path: string;
 }
 
-const navItems: NavItem[] = [
-  { title: '대시보드', icon: LayoutDashboard, active: true },
-  { title: '채널 분석', icon: Video },
-  { title: '영상 분석', icon: BarChart3 },
-  { title: '채널 비교', icon: GitCompare },
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
+const navGroups: NavGroup[] = [
+  {
+    label: 'Youtube Analytics',
+    items: [
+      { title: '채널 분석', icon: Video, path: '/analytics/channel' },
+      { title: '영상 분석', icon: BarChart3, path: '/analytics/video' },
+      { title: '채널 비교', icon: GitCompare, path: '/analytics/compare' },
+    ]
+  }
 ];
-
-interface AnalysisLog {
-  id: string;
-  channel_name: string;
-  created_at: string;
-  user_id: string;
-}
 
 export function Sidebar() {
   const { user } = useAuth();
   const { profile } = useProfile();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { items: historyItems, rename, remove } = useAnalysisHistory();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<boolean>(() =>
     typeof window !== "undefined" && localStorage.getItem("sb-collapsed") === "1"
   );
-  const [logs, setLogs] = useState<AnalysisLog[]>([]);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState('');
+  const [analyticsOpen, setAnalyticsOpen] = useState(true);
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+  const [selectedHistoryItem, setSelectedHistoryItem] = useState<{ id: string; title: string } | null>(null);
 
   useEffect(() => {
     try { 
       localStorage.setItem("sb-collapsed", collapsed ? "1" : "0"); 
     } catch {}
   }, [collapsed]);
-
-  useEffect(() => {
-    if (user) {
-      loadLogs();
-    } else {
-      setLogs([]);
-    }
-  }, [user]);
-
-  const loadLogs = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('analysis_logs')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(6);
-      
-      if (error) throw error;
-      setLogs(data || []);
-    } catch (error) {
-      console.error('Load logs error:', error);
-    }
-  };
 
   const handleSignOut = async () => {
     try {
@@ -104,37 +86,28 @@ export function Sidebar() {
     }
   };
 
-  const handleDeleteLog = async (id: string) => {
-    if (!confirm('정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
-    
-    try {
-      const { error } = await supabase
-        .from('analysis_logs')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
-      toast.success('삭제되었습니다.');
-      loadLogs();
-    } catch (error) {
-      toast.error('삭제에 실패했습니다.');
+  const handleHistoryClick = (item: typeof historyItems[0]) => {
+    // Trigger analysis with the stored URL
+    const event = new CustomEvent('loadAnalysisFromHistory', { detail: { url: item.url } });
+    window.dispatchEvent(event);
+  };
+
+  const handleRename = (item: typeof historyItems[0]) => {
+    setSelectedHistoryItem({ id: item.id, title: item.title });
+    setRenameDialogOpen(true);
+  };
+
+  const handleRenameConfirm = (newTitle: string) => {
+    if (selectedHistoryItem) {
+      rename(selectedHistoryItem.id, newTitle);
+      toast.success('이름이 변경되었습니다.');
     }
   };
 
-  const handleEditLog = async (id: string) => {
-    try {
-      const { error } = await (supabase
-        .from('analysis_logs') as any)
-        .update({ channel_name: editValue })
-        .eq('id', id);
-      
-      if (error) throw error;
-      toast.success('수정되었습니다.');
-      setEditingId(null);
-      setEditValue('');
-      loadLogs();
-    } catch (error) {
-      toast.error('수정에 실패했습니다.');
+  const handleDelete = (id: string) => {
+    if (confirm('정말 삭제하시겠습니까?')) {
+      remove(id);
+      toast.success('삭제되었습니다.');
     }
   };
 
@@ -167,10 +140,8 @@ export function Sidebar() {
     );
   };
 
-  const handleNavClick = (item: NavItem) => {
-    if (!item.active) {
-      toast.info('Coming Soon');
-    }
+  const isActivePath = (path: string) => {
+    return location.pathname === path;
   };
 
   return (
@@ -179,140 +150,173 @@ export function Sidebar() {
         data-sidebar
         className={cn(
           "sidebar hidden lg:flex flex-col h-screen border border-border rounded-2xl p-4 transition-all duration-300 sticky top-0",
-          collapsed ? "w-20" : "w-64"
+          collapsed ? "w-16" : "w-64"
         )}
       >
-        {/* Toggle button */}
-        <div className="flex items-center justify-start mb-4">
+        {/* Header with Toggle & Brand */}
+        <div className="flex items-center gap-2 mb-6">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setCollapsed(!collapsed)}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className="h-8 w-8"
+            className="h-8 w-8 flex-shrink-0"
           >
             <Menu className="h-4 w-4" />
           </Button>
+          {!collapsed && (
+            <span className="text-foreground font-semibold tracking-wide select-none text-base">
+              Content<span className="text-red-500">S</span>tudio
+            </span>
+          )}
         </div>
 
         {/* Main Content Area - Scrollable */}
-        <div className="flex-1 overflow-y-auto min-h-0">
-          {/* Navigation - First Section */}
-          <nav className="space-y-1 mb-6">
-            {navItems.map((item) => (
-              <button
-                key={item.title}
-                onClick={() => handleNavClick(item)}
-                className={cn(
-                  "nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-colors text-sm",
-                  item.active && "font-medium"
-                )}
-                aria-current={item.active ? "page" : undefined}
-              >
-                <item.icon className="h-5 w-5 flex-shrink-0" />
-                {!collapsed && <span>{item.title}</span>}
-              </button>
-            ))}
-          </nav>
-
-          {/* Analysis Logs - Second Section */}
-          {!collapsed && user && (
-            <div className="mb-4">
-              <div className="text-xs font-medium text-muted-foreground mb-2 px-3">분석 기록</div>
-              <ScrollArea className="h-[200px]">
-                <div className="space-y-1">
-                  {logs.map((log) => (
-                    <div
-                      key={log.id}
-                      className="group flex items-center justify-between px-3 py-2 rounded-lg hover:bg-accent transition-colors"
-                    >
-                      {editingId === log.id ? (
-                        <div className="flex-1 flex items-center gap-2">
-                          <input
-                            type="text"
-                            value={editValue}
-                            onChange={(e) => setEditValue(e.target.value)}
-                            className="flex-1 bg-background text-sm px-2 py-1 rounded border border-input focus:outline-none focus:ring-1 focus:ring-ring"
-                            autoFocus
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') handleEditLog(log.id);
-                              if (e.key === 'Escape') {
-                                setEditingId(null);
-                                setEditValue('');
-                              }
-                            }}
-                          />
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleEditLog(log.id)}
-                            className="h-6 px-2"
-                          >
-                            저장
-                          </Button>
-                        </div>
-                      ) : (
-                        <>
-                          <span className="text-sm text-foreground truncate flex-1">
-                            {log.channel_name}
-                          </span>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setEditingId(log.id);
-                                  setEditValue(log.channel_name);
-                                }}
-                              >
-                                <Edit2 className="mr-2 h-4 w-4" />
-                                편집
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleDeleteLog(log.id)}
-                                className="text-destructive"
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                삭제
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </>
+        <ScrollArea className="flex-1 -mx-2 px-2">
+          {/* Youtube Analytics Group */}
+          {navGroups.map((group) => (
+            <Collapsible
+              key={group.label}
+              open={analyticsOpen}
+              onOpenChange={setAnalyticsOpen}
+              className="mb-4"
+            >
+              <CollapsibleTrigger asChild>
+                <button
+                  className={cn(
+                    "w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-accent transition-colors text-sm font-medium text-muted-foreground",
+                    collapsed && "justify-center"
+                  )}
+                >
+                  {!collapsed && <span>{group.label}</span>}
+                  {!collapsed && (
+                    <ChevronRight
+                      className={cn(
+                        "h-4 w-4 transition-transform",
+                        analyticsOpen && "rotate-90"
                       )}
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
+                    />
+                  )}
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-1 mt-1">
+                {group.items.map((item) => {
+                  const isActive = isActivePath(item.path);
+                  return (
+                    <button
+                      key={item.title}
+                      onClick={() => {
+                        if (item.path === '/analytics/video' || item.path === '/analytics/compare') {
+                          toast.info('Coming Soon');
+                        } else {
+                          navigate(item.path);
+                        }
+                      }}
+                      className={cn(
+                        "nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm",
+                        isActive && "bg-accent font-medium",
+                        collapsed && "justify-center"
+                      )}
+                      aria-current={isActive ? "page" : undefined}
+                    >
+                      <item.icon className="h-5 w-5 flex-shrink-0" />
+                      {!collapsed && <span>{item.title}</span>}
+                    </button>
+                  );
+                })}
+              </CollapsibleContent>
+            </Collapsible>
+          ))}
+
+          {/* Analysis History - Second Section */}
+          {!collapsed && user && historyItems.length > 0 && (
+            <div className="mt-6">
+              <div className="text-xs font-medium text-muted-foreground mb-2 px-3">분석 기록</div>
+              <div className="space-y-1">
+                {historyItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="group flex items-center justify-between px-3 py-2 rounded-lg hover:bg-accent transition-colors"
+                  >
+                    <button
+                      onClick={() => handleHistoryClick(item)}
+                      className="truncate text-left text-sm flex-1 min-w-0"
+                    >
+                      {item.title}
+                    </button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-40">
+                        <DropdownMenuItem onClick={() => handleRename(item)}>
+                          이름 변경
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => handleDelete(item.id)}
+                          className="text-destructive"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          삭제
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
-        </div>
+        </ScrollArea>
 
         {/* Footer - Fixed at Bottom */}
         <div className="mt-auto border-t border-border pt-3">
           {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button 
-                  className={cn(
-                    "w-full flex items-center gap-3 p-2 rounded-lg transition-colors",
-                    "hover:bg-accent focus-visible:outline-none focus-visible:ring-2",
-                    "focus-visible:ring-ring"
-                  )}
-                >
-                  <Avatar className="h-10 w-10 flex-shrink-0">
-                    <AvatarFallback className="bg-primary/10 text-primary">
-                      {getInitials(user.email)}
-                    </AvatarFallback>
-                  </Avatar>
-                  {!collapsed && (
+            collapsed ? (
+              // Collapsed: Avatar only, centered
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="w-full flex items-center justify-center p-2 rounded-lg hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    aria-label="User menu"
+                  >
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                        {getInitials(user.email)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="right" align="end" className="w-56">
+                  <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
+                    <User className="mr-2 h-4 w-4" />
+                    설정
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    로그아웃
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              // Expanded: Full profile info
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button 
+                    className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <Avatar className="h-10 w-10 flex-shrink-0">
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {getInitials(user.email)}
+                      </AvatarFallback>
+                    </Avatar>
                     <div className="flex-1 min-w-0 text-left">
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-medium truncate">
@@ -322,40 +326,42 @@ export function Sidebar() {
                       </div>
                       <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                     </div>
-                  )}
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent side="top" align="start" className="w-56">
-                <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
-                  <User className="mr-2 h-4 w-4" />
-                  설정
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  로그아웃
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="top" align="start" className="w-56">
+                  <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
+                    <User className="mr-2 h-4 w-4" />
+                    설정
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    로그아웃
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )
           ) : (
-            <div className="space-y-2">
-              <Button
-                onClick={() => setAuthDialogOpen(true)}
-                variant="default"
-                size="sm"
-                className="w-full"
-              >
-                로그인
-              </Button>
-              <Button
-                onClick={() => setAuthDialogOpen(true)}
-                variant="outline"
-                size="sm"
-                className="w-full"
-              >
-                회원가입
-              </Button>
-            </div>
+            !collapsed && (
+              <div className="space-y-2">
+                <Button
+                  onClick={() => setAuthDialogOpen(true)}
+                  variant="default"
+                  size="sm"
+                  className="w-full"
+                >
+                  로그인
+                </Button>
+                <Button
+                  onClick={() => setAuthDialogOpen(true)}
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                >
+                  회원가입
+                </Button>
+              </div>
+            )
           )}
         </div>
       </aside>
@@ -367,6 +373,13 @@ export function Sidebar() {
       </Dialog>
 
       <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
+
+      <HistoryRenameDialog
+        open={renameDialogOpen}
+        onOpenChange={setRenameDialogOpen}
+        currentTitle={selectedHistoryItem?.title || ''}
+        onConfirm={handleRenameConfirm}
+      />
     </>
   );
 }
