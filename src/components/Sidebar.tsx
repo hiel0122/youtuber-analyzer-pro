@@ -149,7 +149,7 @@ export function Sidebar() {
       <aside 
         data-sidebar
         className={cn(
-          "sidebar hidden lg:flex flex-col h-screen border border-border rounded-2xl p-4 transition-all duration-300 sticky top-0",
+          "sidebar hidden lg:flex flex-col h-screen border border-border rounded-2xl p-4 transition-all duration-300 sticky top-0 overflow-y-auto overflow-x-visible",
           collapsed ? "w-16" : "w-64"
         )}
       >
@@ -166,7 +166,7 @@ export function Sidebar() {
           </Button>
           {!collapsed && (
             <span className="text-foreground font-semibold tracking-wide select-none text-base">
-              Content<span className="text-red-500">S</span>tudio
+              Content<span className="inline-block align-baseline leading-none text-[1.5em] text-red-500">S</span>tudio
             </span>
           )}
         </div>
@@ -213,13 +213,20 @@ export function Sidebar() {
                         }
                       }}
                       className={cn(
-                        "nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm",
+                        "nav-item w-full rounded-lg transition-colors text-sm",
                         isActive && "bg-accent font-medium",
-                        collapsed && "justify-center"
+                        collapsed 
+                          ? "mx-auto my-1 flex h-12 w-12 items-center justify-center" 
+                          : "flex items-center gap-3 px-3 py-2"
                       )}
                       aria-current={isActive ? "page" : undefined}
                     >
-                      <item.icon className="h-5 w-5 flex-shrink-0" />
+                      <span className={cn(
+                        "grid place-items-center shrink-0 overflow-visible",
+                        collapsed ? "h-6 w-6" : "h-5 w-5"
+                      )}>
+                        <item.icon className="h-full w-full" />
+                      </span>
                       {!collapsed && <span>{item.title}</span>}
                     </button>
                   );
@@ -236,7 +243,10 @@ export function Sidebar() {
                 {historyItems.map((item) => (
                   <div
                     key={item.id}
-                    className="group flex items-center justify-between px-3 py-2 rounded-lg hover:bg-accent transition-colors"
+                    className={cn(
+                      "group rounded-lg hover:bg-accent transition-colors",
+                      collapsed ? "hidden" : "flex items-center justify-between px-3 py-2"
+                    )}
                   >
                     <button
                       onClick={() => handleHistoryClick(item)}
