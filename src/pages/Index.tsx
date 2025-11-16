@@ -28,7 +28,7 @@ import Footer from "@/components/Footer";
 import ChannelSummary from "@/components/ChannelSummary";
 import { useChannelBundle } from "@/hooks/useChannelBundle";
 import { useAuth } from "@/hooks/useAuth";
-import { useAnalysisLogs } from "@/hooks/useAnalysisLogs";
+import { useAnalysisLogs, type AnalysisLog } from "@/hooks/useAnalysisLogs";
 import { AuthGateModal } from "@/components/AuthGateModal";
 import {
   AlertDialog,
@@ -137,7 +137,7 @@ const Index = () => {
     }
   };
 
-  const performSync = async (url: string, fullSync: boolean, knownChannelId?: string, optimisticId?: string) => {
+  const performSync = async (url: string, fullSync: boolean, knownChannelId?: string, optimisticId?: string): Promise<{ channelId: string; canonicalUrl?: string }> => {
     let finish: (() => void) | undefined;
 
     try {
@@ -266,18 +266,25 @@ const Index = () => {
         toast.success(`분석 완료: 새 영상이 없습니다`);
       }
 
+      // ✅ 낙관적 추가한 항목을 확정 저장
+      if (optimisticId) {
+        await commitInsert(
+          channelData?.channel_name || url, 
+          optimisticId,
+          { channel_id: channelId, channel_url: url }
+        );
+      }
+
       // ✅ 모든 데이터 로딩이 완료된 후 동기화 상태 종료
       finish?.();
 
-      // Commit to database (analysis history)
-      if (optimisticId && currentChannelName) {
-        await commitInsert(currentChannelName, optimisticId);
-      }
+      return { channelId, canonicalUrl: url };
     } catch (error: any) {
       console.error("❌ Sync error:", error);
       toast.error(error.message || "동기화 중 오류가 발생했습니다");
       // 에러 시에도 finish 호출
       finish?.();
+      throw error;
     }
   };
 
@@ -327,6 +334,7 @@ const Index = () => {
 
       // 최초 분석 - 바로 실행
       console.log("🆕 First time analysis - full sync");
+      const optimisticId = addOptimistic(url.trim(), { channel_id: channelId, channel_url: url });
       await performSync(url, true, channelId, optimisticId);
     } catch (error: any) {
       console.error("❌ Analysis error:", error);
@@ -345,7 +353,7 @@ const Index = () => {
     }
 
     // Optimistic update for resync too
-    const optimisticId = addOptimistic(pendingUrl.trim());
+    const optimisticId = addOptimistic(pendingUrl.trim(), { channel_url: pendingUrl });
 
     // quickCheck로 channelId 먼저 가져오기
     try {
@@ -364,10 +372,69 @@ const Index = () => {
     }
   }, [isSyncing]);
 
+  // Handle history item clicks - cache-first loading
+  const handleHistoryClick = async (log: AnalysisLog) => {
+    if (!user) return;
+
+    try {
+      const supabase = getSupabaseClient();
+      
+      // Try to load from cache first
+      let query = supabase
+        .from('channel_snapshots')
+        .select('snapshot, channel_title, channel_url, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (log.channel_id) {
+        query = query.eq('channel_id', log.channel_id);
+      } else if (log.channel_url) {
+        query = query.eq('channel_url', log.channel_url);
+      } else {
+        query = query.eq('channel_url', log.channel_name);
+      }
+
+      const { data, error } = await query.maybeSingle();
+
+      if (data?.snapshot) {
+        // Load from cache
+        const snapshot = data.snapshot as any;
+        
+        // Restore state from snapshot
+        if (snapshot.channelId) setCurrentChannelId(snapshot.channelId);
+        if (snapshot.channelName) setCurrentChannelName(snapshot.channelName);
+        if (snapshot.channelStats) setChannelStats(snapshot.channelStats);
+        if (snapshot.uploadFrequency) setUploadFrequency(snapshot.uploadFrequency);
+        if (snapshot.subscriptionRates) setSubscriptionRates(snapshot.subscriptionRates);
+        if (snapshot.commentStats) setCommentStats(snapshot.commentStats);
+        
+        // Load videos from DB for this channel
+        if (snapshot.channelId) {
+          await loadVideos(snapshot.channelId);
+        }
+        
+        toast.success('최신 캐시를 불러왔습니다.');
+      } else {
+        // No cache found, trigger re-analysis
+        toast.info('캐시가 없어 재분석을 시작합니다.');
+        const url = log.channel_url || log.channel_name;
+        const optimisticId = addOptimistic(url, { 
+          channel_id: log.channel_id || undefined, 
+          channel_url: log.channel_url || undefined 
+        });
+        await performSync(url, true, log.channel_id || undefined, optimisticId);
+      }
+    } catch (error: any) {
+      console.error("❌ History load error:", error);
+      toast.error("기록 불러오기 실패");
+    }
+  };
+
   // Listen for history item clicks
   useEffect(() => {
-    const handleLoadFromHistory = (event: CustomEvent<{ url: string }>) => {
-      handleAnalyze(event.detail.url);
+    const handleLoadFromHistory = async (event: CustomEvent<{ log: AnalysisLog }>) => {
+      await handleHistoryClick(event.detail.log);
     };
 
     window.addEventListener('loadAnalysisFromHistory', handleLoadFromHistory as EventListener);

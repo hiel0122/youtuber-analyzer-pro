@@ -16,19 +16,25 @@ export type Database = {
     Tables: {
       analysis_logs: {
         Row: {
+          channel_id: string | null
           channel_name: string
+          channel_url: string | null
           created_at: string
           id: number
           user_id: string
         }
         Insert: {
+          channel_id?: string | null
           channel_name: string
+          channel_url?: string | null
           created_at?: string
           id?: number
           user_id?: string
         }
         Update: {
+          channel_id?: string | null
           channel_name?: string
+          channel_url?: string | null
           created_at?: string
           id?: number
           user_id?: string
@@ -159,25 +165,40 @@ export type Database = {
       channel_snapshots: {
         Row: {
           channel_id: string
+          channel_title: string | null
+          channel_url: string | null
           created_at: string
+          id: number
+          snapshot: Json | null
           snapshot_date: string
           subscriber_count: number | null
+          user_id: string | null
           video_count: number
           view_count: number
         }
         Insert: {
           channel_id: string
+          channel_title?: string | null
+          channel_url?: string | null
           created_at?: string
+          id?: number
+          snapshot?: Json | null
           snapshot_date?: string
           subscriber_count?: number | null
-          video_count: number
-          view_count: number
+          user_id?: string | null
+          video_count?: number
+          view_count?: number
         }
         Update: {
           channel_id?: string
+          channel_title?: string | null
+          channel_url?: string | null
           created_at?: string
+          id?: number
+          snapshot?: Json | null
           snapshot_date?: string
           subscriber_count?: number | null
+          user_id?: string | null
           video_count?: number
           view_count?: number
         }
@@ -843,6 +864,18 @@ export type Database = {
         Row: {
           channel_id: string | null
           video_id: string | null
+        }
+        Relationships: []
+      }
+      v_latest_channel_snapshot: {
+        Row: {
+          channel_id: string | null
+          channel_title: string | null
+          channel_url: string | null
+          created_at: string | null
+          id: number | null
+          snapshot: Json | null
+          user_id: string | null
         }
         Relationships: []
       }
