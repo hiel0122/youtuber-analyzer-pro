@@ -7,6 +7,8 @@ export interface AnalysisLog {
   id: string | number;
   channel_name: string;
   created_at: string;
+  channel_id?: string | null;
+  channel_url?: string | null;
   _status?: 'running';
 }
 
@@ -26,7 +28,7 @@ export function useAnalysisLogs(userId?: string) {
       try {
         const { data, error } = await supabase
           .from('analysis_logs')
-          .select('id, channel_name, created_at')
+          .select('id, channel_name, created_at, channel_id, channel_url')
           .eq('user_id', userId)
           .order('created_at', { ascending: false })
           .limit(10);
@@ -80,12 +82,14 @@ export function useAnalysisLogs(userId?: string) {
   }, [userId]);
 
   // Optimistic add
-  function addOptimistic(channelName: string): string {
+  function addOptimistic(channelName: string, meta?: { channel_id?: string; channel_url?: string }): string {
     const tempId = `temp-${Date.now()}`;
     const temp: AnalysisLog = {
       id: tempId,
       channel_name: channelName,
       created_at: new Date().toISOString(),
+      channel_id: meta?.channel_id ?? null,
+      channel_url: meta?.channel_url ?? null,
       _status: 'running',
     };
     setLogs((prev) => [temp, ...prev].slice(0, 10));
@@ -93,18 +97,20 @@ export function useAnalysisLogs(userId?: string) {
   }
 
   // Commit insert to DB
-  async function commitInsert(channelName: string, optimisticId: string) {
+  async function commitInsert(channelName: string, optimisticId: string, meta?: { channel_id?: string; channel_url?: string }) {
     if (!userId) return;
 
     try {
       const insertData: TablesInsert<'analysis_logs'> = {
         channel_name: channelName,
+        channel_id: meta?.channel_id ?? null,
+        channel_url: meta?.channel_url ?? null,
       };
 
       const { data, error } = await supabase
         .from('analysis_logs')
         .insert([insertData])
-        .select('id, channel_name, created_at')
+        .select('id, channel_name, created_at, channel_id, channel_url')
         .single();
 
       if (error) throw error;
