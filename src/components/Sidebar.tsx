@@ -2,14 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
-import { useAnalysisHistory } from '@/hooks/useAnalysisHistory';
+import { useAnalysisLogs } from '@/hooks/useAnalysisLogs';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { AuthCard } from './AuthCard';
 import { SettingsModal } from '@/components/settings/SettingsModal';
-import { HistoryRenameDialog } from './HistoryRenameDialog';
 import { cn } from '@/lib/utils';
 import { 
   Video,
@@ -61,15 +60,13 @@ export function Sidebar() {
   const { profile } = useProfile();
   const navigate = useNavigate();
   const location = useLocation();
-  const { items: historyItems, rename, remove } = useAnalysisHistory();
+  const { logs: historyItems, removeLog } = useAnalysisLogs(user?.id);
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<boolean>(() =>
     typeof window !== "undefined" && localStorage.getItem("sb-collapsed") === "1"
   );
   const [analyticsOpen, setAnalyticsOpen] = useState(true);
-  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
-  const [selectedHistoryItem, setSelectedHistoryItem] = useState<{ id: string; title: string } | null>(null);
 
   useEffect(() => {
     try { 
@@ -87,27 +84,14 @@ export function Sidebar() {
   };
 
   const handleHistoryClick = (item: typeof historyItems[0]) => {
-    // Trigger analysis with the stored URL
-    const event = new CustomEvent('loadAnalysisFromHistory', { detail: { url: item.url } });
+    // Trigger analysis with the stored channel name
+    const event = new CustomEvent('loadAnalysisFromHistory', { detail: { url: item.channel_name } });
     window.dispatchEvent(event);
   };
 
-  const handleRename = (item: typeof historyItems[0]) => {
-    setSelectedHistoryItem({ id: item.id, title: item.title });
-    setRenameDialogOpen(true);
-  };
-
-  const handleRenameConfirm = (newTitle: string) => {
-    if (selectedHistoryItem) {
-      rename(selectedHistoryItem.id, newTitle);
-      toast.success('이름이 변경되었습니다.');
-    }
-  };
-
-  const handleDelete = (id: string) => {
+  const handleDelete = (id: string | number) => {
     if (confirm('정말 삭제하시겠습니까?')) {
-      remove(id);
-      toast.success('삭제되었습니다.');
+      removeLog(id);
     }
   };
 
@@ -239,50 +223,47 @@ export function Sidebar() {
           ))}
 
           {/* Analysis History - Second Section */}
-          {!collapsed && user && historyItems.length > 0 && (
+          {!collapsed && user && (
             <div className="mt-6 px-2">
               <div className="text-xs font-medium text-muted-foreground mb-2 px-3">분석 기록</div>
               <div className="space-y-1">
-                {historyItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className={cn(
-                      "group rounded-lg hover:bg-accent transition-colors",
-                      collapsed ? "hidden" : "flex items-center justify-between px-3 py-2"
-                    )}
-                  >
-                    <button
-                      onClick={() => handleHistoryClick(item)}
-                      className="truncate text-left text-sm flex-1 min-w-0"
+                {historyItems.length === 0 ? (
+                  <div className="px-3 py-2 text-xs text-muted-foreground">최근 분석 없음</div>
+                ) : (
+                  historyItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="group rounded-lg hover:bg-accent transition-colors flex items-center justify-between px-3 py-2"
                     >
-                      {item.title}
-                    </button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
-                        >
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-40">
-                        <DropdownMenuItem onClick={() => handleRename(item)}>
-                          이름 변경
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => handleDelete(item.id)}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          삭제
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                ))}
+                      <button
+                        onClick={() => handleHistoryClick(item)}
+                        className="truncate text-left text-sm flex-1 min-w-0"
+                      >
+                        {item.channel_name}
+                      </button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40">
+                          <DropdownMenuItem
+                            onClick={() => handleDelete(item.id)}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            삭제
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}
@@ -389,13 +370,6 @@ export function Sidebar() {
       </Dialog>
 
       <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
-
-      <HistoryRenameDialog
-        open={renameDialogOpen}
-        onOpenChange={setRenameDialogOpen}
-        currentTitle={selectedHistoryItem?.title || ''}
-        onConfirm={handleRenameConfirm}
-      />
     </>
   );
 }
