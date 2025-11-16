@@ -25,7 +25,7 @@ export type Database = {
           channel_name: string
           created_at?: string
           id?: number
-          user_id: string
+          user_id?: string
         }
         Update: {
           channel_name?: string
