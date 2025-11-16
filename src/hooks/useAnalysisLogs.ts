@@ -98,7 +98,6 @@ export function useAnalysisLogs(userId?: string) {
 
     try {
       const insertData: TablesInsert<'analysis_logs'> = {
-        user_id: userId,
         channel_name: channelName,
       };
 
