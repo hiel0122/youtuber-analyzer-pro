@@ -84,8 +84,8 @@ export function Sidebar() {
   };
 
   const handleHistoryClick = (item: typeof historyItems[0]) => {
-    // Trigger analysis with the stored channel name
-    const event = new CustomEvent('loadAnalysisFromHistory', { detail: { url: item.channel_name } });
+    // Pass the full log object to enable cache-first loading
+    const event = new CustomEvent('loadAnalysisFromHistory', { detail: { log: item } });
     window.dispatchEvent(event);
   };
 
