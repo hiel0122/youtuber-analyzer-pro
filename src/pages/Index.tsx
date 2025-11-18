@@ -327,9 +327,6 @@ const Index = () => {
       return;
     }
 
-    // Optimistic update: add to sidebar immediately
-    const optimisticId = addOptimistic(url.trim());
-
     try {
       // API 설정 검증 (필수 3종만)
       const supabase = getSupabaseClient();
