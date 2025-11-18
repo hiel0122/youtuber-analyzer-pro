@@ -376,13 +376,19 @@ const Index = () => {
   const handleHistoryClick = async (log: AnalysisLog) => {
     if (!user) return;
 
+    console.log('[HISTORY] Loading from log:', log);
+
     try {
       const supabase = getSupabaseClient();
+      
+      // Set URL input field first
+      const displayUrl = log.channel_url || 
+                        (log.channel_id ? `https://www.youtube.com/channel/${log.channel_id}` : log.channel_name);
       
       // Try to load from cache first
       let query = supabase
         .from('channel_snapshots')
-        .select('snapshot, channel_title, channel_url, created_at')
+        .select('snapshot, channel_title, channel_url, channel_id, created_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(1);
@@ -397,9 +403,15 @@ const Index = () => {
 
       const { data, error } = await query.maybeSingle();
 
+      if (error) {
+        console.error('[HISTORY] Query error:', error);
+      }
+
       if (data?.snapshot) {
         // Load from cache
         const snapshot = data.snapshot as any;
+        
+        console.log('[HISTORY] Cache found, restoring snapshot');
         
         // Restore state from snapshot
         if (snapshot.channelId) setCurrentChannelId(snapshot.channelId);
@@ -414,9 +426,13 @@ const Index = () => {
           await loadVideos(snapshot.channelId);
         }
         
+        setIsLoaded(true);
+        setHasData(true);
+        
         toast.success('최신 캐시를 불러왔습니다.');
       } else {
         // No cache found, trigger re-analysis
+        console.log('[HISTORY] No cache found, starting analysis');
         toast.info('캐시가 없어 재분석을 시작합니다.');
         const url = log.channel_url || log.channel_name;
         const optimisticId = addOptimistic(url, { 
@@ -427,7 +443,7 @@ const Index = () => {
       }
     } catch (error: any) {
       console.error("❌ History load error:", error);
-      toast.error("기록 불러오기 실패");
+      toast.error("캐시를 불러오지 못했습니다. 분석을 다시 실행해 주세요.");
     }
   };
 

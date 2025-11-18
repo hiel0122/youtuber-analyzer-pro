@@ -58,6 +58,7 @@ export function useAnalysisLogs(userId?: string) {
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
+          console.log('[RT] analysis_logs INSERT event:', payload.new);
           setLogs((prev) => {
             const newLog = payload.new as AnalysisLog;
             // Remove temp item if exists with same channel_name
@@ -74,7 +75,9 @@ export function useAnalysisLogs(userId?: string) {
           });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('[RT] analysis_logs subscription status:', status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -100,6 +103,8 @@ export function useAnalysisLogs(userId?: string) {
   async function commitInsert(channelName: string, optimisticId: string, meta?: { channel_id?: string; channel_url?: string }) {
     if (!userId) return;
 
+    console.log('[SAVE] Inserting analysis_log:', { channel_name: channelName, ...meta });
+
     try {
       const insertData: TablesInsert<'analysis_logs'> = {
         channel_name: channelName,
@@ -115,6 +120,8 @@ export function useAnalysisLogs(userId?: string) {
 
       if (error) throw error;
 
+      console.log('[SAVE] Analysis log inserted:', data);
+
       // Replace temp with real record
       setLogs((prev) => {
         const replaced = prev.map((x) =>
@@ -123,7 +130,7 @@ export function useAnalysisLogs(userId?: string) {
         return replaced.slice(0, 10);
       });
     } catch (error) {
-      console.error('Failed to insert analysis log:', error);
+      console.error('[SAVE] Failed to insert analysis log:', error);
       // Rollback optimistic item
       setLogs((prev) => prev.filter((x) => String(x.id) !== optimisticId));
       toast.error('분석 기록 저장에 실패했습니다');
