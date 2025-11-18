@@ -17,6 +17,7 @@ export function useAnalysisLogs(userId?: string) {
   const [loading, setLoading] = useState(true);
 
   // Initial load
+  /*
   useEffect(() => {
     if (!userId) {
       setLogs([]);
@@ -42,7 +43,8 @@ export function useAnalysisLogs(userId?: string) {
       }
     })();
   }, [userId]);
-
+*/
+  
   // Realtime subscription
   useEffect(() => {
     if (!userId) return;
