@@ -209,13 +209,13 @@ const Index = () => {
           let commentResult;
           if ((existingVideos?.length ?? 0) === 0) {
             // First scan: full
-            console.log("💬 First comment scan - full mode");
-            commentResult = await fullScanComments(supabase, apiKey, channelId);
+            console.log("💬 Full comment scan");
+            commentResult = await fullScanComments(supabase, apiKey, channelId, 200);
             await logRun(supabase, user?.id, channelId, 'full', {
               added: commentResult.added,
-              touched: commentResult.added,
-              commentsDelta: commentResult.total,
-              totalAfter: commentResult.total
+              touched: commentResult.touched,
+              commentsDelta: commentResult.commentsDelta,
+              totalAfter: commentResult.totalAfter
             });
           } else {
             // Subsequent scans: delta + backfill
@@ -273,6 +273,38 @@ const Index = () => {
           optimisticId,
           { channel_id: channelId, channel_url: url }
         );
+      }
+
+      // ✅ 스냅샷 저장 (캐시)
+      if (user?.id) {
+        try {
+          const snapshot = {
+            channelId,
+            channelName: channelData?.channel_name || currentChannelName,
+            channelStats: {
+              subscriberCount: channelData?.subscriber_count || 0,
+              totalViews: channelData?.total_views || 0,
+              hiddenSubscriber: false,
+            },
+            uploadFrequency,
+            subscriptionRates,
+            commentStats,
+          };
+
+          await supabase.from('channel_snapshots').upsert({
+            user_id: user.id,
+            channel_id: channelId,
+            channel_url: url,
+            channel_title: channelData?.channel_name || currentChannelName,
+            snapshot,
+          }, {
+            onConflict: 'user_id,channel_id',
+          });
+
+          console.log('✅ Snapshot saved for channel:', channelId);
+        } catch (snapshotError) {
+          console.warn('⚠️ Failed to save snapshot:', snapshotError);
+        }
       }
 
       // ✅ 모든 데이터 로딩이 완료된 후 동기화 상태 종료
@@ -338,45 +370,40 @@ const Index = () => {
       await performSync(url, true, channelId, optimisticId);
     } catch (error: any) {
       console.error("❌ Analysis error:", error);
-      toast.error(error.message || "채널 분석 중 오류가 발생했습니다");
+      toast.error(error.message || "분석 중 오류가 발생했습니다");
     }
   };
 
-  const handleResyncConfirm = async (incrementalOnly: boolean) => {
+  const handleResyncConfirm = async (deltaOnly: boolean) => {
     setShowResyncDialog(false);
-    const fullSync = !incrementalOnly;
+    if (!pendingUrl) return;
 
-    if (fullSync) {
-      toast.info("전체 재분석을 시작합니다...");
-    } else {
-      toast.info("새로운 영상만 확인합니다...");
-    }
-
-    // Optimistic update for resync too
-    const optimisticId = addOptimistic(pendingUrl.trim(), { channel_url: pendingUrl });
-
-    // quickCheck로 channelId 먼저 가져오기
     try {
+      const supabase = getSupabaseClient();
       const { channelId } = await syncQuickCheck(pendingUrl);
-      await performSync(pendingUrl, fullSync, channelId, optimisticId);
+      
+      const optimisticId = addOptimistic(pendingUrl.trim(), { channel_id: channelId, channel_url: pendingUrl });
+      
+      if (deltaOnly) {
+        console.log("🔄 Delta sync (new videos only)");
+        await performSync(pendingUrl, false, channelId, optimisticId);
+      } else {
+        console.log("🔁 Full resync (all videos)");
+        await performSync(pendingUrl, true, channelId, optimisticId);
+      }
     } catch (error: any) {
-      console.error("Resync error:", error);
+      console.error("❌ Resync error:", error);
       toast.error(error.message || "재분석 중 오류가 발생했습니다");
+    } finally {
+      setPendingUrl("");
     }
-    setPendingUrl("");
   };
 
-  useEffect(() => {
-    if (!isSyncing && currentChannelId) {
-      loadVideos(currentChannelId);
-    }
-  }, [isSyncing]);
-
-  // Handle history item clicks - cache-first loading
   const handleHistoryClick = async (log: AnalysisLog) => {
-    if (!user) return;
-
-    console.log('[HISTORY] Loading from log:', log);
+    if (!user) {
+      toast.error('로그인이 필요합니다.');
+      return;
+    }
 
     try {
       const supabase = getSupabaseClient();
