@@ -167,40 +167,31 @@ export type Database = {
           channel_id: string
           channel_title: string | null
           channel_url: string | null
-          created_at: string
+          created_at: string | null
           id: number
-          snapshot: Json | null
-          snapshot_date: string
-          subscriber_count: number | null
-          user_id: string | null
-          video_count: number
-          view_count: number
+          snapshot: Json
+          updated_at: string | null
+          user_id: string
         }
         Insert: {
           channel_id: string
           channel_title?: string | null
           channel_url?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: number
-          snapshot?: Json | null
-          snapshot_date?: string
-          subscriber_count?: number | null
-          user_id?: string | null
-          video_count?: number
-          view_count?: number
+          snapshot: Json
+          updated_at?: string | null
+          user_id: string
         }
         Update: {
           channel_id?: string
           channel_title?: string | null
           channel_url?: string | null
-          created_at?: string
+          created_at?: string | null
           id?: number
-          snapshot?: Json | null
-          snapshot_date?: string
-          subscriber_count?: number | null
-          user_id?: string | null
-          video_count?: number
-          view_count?: number
+          snapshot?: Json
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -867,18 +858,6 @@ export type Database = {
         }
         Relationships: []
       }
-      v_latest_channel_snapshot: {
-        Row: {
-          channel_id: string | null
-          channel_title: string | null
-          channel_url: string | null
-          created_at: string | null
-          id: number | null
-          snapshot: Json | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
       v_latest_video_snapshot: {
         Row: {
           comment_count: number | null
@@ -897,16 +876,6 @@ export type Database = {
             referencedColumns: ["video_id"]
           },
         ]
-      }
-      v_subscription_deltas: {
-        Row: {
-          channel_id: string | null
-          day_delta: number | null
-          month_delta: number | null
-          week_delta: number | null
-          year_delta: number | null
-        }
-        Relationships: []
       }
       v_video_daily_delta: {
         Row: {
