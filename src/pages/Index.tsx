@@ -210,7 +210,7 @@ const Index = () => {
           if ((existingVideos?.length ?? 0) === 0) {
             // First scan: full
             console.log("💬 Full comment scan");
-            commentResult = await fullScanComments(supabase, apiKey, channelId, 200);
+            commentResult = await fullScanComments(supabase, apiKey, channelId);
             await logRun(supabase, user?.id, channelId, 'full', {
               added: commentResult.added,
               touched: commentResult.touched,

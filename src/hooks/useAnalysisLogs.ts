@@ -24,6 +24,8 @@ export function useAnalysisLogs(userId?: string) {
       return;
     }
 
+    console.log('[LOGS] 🔄 Initial load triggered, userId:', userId);
+
     (async () => {
       try {
         const { data, error } = await supabase
@@ -34,9 +36,10 @@ export function useAnalysisLogs(userId?: string) {
           .limit(10);
 
         if (error) throw error;
+        console.log('[LOGS] ✅ Logs fetched:', data?.length || 0, 'items');
         setLogs((data ?? []) as AnalysisLog[]);
       } catch (error) {
-        console.error('Failed to load analysis logs:', error);
+        console.error('[LOGS] ❌ Failed to load analysis logs:', error);
       } finally {
         setLoading(false);
       }
@@ -96,58 +99,76 @@ export function useAnalysisLogs(userId?: string) {
       channel_url: meta?.channel_url ?? null,
       _status: 'running',
     };
-    setLogs((prev) => [temp, ...prev].slice(0, 10));
+    console.log('[LOGS] 🆕 Adding optimistic log:', { tempId, channelName, meta });
+    setLogs((prev) => {
+      const result = [temp, ...prev].slice(0, 10);
+      console.log('[LOGS] 📊 After optimistic add:', result.map(l => ({ id: l.id, name: l.channel_name })));
+      return result;
+    });
     return tempId;
   }
 
   // Commit insert to DB
   async function commitInsert(channelName: string, optimisticId: string, meta?: { channel_id?: string; channel_url?: string }) {
-  if (!userId) return;
+    if (!userId) {
+      console.log('[SAVE] ⚠️ No userId, skipping insert');
+      return;
+    }
 
-  console.log('[SAVE] Inserting analysis_log:', { channel_name: channelName, ...meta });
-
-  try {
-    const insertData: TablesInsert<'analysis_logs'> = {
-      channel_name: channelName,
-      channel_id: meta?.channel_id ?? null,
-      channel_url: meta?.channel_url ?? null,
-    };
-
-    const { data, error } = await supabase
-      .from('analysis_logs')
-      .insert([insertData])
-      .select('id, channel_name, created_at, channel_id, channel_url')
-      .single();
-
-    if (error) throw error;
-
-    console.log('[SAVE] ✅ Analysis log inserted:', data);
-
-    // ✅ Realtime 대신 직접 state 업데이트
-    setLogs((prev) => {
-      // 1. temp 항목 제거
-      const withoutTemp = prev.filter((x) => String(x.id) !== optimisticId);
-      
-      // 2. 새 데이터 추가
-      const newLogs = [data as AnalysisLog, ...withoutTemp];
-      
-      // 3. 중복 제거 (혹시 모를 중복 방지)
-      const dedup = new Map(newLogs.map((x) => [String(x.id), x]));
-      
-      // 4. 최신순 정렬 후 최대 10개까지만
-      return Array.from(dedup.values())
-        .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))
-        .slice(0, 10);
+    console.log('[SAVE] 📝 Inserting analysis_log:', { 
+      channel_name: channelName, 
+      optimisticId, 
+      ...meta 
     });
 
-    toast.success('분석 기록이 저장되었습니다.');
-  } catch (error) {
-    console.error('[SAVE] ❌ Failed to insert analysis log:', error);
-    // Rollback: optimistic 항목 제거
-    setLogs((prev) => prev.filter((x) => String(x.id) !== optimisticId));
-    toast.error('분석 기록 저장에 실패했습니다');
+    try {
+      const insertData: TablesInsert<'analysis_logs'> = {
+        channel_name: channelName,
+        channel_id: meta?.channel_id ?? null,
+        channel_url: meta?.channel_url ?? null,
+      };
+
+      const { data, error } = await supabase
+        .from('analysis_logs')
+        .insert([insertData])
+        .select('id, channel_name, created_at, channel_id, channel_url')
+        .single();
+
+      if (error) throw error;
+
+      console.log('[SAVE] ✅ Analysis log inserted:', data);
+
+      // ✅ Realtime 대신 직접 state 업데이트
+      setLogs((prev) => {
+        console.log('[SAVE] 📊 Before update, logs:', prev.map(l => ({ id: l.id, name: l.channel_name })));
+        
+        // 1. temp 항목 제거
+        const withoutTemp = prev.filter((x) => String(x.id) !== optimisticId);
+        
+        // 2. 새 데이터 추가
+        const newLogs = [data as AnalysisLog, ...withoutTemp];
+        
+        // 3. 중복 제거 (혹시 모를 중복 방지)
+        const dedup = new Map(newLogs.map((x) => [String(x.id), x]));
+        
+        // 4. 최신순 정렬 후 최대 10개까지만
+        const result = Array.from(dedup.values())
+          .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))
+          .slice(0, 10);
+        
+        console.log('[SAVE] 📊 After update, logs:', result.map(l => ({ id: l.id, name: l.channel_name })));
+        
+        return result;
+      });
+
+      toast.success('분석 기록이 저장되었습니다.');
+    } catch (error) {
+      console.error('[SAVE] ❌ Failed to insert analysis log:', error);
+      // Rollback: optimistic 항목 제거
+      setLogs((prev) => prev.filter((x) => String(x.id) !== optimisticId));
+      toast.error('분석 기록 저장에 실패했습니다');
+    }
   }
-}
 
   // Remove log
   async function removeLog(id: string | number) {
