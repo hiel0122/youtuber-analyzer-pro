@@ -28,7 +28,8 @@ import Footer from "@/components/Footer";
 import ChannelSummary from "@/components/ChannelSummary";
 import { useChannelBundle } from "@/hooks/useChannelBundle";
 import { useAuth } from "@/hooks/useAuth";
-import { useAnalysisLogs, type AnalysisLog } from "@/hooks/useAnalysisLogs";
+import { useAnalysisLogs } from "@/contexts/AnalysisLogsContext";
+import type { AnalysisLog } from "@/contexts/AnalysisLogsContext";
 import { AuthGateModal } from "@/components/AuthGateModal";
 import {
   AlertDialog,
@@ -43,7 +44,7 @@ import {
 
 const Index = () => {
   const { user } = useAuth();
-  const { addOptimistic, commitInsert } = useAnalysisLogs(user?.id);
+  const { addOptimistic, commitInsert } = useAnalysisLogs();
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
   const [videoRows, setVideoRows] = useState<VideoRow[]>([]);
   const [loading, setLoading] = useState(false);
