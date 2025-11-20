@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
-import { useAnalysisLogs, type AnalysisLog } from '@/hooks/useAnalysisLogs';
+import { useAnalysisLogs } from '@/contexts/AnalysisLogsContext';
+import type { AnalysisLog } from '@/contexts/AnalysisLogsContext';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -60,7 +61,7 @@ export function Sidebar() {
   const { profile } = useProfile();
   const navigate = useNavigate();
   const location = useLocation();
-  const { logs: historyItems, removeLog } = useAnalysisLogs(user?.id);
+  const { logs: historyItems, removeLog } = useAnalysisLogs();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<boolean>(() =>
