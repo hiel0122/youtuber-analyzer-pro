@@ -26,7 +26,7 @@ const COLORS = [
 export default function TopVideosChart({ videos, loading }: TopVideosChartProps) {
   if (loading) {
     return (
-      <Card className="border-0">
+      <Card>
         <CardHeader>
           <CardTitle>조회수 순위</CardTitle>
         </CardHeader>
@@ -42,8 +42,8 @@ export default function TopVideosChart({ videos, loading }: TopVideosChartProps)
     .sort((a, b) => b.views - a.views)
     .slice(0, 10)
     .map((video, index) => ({
-      name: video.title.length > 30 
-        ? video.title.substring(0, 30) + '...' 
+      name: video.title.length > 60 
+        ? video.title.substring(0, 60) + '...' 
         : video.title,
       fullTitle: video.title,
       views: video.views,
@@ -55,7 +55,7 @@ export default function TopVideosChart({ videos, loading }: TopVideosChartProps)
   // 데이터가 없을 때
   if (topVideos.length === 0) {
     return (
-      <Card className="border-0">
+      <Card>
         <CardHeader>
           <CardTitle>조회수 순위</CardTitle>
         </CardHeader>
@@ -65,6 +65,15 @@ export default function TopVideosChart({ videos, loading }: TopVideosChartProps)
       </Card>
     );
   }
+
+  // 상위 10개 영상 조회수 총합 계산
+  const totalViews = topVideos.reduce((sum, video) => sum + video.views, 0);
+
+  // 각 영상에 퍼센트 추가
+  const topVideosWithPercent = topVideos.map(video => ({
+    ...video,
+    percentage: totalViews > 0 ? ((video.views / totalViews) * 100).toFixed(1) : '0',
+  }));
 
   // 커스텀 툴팁
   const CustomTooltip = ({ active, payload }: any) => {
@@ -92,34 +101,29 @@ export default function TopVideosChart({ videos, loading }: TopVideosChartProps)
     const topThree = payload.slice(0, 3);
     
     return (
-      <div className="flex flex-col gap-2 mt-4">
+      <div className="flex flex-col gap-1 mt-2">
         {topThree.map((entry: any, index: number) => (
           <div 
             key={`legend-${index}`} 
-            className="flex items-center gap-3 text-sm hover:bg-accent rounded-lg px-3 py-2 cursor-pointer transition-colors"
+            className="flex items-center gap-2 text-[0.65rem] hover:bg-accent rounded px-2 py-1 cursor-pointer transition-colors"
           >
             <div 
-              className="w-4 h-4 rounded-full flex-shrink-0" 
+              className="w-2.5 h-2.5 rounded-full flex-shrink-0" 
               style={{ backgroundColor: entry.color }}
             />
-            <span className="font-semibold text-foreground min-w-[2rem]">{entry.payload.rank}위</span>
-            <span className="truncate flex-1 font-medium">{entry.payload.name}</span>
+            <span className="font-semibold text-foreground min-w-[1.5rem]">{entry.payload.rank}위</span>
+            <span className="truncate flex-1 font-medium leading-tight">{entry.payload.name}</span>
             <span className="text-muted-foreground font-semibold tabular-nums">
               {formatInt(entry.payload.views)}
             </span>
           </div>
         ))}
-        {payload.length > 3 && (
-          <div className="text-xs text-muted-foreground text-center mt-1 py-1">
-            +{payload.length - 3}개 영상 더 보기
-          </div>
-        )}
       </div>
     );
   };
 
   return (
-    <Card className="border-0">
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           조회수 순위
@@ -129,21 +133,22 @@ export default function TopVideosChart({ videos, loading }: TopVideosChartProps)
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={350}>
           <PieChart>
             <Pie
-              data={topVideos}
+              data={topVideosWithPercent}
               cx="50%"
               cy="50%"
               labelLine={false}
-              outerRadius={100}
-              innerRadius={60}
+              label={({ percentage }) => `${percentage}%`}
+              outerRadius={110}
+              innerRadius={70}
               fill="#8884d8"
               dataKey="views"
               animationBegin={0}
               animationDuration={800}
             >
-              {topVideos.map((entry, index) => (
+              {topVideosWithPercent.map((entry, index) => (
                 <Cell 
                   key={`cell-${index}`} 
                   fill={COLORS[index % COLORS.length]}
@@ -155,7 +160,7 @@ export default function TopVideosChart({ videos, loading }: TopVideosChartProps)
             <Legend 
               content={<CustomLegend />}
               verticalAlign="bottom"
-              height={150}
+              height={80}
             />
           </PieChart>
         </ResponsiveContainer>
