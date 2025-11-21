@@ -20,7 +20,8 @@ import {
   MoreVertical,
   User,
   Trash2,
-  ChevronRight
+  ChevronRight,
+  RotateCcw
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +34,16 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface NavItem {
   title: string;
@@ -61,13 +72,16 @@ export function Sidebar() {
   const { profile } = useProfile();
   const navigate = useNavigate();
   const location = useLocation();
-  const { logs: historyItems, removeLog } = useAnalysisLogs();
+  const { logs: historyItems, removeLog, refreshLogs } = useAnalysisLogs();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<boolean>(() =>
     typeof window !== "undefined" && localStorage.getItem("sb-collapsed") === "1"
   );
   const [analyticsOpen, setAnalyticsOpen] = useState(true);
+  const [showResetDialog, setShowResetDialog] = useState(false);
+  const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     try { 
@@ -93,6 +107,61 @@ export function Sidebar() {
   const handleDelete = (id: string | number) => {
     if (confirm('정말 삭제하시겠습니까?')) {
       removeLog(id);
+    }
+  };
+
+  // 리셋: 분석 기록만 삭제 (데이터 유지)
+  const handleResetLogs = async () => {
+    if (!user?.id) return;
+    
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('analysis_logs')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      await refreshLogs();
+      
+      toast.success('분석 기록이 초기화되었습니다.');
+      setShowResetDialog(false);
+    } catch (error) {
+      console.error('Failed to reset logs:', error);
+      toast.error('초기화에 실패했습니다.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // 완전 삭제: 모든 데이터 삭제
+  const handleDeleteAll = async () => {
+    if (!user?.id) return;
+    
+    setIsDeleting(true);
+    try {
+      // 1. 분석 기록 삭제
+      await supabase
+        .from('analysis_logs')
+        .delete()
+        .eq('user_id', user.id);
+
+      // 2. 채널 스냅샷 삭제
+      await supabase
+        .from('channel_snapshots')
+        .delete()
+        .eq('user_id', user.id);
+
+      await refreshLogs();
+      
+      toast.success('모든 데이터가 삭제되었습니다.');
+      setShowDeleteAllDialog(false);
+    } catch (error) {
+      console.error('Failed to delete all data:', error);
+      toast.error('삭제에 실패했습니다.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -226,7 +295,40 @@ export function Sidebar() {
           {/* Analysis History - Second Section */}
           {!collapsed && user && (
             <div className="mt-6 px-2">
-              <div className="text-xs font-medium text-muted-foreground mb-2 px-3">분석 기록</div>
+              <div className="flex items-center justify-between mb-2 px-3">
+                <div className="text-xs font-medium text-muted-foreground">분석 기록</div>
+                
+                {/* 더보기 메뉴 */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem
+                      onClick={() => setShowResetDialog(true)}
+                      disabled={historyItems.length === 0}
+                    >
+                      <RotateCcw className="mr-2 h-4 w-4" />
+                      리셋
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => setShowDeleteAllDialog(true)}
+                      disabled={historyItems.length === 0}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      완전 삭제
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
               <div className="space-y-1">
                 {historyItems.length === 0 ? (
                   <div className="px-3 py-2 text-xs text-muted-foreground">최근 분석 없음</div>
@@ -371,6 +473,67 @@ export function Sidebar() {
       </Dialog>
 
       <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
+
+      {/* 리셋 확인 다이얼로그 */}
+      <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>분석 기록을 초기화하시겠습니까?</AlertDialogTitle>
+            <AlertDialogDescription>
+              분석 기록 목록만 삭제됩니다. 채널과 영상 데이터는 유지됩니다.
+              <br />
+              <span className="text-sm text-muted-foreground mt-2 block">
+                • 영향 받는 항목: 분석 기록 {historyItems.length}개
+                <br />
+                • 유지되는 항목: 채널 데이터, 영상 데이터, 통계 데이터
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleResetLogs}
+              disabled={isDeleting}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {isDeleting ? '처리 중...' : '리셋'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* 완전 삭제 확인 다이얼로그 */}
+      <AlertDialog open={showDeleteAllDialog} onOpenChange={setShowDeleteAllDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive">
+              모든 분석 데이터를 삭제하시겠습니까?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              <span className="text-destructive font-semibold">⚠️ 이 작업은 되돌릴 수 없습니다.</span>
+              <br />
+              <br />
+              다음 데이터가 영구적으로 삭제됩니다:
+              <br />
+              <span className="text-sm text-muted-foreground mt-2 block">
+                • 분석 기록 {historyItems.length}개
+                <br />
+                • 모든 저장된 스냅샷
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAll}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? '삭제 중...' : '완전 삭제'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
