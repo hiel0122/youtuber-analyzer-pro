@@ -26,7 +26,7 @@ const COLORS = [
 export default function TopVideosChart({ videos, loading }: TopVideosChartProps) {
   if (loading) {
     return (
-      <Card>
+      <Card className="border-0">
         <CardHeader>
           <CardTitle>조회수 순위</CardTitle>
         </CardHeader>
@@ -55,7 +55,7 @@ export default function TopVideosChart({ videos, loading }: TopVideosChartProps)
   // 데이터가 없을 때
   if (topVideos.length === 0) {
     return (
-      <Card>
+      <Card className="border-0">
         <CardHeader>
           <CardTitle>조회수 순위</CardTitle>
         </CardHeader>
@@ -87,32 +87,39 @@ export default function TopVideosChart({ videos, loading }: TopVideosChartProps)
     return null;
   };
 
-  // 커스텀 레전드
+  // 커스텀 레전드 (상위 3개만 표시)
   const CustomLegend = ({ payload }: any) => {
+    const topThree = payload.slice(0, 3);
+    
     return (
-      <div className="flex flex-col gap-1 mt-4 max-h-[200px] overflow-y-auto">
-        {payload.map((entry: any, index: number) => (
+      <div className="flex flex-col gap-2 mt-4">
+        {topThree.map((entry: any, index: number) => (
           <div 
             key={`legend-${index}`} 
-            className="flex items-center gap-2 text-xs hover:bg-accent rounded px-2 py-1 cursor-pointer"
+            className="flex items-center gap-3 text-sm hover:bg-accent rounded-lg px-3 py-2 cursor-pointer transition-colors"
           >
             <div 
-              className="w-3 h-3 rounded-full flex-shrink-0" 
+              className="w-4 h-4 rounded-full flex-shrink-0" 
               style={{ backgroundColor: entry.color }}
             />
-            <span className="font-medium text-muted-foreground">{entry.payload.rank}위</span>
-            <span className="truncate flex-1">{entry.payload.name}</span>
-            <span className="text-muted-foreground font-medium">
+            <span className="font-semibold text-foreground min-w-[2rem]">{entry.payload.rank}위</span>
+            <span className="truncate flex-1 font-medium">{entry.payload.name}</span>
+            <span className="text-muted-foreground font-semibold tabular-nums">
               {formatInt(entry.payload.views)}
             </span>
           </div>
         ))}
+        {payload.length > 3 && (
+          <div className="text-xs text-muted-foreground text-center mt-1 py-1">
+            +{payload.length - 3}개 영상 더 보기
+          </div>
+        )}
       </div>
     );
   };
 
   return (
-    <Card>
+    <Card className="border-0">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           조회수 순위
@@ -148,7 +155,7 @@ export default function TopVideosChart({ videos, loading }: TopVideosChartProps)
             <Legend 
               content={<CustomLegend />}
               verticalAlign="bottom"
-              height={220}
+              height={150}
             />
           </PieChart>
         </ResponsiveContainer>
