@@ -26,7 +26,7 @@ const COLORS = [
 export default function TopVideosChart({ videos, loading }: TopVideosChartProps) {
   if (loading) {
     return (
-      <Card>
+      <Card className="border-border/40">
         <CardHeader>
           <CardTitle>조회수 순위</CardTitle>
         </CardHeader>
@@ -55,7 +55,7 @@ export default function TopVideosChart({ videos, loading }: TopVideosChartProps)
   // 데이터가 없을 때
   if (topVideos.length === 0) {
     return (
-      <Card>
+      <Card className="border-border/40">
         <CardHeader>
           <CardTitle>조회수 순위</CardTitle>
         </CardHeader>
@@ -123,7 +123,7 @@ export default function TopVideosChart({ videos, loading }: TopVideosChartProps)
   };
 
   return (
-    <Card>
+    <Card className="border-border/40">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           조회수 순위
@@ -140,13 +140,34 @@ export default function TopVideosChart({ videos, loading }: TopVideosChartProps)
               cx="50%"
               cy="50%"
               labelLine={false}
-              label={({ percentage }) => `${percentage}%`}
+              label={({ percentage, cx, cy, midAngle, innerRadius, outerRadius }) => {
+                const RADIAN = Math.PI / 180;
+                const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+                const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                
+                return (
+                  <text
+                    x={x}
+                    y={y}
+                    fill="white"
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fontSize="10"
+                    fontWeight="600"
+                  >
+                    {`${percentage}%`}
+                  </text>
+                );
+              }}
               outerRadius={110}
               innerRadius={70}
               fill="#8884d8"
               dataKey="views"
               animationBegin={0}
               animationDuration={800}
+              startAngle={90}
+              endAngle={-270}
             >
               {topVideosWithPercent.map((entry, index) => (
                 <Cell 
