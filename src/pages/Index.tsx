@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { ChannelInput } from "@/components/ChannelInput";
 import { MetricsCard } from "@/components/MetricsCard";
 import { VideoTable } from "@/components/VideoTable";
-import { TopicChart } from "@/components/TopicChart";
+import TopVideosChart from "@/components/TopVideosChart";
 import { YouTubeVideo } from "@/lib/youtubeApi";
 import { VideoRow, SyncResponse, UploadFrequency, SubscriptionRates, CommentStats } from "@/lib/types";
 import { getSupabaseClient, hasSupabaseCredentials } from "@/lib/supabaseClient";
@@ -631,11 +631,11 @@ const Index = () => {
             />
           </section>
 
-          {/* Views Trend & Topic Chart - Side by Side */}
+          {/* Views Trend & Top Videos Chart - Side by Side */}
           <section className="mb-12">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <ViewsTrend videos={videoRows} loading={isSkeleton} />
-              <TopicChart videos={videos} loading={isSkeleton} />
+              <TopVideosChart videos={videos} loading={isSkeleton} />
             </div>
           </section>
 
