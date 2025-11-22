@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SectionCard } from "@/components/ui/card";
 import { YouTubeVideo } from "@/lib/youtubeApi";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
@@ -27,14 +27,9 @@ const COLORS = [
 export default function TopVideosChart({ videos, loading, channelTotalViews }: TopVideosChartProps) {
   if (loading) {
     return (
-      <Card className="border-border/50">
-        <CardHeader>
-          <CardTitle>조회수 순위</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="w-full h-[300px]" />
-        </CardContent>
-      </Card>
+      <SectionCard title="조회수 순위">
+        <Skeleton className="w-full h-[350px]" />
+      </SectionCard>
     );
   }
 
@@ -56,14 +51,11 @@ export default function TopVideosChart({ videos, loading, channelTotalViews }: T
   // 데이터가 없을 때
   if (topVideos.length === 0) {
     return (
-      <Card className="border-border/50">
-        <CardHeader>
-          <CardTitle>조회수 순위</CardTitle>
-        </CardHeader>
-        <CardContent className="flex items-center justify-center h-[300px]">
+      <SectionCard title="조회수 순위">
+        <div className="flex items-center justify-center h-[350px]">
           <p className="text-muted-foreground">분석할 영상이 없습니다</p>
-        </CardContent>
-      </Card>
+        </div>
+      </SectionCard>
     );
   }
 
@@ -126,69 +118,68 @@ export default function TopVideosChart({ videos, loading, channelTotalViews }: T
   };
 
   return (
-    <Card className="border-border/50">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+    <SectionCard
+      title={
+        <span className="flex items-center gap-2">
           조회수 순위
           <span className="text-sm font-normal text-muted-foreground">
             (Top 10)
           </span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={350}>
-          <PieChart>
-            <Pie
-              data={topVideosWithPercent}
-              cx="50%"
-              cy="50%"
-              labelLine={false}
-              label={({ percentage, cx, cy, midAngle, innerRadius, outerRadius }) => {
-                const RADIAN = Math.PI / 180;
-                const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-                const x = cx + radius * Math.cos(-midAngle * RADIAN);
-                const y = cy + radius * Math.sin(-midAngle * RADIAN);
-                
-                return (
-                  <text
-                    x={x}
-                    y={y}
-                    fill="white"
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    fontSize="10"
-                    fontWeight="600"
-                  >
-                    {`${percentage}%`}
-                  </text>
-                );
-              }}
-              outerRadius={110}
-              innerRadius={70}
-              fill="#8884d8"
-              dataKey="views"
-              animationBegin={0}
-              animationDuration={800}
-              startAngle={90}
-              endAngle={-270}
-            >
-              {topVideosWithPercent.map((entry, index) => (
-                <Cell 
-                  key={`cell-${index}`} 
-                  fill={COLORS[index % COLORS.length]}
-                  className="hover:opacity-80 transition-opacity cursor-pointer"
-                />
-              ))}
-            </Pie>
-            <Tooltip content={<CustomTooltip />} />
-            <Legend 
-              content={<CustomLegend />}
-              verticalAlign="bottom"
-              height={80}
-            />
-          </PieChart>
-        </ResponsiveContainer>
-      </CardContent>
-    </Card>
+        </span>
+      }
+    >
+      <ResponsiveContainer width="100%" height={350}>
+        <PieChart>
+          <Pie
+            data={topVideosWithPercent}
+            cx="50%"
+            cy="50%"
+            labelLine={false}
+            label={({ percentage, cx, cy, midAngle, innerRadius, outerRadius }) => {
+              const RADIAN = Math.PI / 180;
+              const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+              const x = cx + radius * Math.cos(-midAngle * RADIAN);
+              const y = cy + radius * Math.sin(-midAngle * RADIAN);
+              
+              return (
+                <text
+                  x={x}
+                  y={y}
+                  fill="white"
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  fontSize="10"
+                  fontWeight="600"
+                >
+                  {`${percentage}%`}
+                </text>
+              );
+            }}
+            outerRadius={110}
+            innerRadius={70}
+            fill="#8884d8"
+            dataKey="views"
+            animationBegin={0}
+            animationDuration={800}
+            startAngle={90}
+            endAngle={-270}
+          >
+            {topVideosWithPercent.map((entry, index) => (
+              <Cell 
+                key={`cell-${index}`} 
+                fill={COLORS[index % COLORS.length]}
+                className="hover:opacity-80 transition-opacity cursor-pointer"
+              />
+            ))}
+          </Pie>
+          <Tooltip content={<CustomTooltip />} />
+          <Legend 
+            content={<CustomLegend />}
+            verticalAlign="bottom"
+            height={80}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+    </SectionCard>
   );
 }
