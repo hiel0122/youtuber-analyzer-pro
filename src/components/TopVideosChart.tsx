@@ -7,6 +7,7 @@ import { formatInt } from "@/utils/format";
 interface TopVideosChartProps {
   videos: YouTubeVideo[];
   loading?: boolean;
+  channelTotalViews?: number;
 }
 
 // 10가지 서로 다른 색상 팔레트 (시각적으로 구분 가능)
@@ -23,10 +24,10 @@ const COLORS = [
   '#52BE80', // 초록
 ];
 
-export default function TopVideosChart({ videos, loading }: TopVideosChartProps) {
+export default function TopVideosChart({ videos, loading, channelTotalViews }: TopVideosChartProps) {
   if (loading) {
     return (
-      <Card className="border-border/40">
+      <Card className="border-border/50">
         <CardHeader>
           <CardTitle>조회수 순위</CardTitle>
         </CardHeader>
@@ -55,7 +56,7 @@ export default function TopVideosChart({ videos, loading }: TopVideosChartProps)
   // 데이터가 없을 때
   if (topVideos.length === 0) {
     return (
-      <Card className="border-border/40">
+      <Card className="border-border/50">
         <CardHeader>
           <CardTitle>조회수 순위</CardTitle>
         </CardHeader>
@@ -66,13 +67,15 @@ export default function TopVideosChart({ videos, loading }: TopVideosChartProps)
     );
   }
 
-  // 상위 10개 영상 조회수 총합 계산
-  const totalViews = topVideos.reduce((sum, video) => sum + video.views, 0);
+  // 전체 채널 조회수 사용 (없으면 상위 10개 합으로 폴백)
+  const baselineViews = channelTotalViews && channelTotalViews > 0 
+    ? channelTotalViews 
+    : topVideos.reduce((sum, video) => sum + video.views, 0);
 
-  // 각 영상에 퍼센트 추가
+  // 각 영상에 퍼센트 추가 (전체 채널 조회수 대비)
   const topVideosWithPercent = topVideos.map(video => ({
     ...video,
-    percentage: totalViews > 0 ? ((video.views / totalViews) * 100).toFixed(1) : '0',
+    percentage: baselineViews > 0 ? ((video.views / baselineViews) * 100).toFixed(1) : '0',
   }));
 
   // 커스텀 툴팁
@@ -123,7 +126,7 @@ export default function TopVideosChart({ videos, loading }: TopVideosChartProps)
   };
 
   return (
-    <Card className="border-border/40">
+    <Card className="border-border/50">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           조회수 순위
