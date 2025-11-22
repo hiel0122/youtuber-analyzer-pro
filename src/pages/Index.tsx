@@ -635,7 +635,11 @@ const Index = () => {
           <section className="mb-12">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <ViewsTrend videos={videoRows} loading={isSkeleton} />
-              <TopVideosChart videos={videos} loading={isSkeleton} />
+              <TopVideosChart 
+                videos={videos} 
+                loading={isSkeleton}
+                channelTotalViews={channelStats?.totalViews}
+              />
             </div>
           </section>
 
