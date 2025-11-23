@@ -7,6 +7,7 @@ export function useSync() {
   const [progress, setProgress] = useState(0);
   const [currentCount, setCurrentCount] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
+  const [startTime, setStartTime] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const pollRef = useRef<number | null>(null);
@@ -19,10 +20,12 @@ export function useSync() {
   };
 
   const startSync = useCallback(async (channelInput: string, fullSync = true) => {
+    const syncStartTime = Date.now();
     setIsSyncing(true);
     setProgress(0);
     setCurrentCount(0);
     setTotalCount(0);
+    setStartTime(syncStartTime);
     setError(null);
     clearPoll();
 
@@ -57,7 +60,7 @@ export function useSync() {
 
             if (typeof count === "number") {
               setCurrentCount(count);
-              const pct = Math.min(95, Math.floor((count / estimatedTotal) * 100));
+              const pct = Math.min(99.9, Math.round((count / estimatedTotal) * 1000) / 10);
               setProgress(isFinite(pct) ? pct : 0);
             }
           } catch {
@@ -85,5 +88,5 @@ export function useSync() {
     }
   }, []);
 
-  return { isSyncing, progress, currentCount, totalCount, error, startSync };
+  return { isSyncing, progress, currentCount, totalCount, startTime, error, startSync };
 }
