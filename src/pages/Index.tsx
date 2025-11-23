@@ -269,19 +269,18 @@ const Index = () => {
         toast.success(`분석 완료: 새 영상이 없습니다`);
       }
 
-      // ✅ 낙관적 추가한 항목을 확정 저장
-      if (optimisticId) {
-        await commitInsert(
-          channelData?.channel_name || url, 
-          optimisticId,
-          { channel_id: channelId, channel_url: url }
-        );
-      }
-
-      // ✅ 스냅샷 저장 (캐시)
+      // ✅ 스냅샷 데이터 준비 (로그와 함께 저장)
+      let snapshotData: any = null;
       if (user?.id) {
         try {
-          const snapshot = {
+          // 현재 분석된 모든 영상 데이터 가져오기
+          const { data: currentVideos } = await supabase
+            .from('youtube_videos')
+            .select('*')
+            .eq('channel_id', channelId)
+            .order('upload_date', { ascending: false });
+
+          snapshotData = {
             channelId,
             channelName: channelData?.channel_name || currentChannelName,
             channelStats: {
@@ -292,22 +291,29 @@ const Index = () => {
             uploadFrequency,
             subscriptionRates,
             commentStats,
+            videos: currentVideos || [],
+            analyzedAt: new Date().toISOString(),
+            videoCount: currentVideos?.length || 0,
           };
 
-          await supabase.from('channel_snapshots').upsert({
-            user_id: user.id,
-            channel_id: channelId,
-            channel_url: url,
-            channel_title: channelData?.channel_name || currentChannelName,
-            snapshot,
-          }, {
-            onConflict: 'user_id,channel_id',
-          });
-
-          console.log('✅ Snapshot saved for channel:', channelId);
+          console.log('✅ Snapshot prepared with', currentVideos?.length || 0, 'videos');
         } catch (snapshotError) {
-          console.warn('⚠️ Failed to save snapshot:', snapshotError);
+          console.warn('⚠️ Failed to prepare snapshot:', snapshotError);
         }
+      }
+
+      // ✅ 낙관적 추가한 항목을 확정 저장 (스냅샷 포함)
+      if (optimisticId && snapshotData) {
+        await commitInsert(
+          channelData?.channel_name || url, 
+          optimisticId,
+          { 
+            channel_id: channelId, 
+            channel_url: url,
+            video_count: snapshotData.videoCount,
+            snapshot_data: snapshotData,
+          }
+        );
       }
 
       // ✅ 모든 데이터 로딩이 완료된 후 동기화 상태 종료
@@ -406,41 +412,15 @@ const Index = () => {
     }
 
     try {
-      const supabase = getSupabaseClient();
-      
-      // Set URL input field first
-      const displayUrl = log.channel_url || 
-                        (log.channel_id ? `https://www.youtube.com/channel/${log.channel_id}` : log.channel_name);
-      
-      // Try to load from cache first
-      let query = supabase
-        .from('channel_snapshots')
-        .select('snapshot, channel_title, channel_url, channel_id, created_at')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1);
+      console.log('[HISTORY] Loading log:', log);
 
-      if (log.channel_id) {
-        query = query.eq('channel_id', log.channel_id);
-      } else if (log.channel_url) {
-        query = query.eq('channel_url', log.channel_url);
-      } else {
-        query = query.eq('channel_url', log.channel_name);
-      }
-
-      const { data, error } = await query.maybeSingle();
-
-      if (error) {
-        console.error('[HISTORY] Query error:', error);
-      }
-
-      if (data?.snapshot) {
-        // Load from cache
-        const snapshot = data.snapshot as any;
+      // ✅ 로그에 저장된 스냅샷 데이터 사용
+      if (log.snapshot_data) {
+        const snapshot = log.snapshot_data as any;
         
-        console.log('[HISTORY] Cache found, restoring snapshot');
+        console.log('[HISTORY] Using log snapshot with', snapshot.videos?.length || 0, 'videos from', snapshot.analyzedAt);
         
-        // Restore state from snapshot
+        // 상태 복원
         if (snapshot.channelId) setCurrentChannelId(snapshot.channelId);
         if (snapshot.channelName) setCurrentChannelName(snapshot.channelName);
         if (snapshot.channelStats) setChannelStats(snapshot.channelStats);
@@ -448,19 +428,58 @@ const Index = () => {
         if (snapshot.subscriptionRates) setSubscriptionRates(snapshot.subscriptionRates);
         if (snapshot.commentStats) setCommentStats(snapshot.commentStats);
         
-        // Load videos from DB for this channel
-        if (snapshot.channelId) {
-          await loadVideos(snapshot.channelId);
+        // ✅ 스냅샷에 저장된 영상 데이터 직접 사용
+        if (snapshot.videos && snapshot.videos.length > 0) {
+          const mappedVideos: YouTubeVideo[] = snapshot.videos.map((v: any) => ({
+            videoId: v.video_id,
+            title: v.title,
+            topic: v.topic || "",
+            presenter: v.presenter || "",
+            views: v.views || 0,
+            likes: v.likes || 0,
+            dislikes: v.dislikes || 0,
+            uploadDate: v.upload_date,
+            duration: v.duration || "0:00",
+            url: v.url,
+          }));
+          setVideos(mappedVideos);
+
+          const mappedRows: VideoRow[] = snapshot.videos.map((v: any) => ({
+            id: v.id,
+            channel_id: v.channel_id,
+            topic: v.topic,
+            title: v.title,
+            presenter: v.presenter,
+            views: v.views,
+            likes: v.likes,
+            upload_date: v.upload_date,
+            duration: v.duration,
+            url: v.url,
+            thumbnail_url: v.thumbnail_url,
+            video_id: v.video_id,
+          }));
+          setVideoRows(mappedRows);
+        } else {
+          // 영상이 없는 경우 빈 배열
+          setVideos([]);
+          setVideoRows([]);
         }
         
         setIsLoaded(true);
-        setHasData(true);
+        setHasData(snapshot.videos && snapshot.videos.length > 0);
         
-        toast.success('최신 캐시를 불러왔습니다.');
+        const analyzedDate = snapshot.analyzedAt 
+          ? new Date(snapshot.analyzedAt).toLocaleDateString('ko-KR', { 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })
+          : '';
+        toast.success(`${analyzedDate} 분석 데이터 (${snapshot.videos?.length || 0}개 영상)`);
       } else {
-        // No cache found, trigger re-analysis
-        console.log('[HISTORY] No cache found, starting analysis');
-        toast.info('캐시가 없어 재분석을 시작합니다.');
+        // 스냅샷이 없는 구 버전 로그
+        console.log('[HISTORY] No snapshot in log, re-analyzing');
+        toast.info('이전 버전 로그입니다. 재분석을 시작합니다.');
         const url = log.channel_url || log.channel_name;
         const optimisticId = addOptimistic(url, { 
           channel_id: log.channel_id || undefined, 
@@ -470,7 +489,7 @@ const Index = () => {
       }
     } catch (error: any) {
       console.error("❌ History load error:", error);
-      toast.error("캐시를 불러오지 못했습니다. 분석을 다시 실행해 주세요.");
+      toast.error("데이터를 불러오지 못했습니다.");
     }
   };
 

@@ -9,6 +9,9 @@ export interface AnalysisLog {
   created_at: string;
   channel_id?: string | null;
   channel_url?: string | null;
+  video_count?: number | null;
+  analyzed_at?: string | null;
+  snapshot_data?: any | null;
   _status?: 'running';
 }
 
@@ -16,7 +19,7 @@ interface AnalysisLogsContextType {
   logs: AnalysisLog[];
   loading: boolean;
   addOptimistic: (channelName: string, meta?: { channel_id?: string; channel_url?: string }) => string;
-  commitInsert: (channelName: string, optimisticId: string, meta?: { channel_id?: string; channel_url?: string }) => Promise<void>;
+  commitInsert: (channelName: string, optimisticId: string, meta?: { channel_id?: string; channel_url?: string; video_count?: number; snapshot_data?: any }) => Promise<void>;
   removeLog: (id: string | number) => Promise<void>;
   refreshLogs: () => Promise<void>;
 }
@@ -48,7 +51,7 @@ export function AnalysisLogsProvider({ children, userId }: { children: ReactNode
       console.log('[LOGS] 📡 Fetching logs from DB...');
       const { data, error } = await supabase
         .from('analysis_logs')
-        .select('id, channel_name, created_at, channel_id, channel_url')
+        .select('id, channel_name, created_at, channel_id, channel_url, video_count, analyzed_at, snapshot_data')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(10);
@@ -80,7 +83,7 @@ export function AnalysisLogsProvider({ children, userId }: { children: ReactNode
     return tempId;
   };
 
-  const commitInsert = async (channelName: string, optimisticId: string, meta?: { channel_id?: string; channel_url?: string }) => {
+  const commitInsert = async (channelName: string, optimisticId: string, meta?: { channel_id?: string; channel_url?: string; video_count?: number; snapshot_data?: any }) => {
     if (!userId) {
       console.warn('[SAVE] ⚠️ No userId, skipping insert');
       return;
@@ -93,12 +96,15 @@ export function AnalysisLogsProvider({ children, userId }: { children: ReactNode
         channel_name: channelName,
         channel_id: meta?.channel_id ?? null,
         channel_url: meta?.channel_url ?? null,
+        video_count: meta?.video_count ?? null,
+        analyzed_at: new Date().toISOString(),
+        snapshot_data: meta?.snapshot_data ?? null,
       };
 
       const { data, error } = await supabase
         .from('analysis_logs')
         .insert([insertData])
-        .select('id, channel_name, created_at, channel_id, channel_url')
+        .select('id, channel_name, created_at, channel_id, channel_url, video_count, analyzed_at, snapshot_data')
         .single();
 
       if (error) throw error;

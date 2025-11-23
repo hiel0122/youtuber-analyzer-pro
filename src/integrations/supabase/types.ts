@@ -16,30 +16,92 @@ export type Database = {
     Tables: {
       analysis_logs: {
         Row: {
+          analyzed_at: string | null
           channel_id: string | null
           channel_name: string
           channel_url: string | null
           created_at: string
           id: number
+          snapshot_data: Json | null
           user_id: string
+          video_count: number | null
         }
         Insert: {
+          analyzed_at?: string | null
           channel_id?: string | null
           channel_name: string
           channel_url?: string | null
           created_at?: string
           id?: number
+          snapshot_data?: Json | null
           user_id?: string
+          video_count?: number | null
         }
         Update: {
+          analyzed_at?: string | null
           channel_id?: string | null
           channel_name?: string
           channel_url?: string | null
           created_at?: string
           id?: number
+          snapshot_data?: Json | null
           user_id?: string
+          video_count?: number | null
         }
         Relationships: []
+      }
+      analysis_video_snapshots: {
+        Row: {
+          analysis_log_id: number | null
+          created_at: string | null
+          duration: string | null
+          id: number
+          likes: number | null
+          presenter: string | null
+          title: string
+          topic: string | null
+          upload_date: string | null
+          url: string | null
+          video_id: string
+          views: number | null
+        }
+        Insert: {
+          analysis_log_id?: number | null
+          created_at?: string | null
+          duration?: string | null
+          id?: number
+          likes?: number | null
+          presenter?: string | null
+          title: string
+          topic?: string | null
+          upload_date?: string | null
+          url?: string | null
+          video_id: string
+          views?: number | null
+        }
+        Update: {
+          analysis_log_id?: number | null
+          created_at?: string | null
+          duration?: string | null
+          id?: number
+          likes?: number | null
+          presenter?: string | null
+          title?: string
+          topic?: string | null
+          upload_date?: string | null
+          url?: string | null
+          video_id?: string
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analysis_video_snapshots_analysis_log_id_fkey"
+            columns: ["analysis_log_id"]
+            isOneToOne: false
+            referencedRelation: "analysis_logs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       api_keys: {
         Row: {
