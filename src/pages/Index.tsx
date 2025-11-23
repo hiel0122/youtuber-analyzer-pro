@@ -62,7 +62,7 @@ const Index = () => {
   const [pendingUrl, setPendingUrl] = useState<string>("");
   const [isHydrating, setIsHydrating] = useState(false);
   const [showAuthGate, setShowAuthGate] = useState(false);
-  const { isSyncing, progress: syncProgress, currentCount, totalCount, error: syncError, startSync } = useSync();
+  const { isSyncing, progress: syncProgress, currentCount, totalCount, startTime: syncStartTime, error: syncError, startSync } = useSync();
   
   // DataContext for global isLoaded/hasData state
   const { isLoaded, hasData, setIsLoaded, setHasData } = useDataContext();
@@ -578,6 +578,7 @@ const Index = () => {
         progress={syncProgress}
         currentCount={currentCount}
         totalCount={totalCount}
+        startTime={syncStartTime}
       />
 
       {/* 실제 컨텐츠: isBusy일 때 흐림 + 클릭 차단 */}

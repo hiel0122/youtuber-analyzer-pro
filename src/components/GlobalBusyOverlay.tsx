@@ -7,6 +7,7 @@ type Props = {
   progress?: number;
   currentCount?: number;
   totalCount?: number;
+  startTime?: number;
 };
 
 export default function GlobalBusyOverlay({
@@ -15,6 +16,7 @@ export default function GlobalBusyOverlay({
   progress = 0,
   currentCount = 0,
   totalCount = 0,
+  startTime,
 }: Props) {
   if (!open) return null;
 
@@ -36,6 +38,7 @@ export default function GlobalBusyOverlay({
             progress={progress}
             currentCount={currentCount}
             totalCount={totalCount}
+            startTime={startTime}
           />
 
           <p className="mt-3 text-xs text-muted-foreground text-center">

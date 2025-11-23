@@ -401,15 +401,15 @@ export function Sidebar() {
                         className="truncate text-left flex-1 min-w-0 flex flex-col gap-0.5"
                       >
                         <span className="text-sm font-medium truncate">{item.channel_name}</span>
-                        {(item.video_count !== null && item.video_count !== undefined) ? (
-                          <span className="text-xs text-muted-foreground">
-                            {item.video_count}개 영상 • {new Date(item.analyzed_at || item.created_at).toLocaleDateString('ko-KR', {
-                              year: '2-digit',
-                              month: 'numeric',
-                              day: 'numeric'
-                            })}
-                          </span>
-                        ) : (
+              {(item.video_count !== null && item.video_count !== undefined) ? (
+                <span className="text-xs text-muted-foreground">
+                  {item.video_count.toLocaleString('ko-KR')}개 영상 • {new Date(item.analyzed_at || item.created_at).toLocaleDateString('ko-KR', {
+                    year: '2-digit',
+                    month: 'numeric',
+                    day: 'numeric'
+                  })}
+                </span>
+              ) : (
                           <span className="text-xs text-muted-foreground">
                             {new Date(item.created_at).toLocaleDateString('ko-KR', {
                               year: '2-digit',
