@@ -340,9 +340,26 @@ export function Sidebar() {
                     >
                       <button
                         onClick={() => handleHistoryClick(item)}
-                        className="truncate text-left text-sm flex-1 min-w-0"
+                        className="truncate text-left flex-1 min-w-0 flex flex-col gap-0.5"
                       >
-                        {item.channel_name}
+                        <span className="text-sm font-medium truncate">{item.channel_name}</span>
+                        {(item.video_count !== null && item.video_count !== undefined) ? (
+                          <span className="text-xs text-muted-foreground">
+                            {item.video_count}개 영상 • {new Date(item.analyzed_at || item.created_at).toLocaleDateString('ko-KR', {
+                              year: '2-digit',
+                              month: 'numeric',
+                              day: 'numeric'
+                            })}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(item.created_at).toLocaleDateString('ko-KR', {
+                              year: '2-digit',
+                              month: 'numeric',
+                              day: 'numeric'
+                            })}
+                          </span>
+                        )}
                       </button>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
