@@ -104,9 +104,35 @@ export function Sidebar() {
     window.dispatchEvent(event);
   };
 
-  const handleDelete = (id: string | number) => {
-    if (confirm('정말 삭제하시겠습니까?')) {
-      removeLog(id);
+  const handleDelete = async (log: AnalysisLog) => {
+    if (!user?.id) {
+      toast.error('로그인이 필요합니다.');
+      return;
+    }
+
+    try {
+      // 1. 해당 채널의 영상 데이터 삭제
+      if (log.channel_id) {
+        await supabase
+          .from('youtube_videos')
+          .delete()
+          .eq('channel_id', log.channel_id);
+        
+        await supabase
+          .from('youtube_channels')
+          .delete()
+          .eq('channel_id', log.channel_id);
+      }
+      
+      // 2. 분석 로그 삭제
+      await removeLog(log.id);
+      
+      // 3. 페이지 새로고침으로 UI 업데이트
+      toast.success('분석 로그가 삭제되었습니다.');
+      setTimeout(() => window.location.reload(), 500);
+    } catch (error: any) {
+      console.error('❌ Delete log error:', error);
+      toast.error('삭제 중 오류가 발생했습니다.');
     }
   };
 
@@ -141,13 +167,39 @@ export function Sidebar() {
     
     setIsDeleting(true);
     try {
-      // 1. 분석 기록 삭제
+      // 1. 모든 분석 로그의 channel_id 가져오기
+      const { data: logs } = await supabase
+        .from('analysis_logs')
+        .select('channel_id')
+        .eq('user_id', user.id);
+      
+      if (logs && logs.length > 0) {
+        const channelIds = logs
+          .map(log => log.channel_id)
+          .filter((id): id is string => id !== null);
+        
+        // 2. 영상 데이터 삭제
+        if (channelIds.length > 0) {
+          await supabase
+            .from('youtube_videos')
+            .delete()
+            .in('channel_id', channelIds);
+          
+          // 3. 채널 데이터 삭제
+          await supabase
+            .from('youtube_channels')
+            .delete()
+            .in('channel_id', channelIds);
+        }
+      }
+      
+      // 4. 분석 로그 삭제
       await supabase
         .from('analysis_logs')
         .delete()
         .eq('user_id', user.id);
 
-      // 2. 채널 스냅샷 삭제
+      // 5. 채널 스냅샷 삭제
       await supabase
         .from('channel_snapshots')
         .delete()
@@ -157,6 +209,9 @@ export function Sidebar() {
       
       toast.success('모든 데이터가 삭제되었습니다.');
       setShowDeleteAllDialog(false);
+      
+      // 페이지 새로고침
+      setTimeout(() => window.location.reload(), 500);
     } catch (error) {
       console.error('Failed to delete all data:', error);
       toast.error('삭제에 실패했습니다.');
@@ -361,26 +416,19 @@ export function Sidebar() {
                           </span>
                         )}
                       </button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40">
-                          <DropdownMenuItem
-                            onClick={() => handleDelete(item.id)}
-                            className="text-destructive"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            삭제
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 text-muted-foreground hover:text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (window.confirm(`"${item.channel_name}"의 분석 로그를 삭제하시겠습니까?\n\n⚠️ 이 작업은 되돌릴 수 없습니다.\n\n삭제 항목:\n• ${item.video_count || 0}개 영상 데이터\n• 분석 날짜: ${new Date(item.analyzed_at || item.created_at).toLocaleDateString('ko-KR')}`)) {
+                            handleDelete(item);
+                          }
+                        }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   ))
                 )}

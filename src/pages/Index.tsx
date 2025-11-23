@@ -44,7 +44,7 @@ import {
 
 const Index = () => {
   const { user } = useAuth();
-  const { addOptimistic, commitInsert } = useAnalysisLogs();
+  const { addOptimistic, commitInsert, refreshLogs } = useAnalysisLogs();
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
   const [videoRows, setVideoRows] = useState<VideoRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -142,39 +142,64 @@ const Index = () => {
 
   const performSync = async (url: string, fullSync: boolean, knownChannelId?: string, optimisticId?: string): Promise<{ channelId: string; canonicalUrl?: string }> => {
     let finish: (() => void) | undefined;
+    const supabaseClient = getSupabaseClient();
 
     try {
       console.log("🚀 Starting performSync:", { url, fullSync, knownChannelId });
 
-      // 동기화 시작 (useSync의 startSync가 Edge Function 호출 포함)
-      const result = await startSync(url, fullSync);
-      finish = result?.finish;
-      console.log("📦 Sync result:", result);
+      // ✅ 1. 동기화 시작
+      const syncResult = await startSync(url, fullSync);
+      finish = syncResult?.finish;
+      console.log("📦 Sync result:", syncResult);
 
       // channelId 확인
-      const channelId = knownChannelId || result?.channelId;
+      const channelId = knownChannelId || syncResult?.channelId;
       if (!channelId) throw new Error("채널 ID를 확인할 수 없습니다.");
 
       console.log("✅ Using channelId:", channelId);
       setCurrentChannelId(channelId);
 
-      // ✅ uploadFrequency 설정 추가!
-      if (result?.uploadFrequency) {
-        console.log("📊 Setting uploadFrequency:", result.uploadFrequency);
-        setUploadFrequency(result.uploadFrequency);
+      // ✅ 2. 재분석인지 확인 (기존 로그가 있는지)
+      let existingLogId: string | number | null = null;
+      if (user?.id && channelId) {
+        const { data: existingLog } = await supabaseClient
+          .from('analysis_logs')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('channel_id', channelId)
+          .maybeSingle();
+        
+        if (existingLog) {
+          existingLogId = existingLog.id;
+          console.log('📝 Found existing log, will update:', existingLogId);
+        }
+      }
+
+      // ✅ 3. 재분석일 경우 기존 영상 데이터 삭제
+      if (existingLogId && channelId) {
+        console.log('🗑️ Deleting old video data for re-analysis');
+        await supabaseClient
+          .from('youtube_videos')
+          .delete()
+          .eq('channel_id', channelId);
+      }
+
+      // ✅ uploadFrequency 설정
+      if (syncResult?.uploadFrequency) {
+        console.log("📊 Setting uploadFrequency:", syncResult.uploadFrequency);
+        setUploadFrequency(syncResult.uploadFrequency);
       } else {
         console.warn("⚠️ No uploadFrequency in result");
       }
 
-      // ✅ subscriptionRates 설정 추가!
-      if (result?.subscriptionRates) {
-        console.log("📊 Setting subscriptionRates:", result.subscriptionRates);
-        setSubscriptionRates(result.subscriptionRates);
+      // ✅ subscriptionRates 설정
+      if (syncResult?.subscriptionRates) {
+        console.log("📊 Setting subscriptionRates:", syncResult.subscriptionRates);
+        setSubscriptionRates(syncResult.subscriptionRates);
       }
 
       // 채널 통계 갱신
-      const supabase = getSupabaseClient();
-      const { data: channelData } = await supabase
+      const { data: channelData } = await supabaseClient
         .from("youtube_channels")
         .select("subscriber_count, total_views, channel_name, total_videos")
         .eq("channel_id", channelId)
@@ -199,12 +224,12 @@ const Index = () => {
         const { fetchCommentStats } = await import('@/lib/stats/comments');
         
         // Get YouTube Data API key
-        const settings = await supabase.from('user_settings').select('api_youtube_key').eq('user_id', user?.id).maybeSingle();
+        const settings = await supabaseClient.from('user_settings').select('api_youtube_key').eq('user_id', user?.id).maybeSingle();
         const apiKey = (settings?.data as any)?.api_youtube_key || localStorage.getItem('ya_youtube_key') || '';
         
         if (apiKey) {
           // Check if this channel has been scanned before
-          const { data: existingVideos } = await supabase
+          const { data: existingVideos } = await supabaseClient
             .from('yta_channel_videos')
             .select('video_id', { count: 'exact', head: true })
             .eq('channel_id', channelId);
@@ -213,8 +238,8 @@ const Index = () => {
           if ((existingVideos?.length ?? 0) === 0) {
             // First scan: full
             console.log("💬 Full comment scan");
-            commentResult = await fullScanComments(supabase, apiKey, channelId);
-            await logRun(supabase, user?.id, channelId, 'full', {
+            commentResult = await fullScanComments(supabaseClient, apiKey, channelId);
+            await logRun(supabaseClient, user?.id, channelId, 'full', {
               added: commentResult.added,
               touched: commentResult.touched,
               commentsDelta: commentResult.commentsDelta,
@@ -223,8 +248,8 @@ const Index = () => {
           } else {
             // Subsequent scans: delta + backfill
             console.log("💬 Delta comment scan with backfill");
-            commentResult = await deltaScanComments(supabase, apiKey, channelId, 200);
-            await logRun(supabase, user?.id, channelId, 'delta', {
+            commentResult = await deltaScanComments(supabaseClient, apiKey, channelId, 200);
+            await logRun(supabaseClient, user?.id, channelId, 'delta', {
               added: commentResult.added,
               touched: commentResult.touched,
               commentsDelta: commentResult.commentsDelta,
@@ -233,7 +258,7 @@ const Index = () => {
           }
 
           // Update commentStats from DB aggregation
-          const stats = await fetchCommentStats(supabase, channelId);
+          const stats = await fetchCommentStats(supabaseClient, channelId);
           setCommentStats({
             total: stats.total,
             maxPerVideo: stats.max,
@@ -252,7 +277,7 @@ const Index = () => {
       await hydrateAll(channelId);
 
       // 실제 개수 확인
-      const { count: actualCount } = await supabase
+      const { count: actualCount } = await supabaseClient
         .from("youtube_videos")
         .select("video_id", { count: "exact", head: true })
         .eq("channel_id", channelId);
@@ -260,7 +285,7 @@ const Index = () => {
       console.log("✅ Total videos in DB:", actualCount);
 
       // 성공 메시지
-      const insertedCount = result?.inserted_or_updated || actualCount || 0;
+      const insertedCount = syncResult?.inserted_or_updated || actualCount || 0;
       if (fullSync) {
         toast.success(`전체 분석 완료: ${insertedCount}개 영상`);
       } else if (insertedCount > 0) {
@@ -274,7 +299,7 @@ const Index = () => {
       if (user?.id) {
         try {
           // 현재 분석된 모든 영상 데이터 가져오기
-          const { data: currentVideos } = await supabase
+          const { data: currentVideos } = await supabaseClient
             .from('youtube_videos')
             .select('*')
             .eq('channel_id', channelId)
@@ -302,18 +327,40 @@ const Index = () => {
         }
       }
 
-      // ✅ 낙관적 추가한 항목을 확정 저장 (스냅샷 포함)
-      if (optimisticId && snapshotData) {
-        await commitInsert(
-          channelData?.channel_name || url, 
-          optimisticId,
-          { 
-            channel_id: channelId, 
-            channel_url: url,
-            video_count: snapshotData.videoCount,
-            snapshot_data: snapshotData,
-          }
-        );
+      // ✅ 로그 저장 또는 업데이트 (스냅샷 포함)
+      if (user?.id && snapshotData) {
+        if (existingLogId) {
+          // 기존 로그 업데이트
+          console.log('🔄 Updating existing log:', existingLogId);
+          await supabaseClient
+            .from('analysis_logs')
+            .update({
+              video_count: snapshotData.videoCount,
+              analyzed_at: new Date().toISOString(),
+              snapshot_data: snapshotData,
+              channel_name: channelData?.channel_name || currentChannelName,
+              channel_url: url,
+            })
+            .eq('id', Number(existingLogId));
+          
+          toast.success('분석 로그가 업데이트되었습니다.');
+        } else if (optimisticId) {
+          // 새 로그 생성
+          console.log('✨ Creating new log');
+          await commitInsert(
+            channelData?.channel_name || url, 
+            optimisticId,
+            { 
+              channel_id: channelId, 
+              channel_url: url,
+              video_count: snapshotData.videoCount,
+              snapshot_data: snapshotData,
+            }
+          );
+        }
+        
+        // 로그 새로고침
+        await refreshLogs();
       }
 
       // ✅ 모든 데이터 로딩이 완료된 후 동기화 상태 종료
