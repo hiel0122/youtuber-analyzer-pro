@@ -80,7 +80,10 @@ export function Sidebar() {
   );
   const [analyticsOpen, setAnalyticsOpen] = useState(true);
   const [showResetDialog, setShowResetDialog] = useState(false);
-  const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    type: 'all' | 'single';
+    log?: AnalysisLog;
+  } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
@@ -208,7 +211,7 @@ export function Sidebar() {
       await refreshLogs();
       
       toast.success('모든 데이터가 삭제되었습니다.');
-      setShowDeleteAllDialog(false);
+      setDeleteTarget(null);
       
       // 페이지 새로고침
       setTimeout(() => window.location.reload(), 500);
@@ -374,7 +377,7 @@ export function Sidebar() {
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      onClick={() => setShowDeleteAllDialog(true)}
+                      onClick={() => setDeleteTarget({ type: 'all' })}
                       disabled={historyItems.length === 0}
                       className="text-destructive focus:text-destructive"
                     >
@@ -422,9 +425,7 @@ export function Sidebar() {
                         className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 text-muted-foreground hover:text-destructive"
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (window.confirm(`"${item.channel_name}"의 분석 로그를 삭제하시겠습니까?\n\n⚠️ 이 작업은 되돌릴 수 없습니다.\n\n삭제 항목:\n• ${item.video_count || 0}개 영상 데이터\n• 분석 날짜: ${new Date(item.analyzed_at || item.created_at).toLocaleDateString('ko-KR')}`)) {
-                            handleDelete(item);
-                          }
+                          setDeleteTarget({ type: 'single', log: item });
                         }}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -567,32 +568,68 @@ export function Sidebar() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* 완전 삭제 확인 다이얼로그 */}
-      <AlertDialog open={showDeleteAllDialog} onOpenChange={setShowDeleteAllDialog}>
-        <AlertDialogContent>
+      {/* 삭제 확인 모달 - 개별/전체 통합 */}
+      <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent className="sm:max-w-[500px]">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-destructive">
+            <AlertDialogTitle className="text-destructive text-lg font-semibold">
               모든 분석 데이터를 삭제하시겠습니까?
             </AlertDialogTitle>
-            <AlertDialogDescription>
-              <span className="text-destructive font-semibold">⚠️ 이 작업은 되돌릴 수 없습니다.</span>
-              <br />
-              <br />
-              다음 데이터가 영구적으로 삭제됩니다:
-              <br />
-              <span className="text-sm text-muted-foreground mt-2 block">
-                • 분석 기록 {historyItems.length}개
-                <br />
-                • 모든 저장된 스냅샷
-              </span>
+            <AlertDialogDescription className="space-y-3 pt-2">
+              <div className="flex items-start gap-2">
+                <span className="text-yellow-500 text-xl">⚠️</span>
+                <span className="font-semibold text-yellow-600 text-sm">
+                  이 작업은 되돌릴 수 없습니다.
+                </span>
+              </div>
+              
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  다음 데이터가 영구적으로 삭제됩니다:
+                </p>
+                <ul className="list-disc list-inside space-y-1.5 ml-2 text-sm text-muted-foreground">
+                  {deleteTarget?.type === 'all' ? (
+                    <>
+                      <li>분석 기록 {historyItems.length}개</li>
+                      <li>모든 저장된 스냅샷</li>
+                    </>
+                  ) : deleteTarget?.log ? (
+                    <>
+                      <li className="font-medium text-foreground">
+                        {deleteTarget.log.channel_name}
+                      </li>
+                      <li>
+                        {deleteTarget.log.video_count || 0}개 영상 데이터
+                      </li>
+                      <li>
+                        분석 날짜: {new Date(
+                          deleteTarget.log.analyzed_at || deleteTarget.log.created_at
+                        ).toLocaleDateString('ko-KR', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </li>
+                    </>
+                  ) : null}
+                </ul>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>취소</AlertDialogCancel>
+          <AlertDialogFooter className="gap-2 sm:gap-2">
+            <AlertDialogCancel className="mt-0" disabled={isDeleting}>
+              취소
+            </AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDeleteAll}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
               disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deleteTarget?.type === 'all') {
+                  handleDeleteAll();
+                } else if (deleteTarget?.log) {
+                  handleDelete(deleteTarget.log);
+                }
+              }}
             >
               {isDeleting ? '삭제 중...' : '완전 삭제'}
             </AlertDialogAction>
