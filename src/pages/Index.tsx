@@ -116,6 +116,8 @@ const Index = () => {
         upload_date: v.upload_date,
         duration: v.duration,
         url: v.url,
+        thumbnail_url: v.thumbnail_url,
+        video_id: v.video_id,
       }));
       setVideoRows(mappedRows);
 
@@ -634,7 +636,11 @@ const Index = () => {
           {/* Views Trend & Top Videos Chart - Side by Side */}
           <section className="mb-12">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <ViewsTrend videos={videoRows} loading={isSkeleton} />
+              <ViewsTrend 
+                videos={videoRows} 
+                loading={isSkeleton}
+                channelTotalViews={channelStats?.totalViews}
+              />
               <TopVideosChart 
                 videos={videos} 
                 loading={isSkeleton}

@@ -674,6 +674,7 @@ export type Database = {
           id: string
           likes: number | null
           presenter: string | null
+          thumbnail_url: string | null
           title: string
           topic: string | null
           upload_date: string | null
@@ -690,6 +691,7 @@ export type Database = {
           id?: string
           likes?: number | null
           presenter?: string | null
+          thumbnail_url?: string | null
           title: string
           topic?: string | null
           upload_date?: string | null
@@ -706,6 +708,7 @@ export type Database = {
           id?: string
           likes?: number | null
           presenter?: string | null
+          thumbnail_url?: string | null
           title?: string
           topic?: string | null
           upload_date?: string | null

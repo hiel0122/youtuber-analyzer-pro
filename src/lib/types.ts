@@ -9,6 +9,8 @@ export type VideoRow = {
   upload_date: string; // ISO (YYYY-MM-DD) or date-ish string
   duration: string | null; // "HH:MM:SS" | "MM:SS" | "SS"
   url: string;
+  thumbnail_url?: string;
+  video_id?: string;
 };
 
 export type UploadFrequency = {
