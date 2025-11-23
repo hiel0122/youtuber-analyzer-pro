@@ -3,7 +3,6 @@ import { VideoRow } from "@/lib/types";
 import { formatMMDD, formatInt } from "@/utils/format";
 import { formatNumber } from "@/lib/utils";
 import { SectionCard } from "@/components/ui/card";
-import { ExternalLink } from "lucide-react";
 import {
   ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList
 } from "recharts";
@@ -15,26 +14,6 @@ interface ViewsTrendProps {
 }
 
 type Point = { date: string; views: number };
-
-// YouTube 썸네일 URL 생성 함수
-function getYouTubeThumbnail(video: VideoRow): string {
-  if (video.thumbnail_url) {
-    return video.thumbnail_url;
-  }
-  
-  if (video.video_id) {
-    return `https://i.ytimg.com/vi/${video.video_id}/mqdefault.jpg`;
-  }
-  
-  if (video.url) {
-    const videoIdMatch = video.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
-    if (videoIdMatch && videoIdMatch[1]) {
-      return `https://i.ytimg.com/vi/${videoIdMatch[1]}/mqdefault.jpg`;
-    }
-  }
-  
-  return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180"%3E%3Crect fill="%23374151" width="320" height="180"/%3E%3Ctext fill="%239CA3AF" font-family="sans-serif" font-size="14" x="50%25" y="50%25" text-anchor="middle" dominant-baseline="middle"%3E썸네일 없음%3C/text%3E%3C/svg%3E';
-}
 
 // 영상 길이 포맷팅 함수 (PT11M32S -> 11:32)
 function formatDuration(duration: string | null): string {
@@ -134,8 +113,6 @@ export default function ViewsTrend({ videos, loading, channelTotalViews }: Views
         rank: matchingVideo ? (videoRankMap.get(matchingVideo.title) || 0) : 0,
         percentage: totalViews > 0 ? ((p.views / totalViews) * 100).toFixed(2) : "0",
         uploadDate: p.date,
-        thumbnail: matchingVideo ? getYouTubeThumbnail(matchingVideo) : "",
-        videoUrl: matchingVideo?.url || "",
         duration: matchingVideo ? formatDuration(matchingVideo.duration) : "",
       };
     });
@@ -146,72 +123,35 @@ export default function ViewsTrend({ videos, loading, channelTotalViews }: Views
     return Math.ceil(m * 1.12);
   }, [display]);
 
-  // 커스텀 툴팁 컴포넌트
+  // 커스텀 툴팁 컴포넌트 (TopVideosChart와 동일한 디자인)
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-background border border-border rounded-lg overflow-hidden shadow-lg max-w-md">
-          {/* 썸네일 - 클릭 가능 */}
-          <a 
-            href={data.videoUrl} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="block relative w-full h-48 bg-muted hover:opacity-95 transition-all group"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <img 
-              src={data.thumbnail}
-              alt={data.title}
-              className="w-full h-full object-cover"
-              loading="lazy"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180"%3E%3Crect fill="%23374151" width="320" height="180"/%3E%3Ctext fill="%239CA3AF" font-family="sans-serif" font-size="14" x="50%25" y="50%25" text-anchor="middle" dominant-baseline="middle"%3E썸네일 없음%3C/text%3E%3C/svg%3E';
-              }}
-            />
-            
-            {/* 호버 시 "영상 보기" 오버레이 */}
-            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <div className="text-white text-sm font-semibold flex items-center gap-2 bg-black/50 px-4 py-2 rounded-lg">
-                <ExternalLink className="w-4 h-4" />
-                영상 보기
-              </div>
-            </div>
-            
-            {/* 순위 뱃지 */}
-            {data.rank > 0 && (
-              <div className="absolute top-2 left-2 bg-black/80 text-white text-xs font-bold px-2 py-1 rounded shadow-lg">
-                {data.rank}위
-              </div>
-            )}
-            
-            {/* 영상 길이 */}
-            {data.duration && (
-              <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs font-semibold px-1.5 py-0.5 rounded">
-                {data.duration}
-              </div>
-            )}
-          </a>
-          
-          {/* 정보 */}
-          <div className="p-3 space-y-2">
-            <p className="font-semibold text-sm leading-tight line-clamp-2 break-words">
-              {data.title}
+        <div className="bg-background border border-border rounded-lg p-3 shadow-lg max-w-sm">
+          <p className="font-semibold text-sm mb-2 break-words leading-tight">
+            {data.title}
+          </p>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">
+              조회수 순위: <span className="font-medium text-foreground">{data.rank}위</span>
             </p>
-            <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">
+              조회수: <span className="font-medium text-foreground">{formatInt(data.views)}</span>
+            </p>
+            <p className="text-xs text-muted-foreground">
+              차지 비율: <span className="font-medium text-foreground">{data.percentage}%</span>
+            </p>
+            {data.duration && data.duration !== "0:00" && (
               <p className="text-xs text-muted-foreground">
-                조회수: <span className="font-medium text-foreground">{formatInt(data.views)}</span>
+                영상 길이: <span className="font-medium text-foreground">{data.duration}</span>
               </p>
-              <p className="text-xs text-muted-foreground">
-                차지 비율: <span className="font-medium text-foreground">{data.percentage}%</span>
-              </p>
-              <p className="text-xs text-muted-foreground">
-                업로드: <span className="font-medium text-foreground">
-                  {new Date(data.uploadDate).toLocaleDateString('ko-KR')}
-                </span>
-              </p>
-            </div>
+            )}
+            <p className="text-xs text-muted-foreground">
+              업로드: <span className="font-medium text-foreground">
+                {new Date(data.uploadDate).toLocaleDateString('ko-KR')}
+              </span>
+            </p>
           </div>
         </div>
       );
