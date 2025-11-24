@@ -1,133 +1,57 @@
-:root{
-  /* Semantic tokens (Dim) */
-  --background:#0E1525 !important;   /* page bg - deep navy */
-  --card:#111826 !important;          /* panels/cards - near black slate */
-  --secondary:#E5E7EB !important;     /* main text on dark */
-  --muted:#94A3B8 !important;         /* secondary text */
-  --border:#1F2A3A !important;        /* borders & dividers */
-  --ring:#60A5FA !important;          /* focus ring */
-  
-  /* Chart palette */
-  --chart-green-400: #34d399;  /* emerald-400 */
-  --chart-green-600: #059669;  /* emerald-600 */
-  
-  /* Modal/overlay tokens */
-  --overlay-dim:#0B1220 !important;
-  --ring-brand:#1D348F !important;
-  --modal-bg: #0F1117;
-  --overlay: #0B1220;
-  
-  /* Dim palette tokens (lock) */
-  --brand-ink: #1D348F;
-  --accent-teal: #3DA0C1;
-  --accent-coral: #EB7B64;
-  --accent-rose: #E1868C;
-  --surface-ice: #F0F6F8;
-  --overlay: #0B1220;
-  --modal-bg: #0F1117;
+:root {
+  /* v0 CMS Dark Theme Colors */
+  --background: #0a0a0a !important;
+  --foreground: #fafafa !important;
+  --card: #141414 !important;
+  --card-foreground: #fafafa !important;
+  --popover: #141414 !important;
+  --popover-foreground: #fafafa !important;
+  --primary: #3b82f6 !important;
+  --primary-foreground: #ffffff !important;
+  --secondary: #27272a !important;
+  --secondary-foreground: #fafafa !important;
+  --muted: #27272a !important;
+  --muted-foreground: #71717a !important;
+  --accent: #27272a !important;
+  --accent-foreground: #fafafa !important;
+  --destructive: #ef4444 !important;
+  --destructive-foreground: #fafafa !important;
+  --border: #27272a !important;
+  --input: #27272a !important;
+  --ring: #3b82f6 !important;
+  --radius: 0.75rem !important;
 
-  /* Brand */
-  --primary:#60A5FA !important;       /* primary (indigo-400 on dark) */
-  --accent:#2DD4BF !important;        /* accent (teal-400) */
-  --warning:#F59E0B !important;       /* amber for soft warn */
-  --destructive:#EF4444 !important;   /* critical red */
-
-  /* Elevation & overlays */
-  --card-shadow:0 6px 16px rgba(0,0,0,.28) !important;
-  --hover-tint:rgba(96,165,250,.12) !important;   /* primary tint */
-  --active-tint:rgba(96,165,250,.24) !important;  /* stronger */
-
-  /* Radius/width */
-  --radius:12px !important;
-  --container-max:1240px !important;
-
-  /* Charts on dark */
-  --chart-bg:#0E1525 !important;
-  --chart-grid:#22304A !important;
-  --chart-1:#60A5FA !important;  /* indigo-400 */
-  --chart-2:#2DD4BF !important;  /* teal-400  */
-  --chart-3:#F59E0B !important;  /* amber-500 */
-  --chart-4:#A78BFA !important;  /* violet-400*/
-  --chart-5:#34D399 !important;  /* emerald-400 */
-  --chart-6:#FB923C !important;  /* orange-400 */
-  --chart-7:#F472B6 !important;  /* pink-400   */
-  --chart-8:#93C5FD !important;  /* blue-300   */
+  /* Chart Colors */
+  --chart-1: #3b82f6 !important;
+  --chart-2: #10b981 !important;
+  --chart-3: #f59e0b !important;
+  --chart-4: #8b5cf6 !important;
+  --chart-5: #ec4899 !important;
+  --chart-6: #06b6d4 !important;
+  --chart-7: #f97316 !important;
+  --chart-8: #6366f1 !important;
 }
 
-/* Global glue */
-html,body{background:var(--background);color:var(--secondary);}
-.container,.wrapper,.page,.card,.panel,.box{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:var(--radius); box-shadow:var(--card-shadow);
-}
-/* Links & buttons */
-a,.link,button.primary{color:var(--primary);}
-.btn,.button,button{border-radius:var(--radius);}
-.btn-primary,.btn[variant="primary"]{background:var(--primary);color:#0B1020;}
-.btn-secondary,.btn[variant="secondary"]{background:var(--card);color:var(--secondary);border:1px solid var(--border);}
-.btn-ghost{background:transparent;color:var(--secondary);}
-.btn-accent,.btn[variant="accent"]{background:var(--accent);color:#0B1020;}
-.badge-warning{background:var(--warning);color:#0B1020;}
-.alert-danger,.critical,[data-importance="critical"]{color:#fff!important;background:var(--destructive)!important;border-color:var(--destructive)!important;}
-
-/* Focus ring */
-:where(button,a,input,select,textarea):focus-visible{outline:3px solid var(--ring);outline-offset:2px;}
-
-/* Section titles (e.g., card headers, h2 inside header bars) */
-.section-title, .card-header h2, .stat-title{
-  color:#F1F5F9; letter-spacing:.2px;
-  text-shadow:0 1px 0 rgba(0,0,0,.35);
+html, body {
+  background: #0a0a0a;
+  color: #fafafa;
 }
 
-/* Left sidebar navigation */
-.sidebar .nav-item{
-  display:flex; align-items:center; gap:.6rem;
-  padding:.6rem .9rem; border-radius:10px; color:var(--muted);
-}
-.sidebar .nav-item:hover{background:var(--hover-tint); color:var(--secondary);}
-.sidebar .nav-item[aria-current="page"],
-.sidebar .nav-item.active{
-  background:var(--active-tint); color:#EAF2FF;
-  border-left:3px solid var(--primary);
-}
-.sidebar .nav-section-title{color:#9AA9C0; opacity:.9;}
-
-/* Top search bar / inputs */
-input,select,textarea{
-  background:#0F1A2C; color:var(--secondary); border:1px solid var(--border);
-}
-input::placeholder{color:#7C8AA3;}
-
-/* Tables (channel video list) */
-table{border-color:var(--border);}
-thead th{color:#C7D2FE; background:#0F1B30;}
-tbody tr:hover{background:var(--hover-tint);}
-tbody td{color:var(--secondary);}
-
-/* Charts */
-.chart-root{background:var(--chart-bg);}
-.chart-grid line{stroke:var(--chart-grid);}
-
-/* Small helpers */
-.kicker, .metric-label{color:#9AA9C0;}
-.help-text{color:#7C8AA3;}
-
-/* Focus ring global */
-*:focus-visible{
-  outline: none !important;
-  box-shadow: 0 0 0 2px var(--ring-brand) !important;
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-/* Modal seamless utility - removes all borders/outlines */
-.modal-seamless {
-  --_modal-bg: var(--modal-bg, #0F1117);
-  background-color: var(--_modal-bg) !important;
-  border-color: var(--_modal-bg) !important;
-  outline: none !important;
-  box-shadow: none !important;
+::-webkit-scrollbar-track {
+  background: transparent;
 }
-.modal-seamless:focus,
-.modal-seamless:focus-visible {
-  outline: none !important;
-  box-shadow: none !important;
+
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
 }
