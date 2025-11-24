@@ -9,11 +9,17 @@ export function AppLayout() {
 
   return (
     <AnalysisLogsProvider userId={user?.id}>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="flex h-screen overflow-hidden bg-[#0a0a0a]">
+        {/* 좌측 사이드바 */}
         <Sidebar />
+        
+        {/* 중앙 메인 영역 */}
         <div className="flex-1 flex flex-col min-w-0">
+          {/* 상단 헤더 */}
           <Topbar />
-          <main className="flex-1 p-6">
+          
+          {/* 메인 콘텐츠 영역 */}
+          <main className="flex-1 overflow-y-auto p-6">
             <Outlet />
           </main>
         </div>
