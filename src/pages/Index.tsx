@@ -21,6 +21,9 @@ import SyncProgress from "@/components/SyncProgress";
 import QuantityQuality from "@/components/QuantityQuality";
 import ViewsTrend from "@/components/ViewsTrend";
 import SkeletonCard from "@/components/SkeletonCard";
+import { LoadingTable } from "@/components/LoadingTable";
+import { LoadingChart } from "@/components/LoadingChart";
+import { Skeleton } from "@/components/ui/skeleton";
 import GlobalBusyOverlay from "@/components/GlobalBusyOverlay";
 import { useBodyLock } from "@/hooks/useBodyLock";
 import { cn } from "@/lib/utils";
@@ -658,6 +661,15 @@ const Index = () => {
               </div>
             </div>
 
+          {/* 메트릭 카드 로딩 */}
+          {loading && !hasData && (
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <SkeletonCard key={index} />
+              ))}
+            </div>
+          )}
+
           {hasData && (
             <>
               {/* Channel Summary 섹션 */}
@@ -807,6 +819,21 @@ const Index = () => {
             </>
           )}
 
+          {/* Quality Metrics 로딩 */}
+          {loading && !hasData && (
+            <div className="bg-[#141414] rounded-xl p-6 border border-[#27272a]">
+              <Skeleton className="h-6 w-40 mb-6" />
+              <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+                {Array.from({ length: 4 }).map((_, idx) => (
+                  <div key={idx} className="space-y-2">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-8 w-24" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {hasData && (
             <>
               {/* Quality Metrics 섹션 */}
@@ -829,6 +856,20 @@ const Index = () => {
                 />
               </div>
             </>
+          )}
+
+          {/* 차트 로딩 */}
+          {loading && !hasData && (
+            <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
+              <div className="bg-[#141414] rounded-xl p-6 border border-[#27272a]">
+                <Skeleton className="h-6 w-32 mb-6" />
+                <LoadingChart />
+              </div>
+              <div className="bg-[#141414] rounded-xl p-6 border border-[#27272a]">
+                <Skeleton className="h-6 w-32 mb-6" />
+                <LoadingChart height={300} />
+              </div>
+            </div>
           )}
 
           {hasData && (
@@ -871,6 +912,17 @@ const Index = () => {
             </>
           )}
 
+            {/* 테이블 로딩 */}
+            {loading && !hasData && (
+              <div className="bg-[#141414] rounded-xl border border-[#27272a] overflow-hidden">
+                <div className="p-6 border-b border-[#27272a]">
+                  <Skeleton className="h-6 w-40 mb-2" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+                <LoadingTable rows={10} />
+              </div>
+            )}
+
             {hasData && (
               <>
                 {/* Recent Orders - 영상 목록 테이블 */}
@@ -889,7 +941,7 @@ const Index = () => {
                       총 {videoRows.length.toLocaleString('ko-KR')}개 영상
                     </p>
                   </div>
-                  <VideoTable videos={videos} loading={isSkeleton} />
+                  <VideoTable videos={videos} loading={loading} />
                 </div>
               </>
             )}
