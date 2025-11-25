@@ -48,6 +48,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { FadeIn } from '@/components/FadeIn';
 import { FadeInStagger, FadeInStaggerItem } from '@/components/FadeInStagger';
+import { ScrollToTop } from '@/components/ScrollToTop';
 
 const Index = () => {
   const { user } = useAuth();
@@ -1026,6 +1027,9 @@ const Index = () => {
 
       {/* Footer */}
       <Footer />
+      
+      {/* Scroll to top button */}
+      <ScrollToTop />
     </div>
   );
 };

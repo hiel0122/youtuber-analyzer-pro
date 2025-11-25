@@ -127,7 +127,7 @@ export function Sidebar() {
         </div>
 
         {/* 네비게이션 메뉴 */}
-        <ScrollArea className="flex-1 py-4">
+        <ScrollArea className="flex-1 py-4 scroll-smooth">
           <nav className="px-3 space-y-6">
             {/* OVERVIEW 섹션 */}
             <div>
