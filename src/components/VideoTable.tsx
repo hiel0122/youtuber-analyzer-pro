@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Copy } from "lucide-react";
 import { YouTubeVideo } from "@/lib/youtubeApi";
@@ -58,80 +57,77 @@ export const VideoTable = ({ videos, loading }: VideoTableProps) => {
   };
 
   return (
-    <Card className="bg-gradient-card border-border shadow-card">
-      <CardHeader>
-        <CardTitle>채널 영상 목록</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="rounded-md border border-border overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-secondary/50">
-                <TableHead className="text-center whitespace-nowrap font-semibold text-foreground">주제</TableHead>
-                <TableHead className="text-center whitespace-nowrap min-w-[300px] font-semibold text-foreground">제목</TableHead>
-                <TableHead className="text-center whitespace-nowrap font-semibold text-foreground">조회수</TableHead>
-                <TableHead className="text-center whitespace-nowrap font-semibold text-foreground">좋아요</TableHead>
-                <TableHead className="text-center whitespace-nowrap font-semibold text-foreground">업로드 날짜</TableHead>
-                <TableHead className="text-center whitespace-nowrap font-semibold text-foreground">영상 길이</TableHead>
-                <TableHead className="text-center whitespace-nowrap font-semibold text-foreground">링크</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                [...Array(10)].map((_, idx) => (
-                  <TableRow key={idx}>
-                    <TableCell colSpan={7} className="py-4">
-                      <div className="h-6 bg-muted/50 rounded animate-pulse" />
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : videos.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-8">
-                    데이터가 없습니다.
+    <div>
+      <div className="overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-secondary/50">
+              <TableHead className="text-center whitespace-nowrap font-semibold text-foreground">주제</TableHead>
+              <TableHead className="text-center whitespace-nowrap min-w-[300px] font-semibold text-foreground">제목</TableHead>
+              <TableHead className="text-center whitespace-nowrap font-semibold text-foreground">조회수</TableHead>
+              <TableHead className="text-center whitespace-nowrap font-semibold text-foreground">좋아요</TableHead>
+              <TableHead className="text-center whitespace-nowrap font-semibold text-foreground">업로드 날짜</TableHead>
+              <TableHead className="text-center whitespace-nowrap font-semibold text-foreground">영상 길이</TableHead>
+              <TableHead className="text-center whitespace-nowrap font-semibold text-foreground">링크</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              [...Array(10)].map((_, idx) => (
+                <TableRow key={idx}>
+                  <TableCell colSpan={7} className="py-4">
+                    <div className="h-6 bg-muted/50 rounded animate-pulse" />
                   </TableCell>
                 </TableRow>
-              ) : (
-                currentVideos.map((video) => (
-                  <TableRow key={video.videoId} className="hover:bg-secondary/30 transition-colors">
-                    <TableCell className="text-center whitespace-nowrap text-foreground">{video.topic}</TableCell>
-                    <TableCell className="max-w-[400px] truncate text-foreground" title={video.title}>
-                      {video.title}
-                    </TableCell>
-                    <TableCell className="text-center whitespace-nowrap text-foreground font-medium">{formatInt(video.views)}</TableCell>
-                    <TableCell className="text-center whitespace-nowrap text-foreground font-medium">{formatInt(video.likes)}</TableCell>
-                    <TableCell className="text-center whitespace-nowrap text-foreground">{video.uploadDate}</TableCell>
-                    <TableCell className="text-center whitespace-nowrap text-foreground">{video.duration}</TableCell>
-                    <TableCell className="text-center whitespace-nowrap">
-                      <div className="flex items-center justify-center gap-2">
-                        <a
-                          href={video.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:text-primary/80 transition-colors underline decoration-dotted"
-                        >
-                          보기
-                        </a>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={() => handleCopyLink(video.url)}
-                          aria-label="링크 복사"
-                        >
-                          <Copy className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+              ))
+            ) : videos.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-8">
+                  데이터가 없습니다.
+                </TableCell>
+              </TableRow>
+            ) : (
+              currentVideos.map((video) => (
+                <TableRow key={video.videoId} className="hover:bg-secondary/30 transition-colors">
+                  <TableCell className="text-center whitespace-nowrap text-foreground">{video.topic}</TableCell>
+                  <TableCell className="max-w-[400px] truncate text-foreground" title={video.title}>
+                    {video.title}
+                  </TableCell>
+                  <TableCell className="text-center whitespace-nowrap text-foreground font-medium">{formatInt(video.views)}</TableCell>
+                  <TableCell className="text-center whitespace-nowrap text-foreground font-medium">{formatInt(video.likes)}</TableCell>
+                  <TableCell className="text-center whitespace-nowrap text-foreground">{video.uploadDate}</TableCell>
+                  <TableCell className="text-center whitespace-nowrap text-foreground">{video.duration}</TableCell>
+                  <TableCell className="text-center whitespace-nowrap">
+                    <div className="flex items-center justify-center gap-2">
+                      <a
+                        href={video.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:text-primary/80 transition-colors underline decoration-dotted"
+                      >
+                        보기
+                      </a>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => handleCopyLink(video.url)}
+                        aria-label="링크 복사"
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
-        {videos.length > pageSize && (
-          <div className="flex items-center justify-center gap-2 mt-4">
+      {videos.length > pageSize && (
+        <>
+          <div className="flex items-center justify-center gap-2 p-6 border-t border-[#27272a] bg-[#0a0a0a]">
             <Button
               variant="outline"
               size="icon"
@@ -168,8 +164,17 @@ export const VideoTable = ({ videos, loading }: VideoTableProps) => {
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-        )}
-      </CardContent>
-    </Card>
+
+          {/* Pagination hint */}
+          <div className="px-6 py-4 border-t border-[#27272a] bg-[#0a0a0a]">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-500">
+                Showing {startIdx + 1}-{Math.min(endIdx, videos.length)} of {videos.length.toLocaleString('ko-KR')} videos
+              </p>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
   );
 };

@@ -112,7 +112,7 @@ export default function QuantityQuality({
   }
 
   return (
-    <SectionCard title="Quality">
+    <div className="space-y-6">
       <div className="grid gap-6">
         {/* 1행: [Video] */}
         <div>
@@ -210,6 +210,6 @@ export default function QuantityQuality({
           </div>
         </div>
       </div>
-    </SectionCard>
+    </div>
   );
 }
