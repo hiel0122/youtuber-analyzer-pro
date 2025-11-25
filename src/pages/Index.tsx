@@ -10,7 +10,8 @@ import { ensureApiConfiguredDetailed } from "@/lib/settings/actions";
 import { toast } from "@/lib/toast";
 import { syncNewVideos, syncQuickCheck } from "@/lib/edge";
 import { fetchAllVideosByChannel } from "@/lib/supabasePaging";
-import { Video, Eye, Calendar, Users } from "lucide-react";
+import { Video, Eye, Calendar, Users, Plus, Download, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { formatInt } from "@/utils/format";
 import { formatMetric } from "@/utils/formatMetric";
 import { useDataContext } from "@/contexts/DataContext";
@@ -611,21 +612,54 @@ const Index = () => {
         </AlertDialog>
 
         <div className="container mx-auto px-4 py-8">
-          {/* Header */}
-          <header className="text-center mb-12">
-            <h1 className="section-title text-5xl font-bold mb-4">
-              YouTube Channel Analyzer
-            </h1>
-            <p className="text-muted-foreground text-lg">유튜브 채널의 영상 데이터를 분석하고 시각화하세요</p>
-          </header>
+          <div className="space-y-6 w-full min-w-0">
+            {/* 페이지 헤더 */}
+            <div className="flex flex-col gap-4">
+              {/* 상단: 제목 + 설명 */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h1 className="text-3xl font-bold text-white tracking-tight">
+                    Dashboard
+                  </h1>
+                  <p className="text-sm text-gray-400 mt-1">
+                    유튜브 채널의 상세 데이터를 분석하고 시각화합니다
+                  </p>
+                </div>
+                
+                {/* 액션 버튼 그룹 */}
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    Export
+                  </Button>
+                  <Button 
+                    size="sm"
+                    className="bg-blue-500 hover:bg-blue-600 gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    New Analysis
+                  </Button>
+                </div>
+              </div>
 
-          {/* Channel Input */}
-          <div className="flex flex-col items-center mb-12">
-            <ChannelInput onAnalyze={handleAnalyze} loading={isLoading} />
-          </div>
+              {/* 채널 입력 카드 */}
+              <div className="bg-[#141414] rounded-xl p-6 border border-[#27272a]">
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center gap-2">
+                    <Search className="h-5 w-5 text-gray-400" />
+                    <h2 className="text-lg font-semibold text-white">채널 분석</h2>
+                  </div>
+                  <ChannelInput onAnalyze={handleAnalyze} loading={isLoading} />
+                </div>
+              </div>
+            </div>
 
-          {/* Channel Summary */}
-          <section className="mb-8">
+            {/* Channel Summary */}
+            <section className="mb-8">
             <SectionCard title="Summary">
               <ChannelSummary 
                 channelId={currentChannelId}
@@ -716,8 +750,9 @@ const Index = () => {
             </div>
           </section>
 
-          {/* Video Table */}
-          <VideoTable videos={videos} loading={isSkeleton} />
+            {/* Video Table */}
+            <VideoTable videos={videos} loading={isSkeleton} />
+          </div>
         </div>
       </div>
 
