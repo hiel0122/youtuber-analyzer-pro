@@ -10,7 +10,7 @@ import { ensureApiConfiguredDetailed } from "@/lib/settings/actions";
 import { toast } from "@/lib/toast";
 import { syncNewVideos, syncQuickCheck } from "@/lib/edge";
 import { fetchAllVideosByChannel } from "@/lib/supabasePaging";
-import { Video, Eye, Calendar, Users, Plus, Download, Search } from "lucide-react";
+import { Video, Eye, Calendar, Users, Plus, Download, Search, BarChart3, ThumbsUp, TrendingUp, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatInt } from "@/utils/format";
 import { formatMetric } from "@/utils/formatMetric";
@@ -673,53 +673,136 @@ const Index = () => {
             </SectionCard>
           </section>
 
-          {/* Quantity Section */}
-          <section className="mb-8">
-            <SectionCard title="Quantity">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <MetricsCard
-                  title="총 구독자 수"
-                  value={
-                    <div className="flex items-center gap-2">
-                      <span>
-                        {formatMetric(subscriberCount, {
-                          showPlus: true,
-                          isLoaded,
-                          hasData
-                        })}
-                      </span>
-                      {hiddenSubscriber && (
-                        <Badge variant="secondary" className="text-xs">
-                          숨김
-                        </Badge>
-                      )}
+          {hasData && (
+            <>
+              {/* Overview Stats - 6개 메트릭 카드 */}
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 mb-8">
+                {/* Card 1: 총 구독자 */}
+                <div className="bg-[#141414] rounded-xl p-4 border border-[#27272a] hover:shadow-lg transition-all">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2 text-gray-400">
+                      <Users className="w-4 h-4" />
+                      <span className="text-xs font-medium">Total Subscribers</span>
                     </div>
-                  }
-                  icon={Users}
-                  description="채널 구독자"
-                  infoTooltip="YouTube API 특성상 대형 채널의 구독자 수는 반올림/비공개 등으로 정확치 않을 수 있습니다."
-                />
-                <MetricsCard 
-                  title="총 영상 수" 
-                  value={formatMetric(totalVideos, { isLoaded, hasData })} 
-                  icon={Video} 
-                  description="분석된 영상" 
-                />
-                <MetricsCard
-                  title="총 조회수"
-                  value={formatMetric(channelTotalViews || totalViews, { isLoaded, hasData })}
-                  icon={Eye}
-                  description="전체 조회수"
-                />
-                <MetricsCard 
-                  title="최근 업로드" 
-                  value={latestUpload} 
-                  icon={Calendar} 
-                  description="마지막 업로드일" 
-                />
+                    <div className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500">
+                      <TrendingUp className="w-3 h-3" />
+                      <span>+20.1%</span>
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-white mb-1">
+                    {formatMetric(channelStats?.subscriberCount || 0)}
+                  </div>
+                  <p className="text-xs text-gray-500">총 구독자 수</p>
+                </div>
+
+                {/* Card 2: 총 영상 수 */}
+                <div className="bg-[#141414] rounded-xl p-4 border border-[#27272a] hover:shadow-lg transition-all">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2 text-gray-400">
+                      <Video className="w-4 h-4" />
+                      <span className="text-xs font-medium">Total Videos</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500">
+                      <TrendingUp className="w-3 h-3" />
+                      <span>+12.5%</span>
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-white mb-1">
+                    {formatInt(videoRows.length)}
+                  </div>
+                  <p className="text-xs text-gray-500">총 영상 수</p>
+                </div>
+
+                {/* Card 3: 총 조회수 */}
+                <div className="bg-[#141414] rounded-xl p-4 border border-[#27272a] hover:shadow-lg transition-all">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2 text-gray-400">
+                      <Eye className="w-4 h-4" />
+                      <span className="text-xs font-medium">Total Views</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500">
+                      <TrendingUp className="w-3 h-3" />
+                      <span>+19.3%</span>
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-white mb-1">
+                    {formatMetric(
+                      videoRows.reduce((sum, v) => sum + (v.views || 0), 0)
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500">총 조회수</p>
+                </div>
+
+                {/* Card 4: 평균 조회수 */}
+                <div className="bg-[#141414] rounded-xl p-4 border border-[#27272a] hover:shadow-lg transition-all">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2 text-gray-400">
+                      <BarChart3 className="w-4 h-4" />
+                      <span className="text-xs font-medium">Avg Views</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-red-500/10 text-red-500">
+                      <TrendingDown className="w-3 h-3" />
+                      <span>-4.3%</span>
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-white mb-1">
+                    {formatMetric(
+                      videoRows.length > 0 
+                        ? Math.round(
+                            videoRows.reduce((sum, v) => sum + (v.views || 0), 0) / 
+                            videoRows.length
+                          )
+                        : 0
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500">영상당 평균 조회수</p>
+                </div>
+
+                {/* Card 5: 최근 업로드 */}
+                <div className="bg-[#141414] rounded-xl p-4 border border-[#27272a] hover:shadow-lg transition-all">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2 text-gray-400">
+                      <Calendar className="w-4 h-4" />
+                      <span className="text-xs font-medium">Latest Upload</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500">
+                      <TrendingUp className="w-3 h-3" />
+                      <span>+5.3%</span>
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-white mb-1">
+                    {videoRows[0]?.upload_date 
+                      ? new Date(videoRows[0].upload_date).toLocaleDateString('ko-KR', {
+                          month: 'short',
+                          day: 'numeric'
+                        })
+                      : '-'}
+                  </div>
+                  <p className="text-xs text-gray-500">최근 업로드 날짜</p>
+                </div>
+
+                {/* Card 6: 총 좋아요 */}
+                <div className="bg-[#141414] rounded-xl p-4 border border-[#27272a] hover:shadow-lg transition-all">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2 text-gray-400">
+                      <ThumbsUp className="w-4 h-4" />
+                      <span className="text-xs font-medium">Total Likes</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500">
+                      <TrendingUp className="w-3 h-3" />
+                      <span>+15.7%</span>
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-white mb-1">
+                    {formatMetric(
+                      videoRows.reduce((sum, v) => sum + (v.likes || 0), 0)
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500">총 좋아요 수</p>
+                </div>
               </div>
-            </SectionCard>
-          </section>
+            </>
+          )}
 
           {/* Quality Section - 5 Rows */}
           <section className="mb-12">
