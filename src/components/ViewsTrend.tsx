@@ -89,6 +89,8 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
           activeDot={{ r: 6, fill: '#3b82f6' }}
           fill="url(#colorViews)"
           name="조회수"
+          animationDuration={1500}
+          animationEasing="ease-in-out"
         />
         
         <Line 
@@ -100,6 +102,8 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
           activeDot={{ r: 5, fill: '#10b981' }}
           fill="url(#colorLikes)"
           name="좋아요"
+          animationDuration={1500}
+          animationEasing="ease-in-out"
         />
       </LineChart>
     </ResponsiveContainer>

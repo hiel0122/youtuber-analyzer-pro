@@ -75,6 +75,8 @@ export function TopVideosChart({ videos, loading, compact = false }: TopVideosCh
           dataKey="views" 
           fill="url(#barGradient)"
           radius={[6, 6, 0, 0]}
+          animationDuration={1200}
+          animationEasing="ease-out"
         />
       </BarChart>
     </ResponsiveContainer>
