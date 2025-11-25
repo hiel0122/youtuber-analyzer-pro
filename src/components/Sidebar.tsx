@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useAnalysisLogs } from '@/contexts/AnalysisLogsContext';
@@ -214,10 +215,13 @@ export function Sidebar() {
                     </div>
                   ) : (
                     historyItems.map((log) => (
-                      <button
+                      <motion.button
                         key={log.id}
                         onClick={() => handleHistoryClick(log)}
-                        className="w-full group flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#27272a] transition-colors"
+                        className="w-full group flex items-center gap-3 px-3 py-2 rounded-lg transition-colors"
+                        whileHover={{ x: 4, backgroundColor: "rgba(39, 39, 42, 1)" }}
+                        whileTap={{ scale: 0.98 }}
+                        transition={{ duration: 0.15 }}
                       >
                         <div className="w-10 h-10 rounded-lg bg-[#27272a] flex items-center justify-center flex-shrink-0">
                           <Video className="w-5 h-5 text-gray-400" />
@@ -245,7 +249,7 @@ export function Sidebar() {
                         >
                           <X className="h-3.5 w-3.5" />
                         </Button>
-                      </button>
+                      </motion.button>
                     ))
                   )}
                 </div>
@@ -320,7 +324,7 @@ function NavItem({
   badge?: string;
 }) {
   return (
-    <button
+    <motion.button
       onClick={onClick}
       className={cn(
         "w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors group",
@@ -328,6 +332,9 @@ function NavItem({
           ? "bg-blue-500/10 text-blue-500" 
           : "text-gray-400 hover:bg-[#27272a] hover:text-white"
       )}
+      whileHover={{ x: 4 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ duration: 0.15 }}
     >
       <div className="flex items-center gap-3">
         <Icon className="w-4 h-4 flex-shrink-0" />
@@ -344,6 +351,6 @@ function NavItem({
           {badge}
         </Badge>
       )}
-    </button>
+    </motion.button>
   );
 }

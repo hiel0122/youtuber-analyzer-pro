@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Copy } from "lucide-react";
@@ -88,25 +89,66 @@ export const VideoTable = ({ videos, loading }: VideoTableProps) => {
               </TableRow>
             ) : (
               currentVideos.map((video) => (
-                <TableRow key={video.videoId} className="hover:bg-secondary/30 transition-colors">
-                  <TableCell className="text-center whitespace-nowrap text-foreground">{video.topic}</TableCell>
-                  <TableCell className="max-w-[400px] truncate text-foreground" title={video.title}>
+                <TableRow key={video.videoId}>
+                  <motion.td
+                    whileHover={{ backgroundColor: "rgba(39, 39, 42, 0.5)" }}
+                    transition={{ duration: 0.15 }}
+                    className="text-center whitespace-nowrap text-foreground border-b"
+                  >
+                    {video.topic}
+                  </motion.td>
+                  <motion.td
+                    whileHover={{ backgroundColor: "rgba(39, 39, 42, 0.5)" }}
+                    transition={{ duration: 0.15 }}
+                    className="max-w-[400px] truncate text-foreground border-b"
+                    title={video.title}
+                  >
                     {video.title}
-                  </TableCell>
-                  <TableCell className="text-center whitespace-nowrap text-foreground font-medium">{formatInt(video.views)}</TableCell>
-                  <TableCell className="text-center whitespace-nowrap text-foreground font-medium">{formatInt(video.likes)}</TableCell>
-                  <TableCell className="text-center whitespace-nowrap text-foreground">{video.uploadDate}</TableCell>
-                  <TableCell className="text-center whitespace-nowrap text-foreground">{video.duration}</TableCell>
-                  <TableCell className="text-center whitespace-nowrap">
+                  </motion.td>
+                  <motion.td
+                    whileHover={{ backgroundColor: "rgba(39, 39, 42, 0.5)" }}
+                    transition={{ duration: 0.15 }}
+                    className="text-center whitespace-nowrap text-foreground font-medium border-b"
+                  >
+                    {formatInt(video.views)}
+                  </motion.td>
+                  <motion.td
+                    whileHover={{ backgroundColor: "rgba(39, 39, 42, 0.5)" }}
+                    transition={{ duration: 0.15 }}
+                    className="text-center whitespace-nowrap text-foreground font-medium border-b"
+                  >
+                    {formatInt(video.likes)}
+                  </motion.td>
+                  <motion.td
+                    whileHover={{ backgroundColor: "rgba(39, 39, 42, 0.5)" }}
+                    transition={{ duration: 0.15 }}
+                    className="text-center whitespace-nowrap text-foreground border-b"
+                  >
+                    {video.uploadDate}
+                  </motion.td>
+                  <motion.td
+                    whileHover={{ backgroundColor: "rgba(39, 39, 42, 0.5)" }}
+                    transition={{ duration: 0.15 }}
+                    className="text-center whitespace-nowrap text-foreground border-b"
+                  >
+                    {video.duration}
+                  </motion.td>
+                  <motion.td
+                    whileHover={{ backgroundColor: "rgba(39, 39, 42, 0.5)" }}
+                    transition={{ duration: 0.15 }}
+                    className="text-center whitespace-nowrap border-b"
+                  >
                     <div className="flex items-center justify-center gap-2">
-                      <a
+                      <motion.a
                         href={video.url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-primary hover:text-primary/80 transition-colors underline decoration-dotted"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                       >
                         보기
-                      </a>
+                      </motion.a>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -117,7 +159,7 @@ export const VideoTable = ({ videos, loading }: VideoTableProps) => {
                         <Copy className="h-3.5 w-3.5" />
                       </Button>
                     </div>
-                  </TableCell>
+                  </motion.td>
                 </TableRow>
               ))
             )}
