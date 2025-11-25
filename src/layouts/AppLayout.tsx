@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from '@/components/Sidebar';
 import { Topbar } from '@/components/Topbar';
+import { RightActivity } from '@/components/RightActivity';
 import { AnalysisLogsProvider } from '@/contexts/AnalysisLogsContext';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -18,10 +19,15 @@ export function AppLayout() {
           {/* 상단 헤더 */}
           <Topbar />
           
-          {/* 메인 콘텐츠 영역 */}
-          <main className="flex-1 overflow-y-auto p-6">
-            <Outlet />
-          </main>
+          {/* 메인 콘텐츠 영역과 우측 Activity */}
+          <div className="flex-1 flex overflow-hidden">
+            <main className="flex-1 overflow-y-auto p-6">
+              <Outlet />
+            </main>
+            
+            {/* 우측 Activity 추가 */}
+            <RightActivity />
+          </div>
         </div>
       </div>
     </AnalysisLogsProvider>
