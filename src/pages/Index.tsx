@@ -817,21 +817,45 @@ const Index = () => {
             />
           </section>
 
-          {/* Views Trend & Top Videos Chart - Side by Side */}
-          <section className="mb-12">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <ViewsTrend 
-                videos={videoRows} 
-                loading={isSkeleton}
-                channelTotalViews={channelStats?.totalViews}
-              />
-              <TopVideosChart 
-                videos={videos} 
-                loading={isSkeleton}
-                channelTotalViews={channelStats?.totalViews}
-              />
-            </div>
-          </section>
+          {hasData && (
+            <>
+              {/* 차트 섹션 - 2열 그리드 */}
+              <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
+                {/* Sales Overview - 조회수 추이 */}
+                <div className="bg-[#141414] rounded-xl p-6 border border-[#27272a]">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">조회수 추이</h3>
+                      <p className="text-sm text-gray-500 mt-1">최근 30개 영상의 조회수와 좋아요</p>
+                    </div>
+                    <select className="px-3 py-1.5 bg-[#27272a] border border-[#27272a] rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      <option>Last 3 months</option>
+                      <option>Last 6 months</option>
+                      <option>Last year</option>
+                      <option>All time</option>
+                    </select>
+                  </div>
+                  <ViewsTrend
+                    videos={videoRows}
+                    loading={loading}
+                    channelTotalViews={videoRows.reduce((sum, v) => sum + (v.views || 0), 0)}
+                  />
+                </div>
+
+                {/* Weekly Revenue - 상위 영상 */}
+                <div className="bg-[#141414] rounded-xl p-6 border border-[#27272a]">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">조회수 순위</h3>
+                      <p className="text-sm text-gray-500 mt-1">가장 인기 있는 영상 Top 10</p>
+                    </div>
+                    <span className="text-sm text-gray-400 font-medium">Top 10</span>
+                  </div>
+                  <TopVideosChart videos={videoRows} loading={loading} />
+                </div>
+              </div>
+            </>
+          )}
 
             {/* Video Table */}
             <VideoTable videos={videos} loading={isSkeleton} />
