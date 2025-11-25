@@ -6,6 +6,52 @@
 
 @layer base {
   body { @apply antialiased; }
+  
+  /* Smooth Scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Better scrolling on mobile */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* Design tokens locked in tokens.css */
+
+/* Smooth Transitions */
+* {
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Exclude animated elements from global transition */
+*:where([class*="animate-"], [class*="motion-"], [data-motion]) {
+  transition: none !important;
+}
+
+/* Focus visible styles */
+*:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Selection styles */
+::selection {
+  background-color: hsl(var(--primary) / 0.3);
+  color: hsl(var(--foreground));
+}
+
+/* Smooth image rendering */
+img {
+  image-rendering: -webkit-optimize-contrast;
+}
+
+/* Scrollbar hover effect */
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+  cursor: pointer;
+}
