@@ -658,20 +658,23 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Channel Summary */}
-            <section className="mb-8">
-            <SectionCard title="Summary">
-              <ChannelSummary 
-                channelId={currentChannelId}
-                channelName={summaryChannelName || currentChannelName}
-                videos={summaryVideos as any}
-                uploadFrequency={summaryUploadFreq as any}
-              />
-              {loadingSummary && (
-                <div className="mt-2 text-sm text-muted-foreground">요약 데이터를 불러오는 중…</div>
-              )}
-            </SectionCard>
-          </section>
+          {hasData && (
+            <>
+              {/* Channel Summary 섹션 */}
+              <div className="bg-[#141414] rounded-xl p-6 border border-[#27272a]">
+                <div className="flex items-center gap-2 mb-4">
+                  <Video className="h-5 w-5 text-blue-500" />
+                  <h3 className="text-lg font-semibold text-white">채널 요약</h3>
+                </div>
+                <ChannelSummary
+                  channelId={currentChannelId}
+                  channelName={summaryChannelName || currentChannelName}
+                  videos={summaryVideos as any}
+                  uploadFrequency={summaryUploadFreq as any}
+                />
+              </div>
+            </>
+          )}
 
           {hasData && (
             <>
@@ -804,18 +807,29 @@ const Index = () => {
             </>
           )}
 
-          {/* Quality Section - 5 Rows */}
-          <section className="mb-12">
-            <QuantityQuality 
-              videos={videoRows} 
-              loading={false} 
-              uploadFrequency={uploadFrequency}
-              subscriptionRates={subscriptionRates}
-              commentStats={commentStats}
-              isLoaded={isLoaded}
-              hasData={hasData}
-            />
-          </section>
+          {hasData && (
+            <>
+              {/* Quality Metrics 섹션 */}
+              <div className="bg-[#141414] rounded-xl p-6 border border-[#27272a]">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5 text-purple-500" />
+                    <h3 className="text-lg font-semibold text-white">Quality Metrics</h3>
+                  </div>
+                  <span className="text-sm text-gray-400">영상 품질 지표</span>
+                </div>
+                <QuantityQuality
+                  videos={videoRows}
+                  uploadFrequency={uploadFrequency}
+                  subscriptionRates={subscriptionRates}
+                  commentStats={commentStats}
+                  loading={false}
+                  isLoaded={isLoaded}
+                  hasData={hasData}
+                />
+              </div>
+            </>
+          )}
 
           {hasData && (
             <>
@@ -857,8 +871,28 @@ const Index = () => {
             </>
           )}
 
-            {/* Video Table */}
-            <VideoTable videos={videos} loading={isSkeleton} />
+            {hasData && (
+              <>
+                {/* Recent Orders - 영상 목록 테이블 */}
+                <div className="bg-[#141414] rounded-xl border border-[#27272a] overflow-hidden">
+                  <div className="p-6 border-b border-[#27272a]">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Video className="h-5 w-5 text-green-500" />
+                        <h3 className="text-lg font-semibold text-white">채널 영상 목록</h3>
+                      </div>
+                      <button className="text-sm text-blue-500 hover:text-blue-400 font-medium transition-colors">
+                        View all →
+                      </button>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1">
+                      총 {videoRows.length.toLocaleString('ko-KR')}개 영상
+                    </p>
+                  </div>
+                  <VideoTable videos={videos} loading={isSkeleton} />
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

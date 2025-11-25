@@ -166,7 +166,7 @@ export default function ChannelSummary({
   const fmt = (d: Date) => d.toISOString().slice(0, 10);
 
   return (
-    <div className="rounded-2xl bg-card border border-border px-6 py-5 mb-6">
+    <div className="space-y-4">
       <div className="flex items-start gap-4">
         {/* 아바타 */}
         <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground text-lg font-semibold shrink-0">
