@@ -169,7 +169,7 @@ export const VideoTable = ({ videos, loading }: VideoTableProps) => {
 
       {videos.length > pageSize && (
         <>
-          <div className="flex items-center justify-center gap-2 p-6 border-t border-[#27272a] bg-[#0a0a0a]">
+          <div className="flex items-center justify-center gap-2 p-6 border-t border-border bg-background">
             <Button
               variant="outline"
               size="icon"
@@ -208,9 +208,9 @@ export const VideoTable = ({ videos, loading }: VideoTableProps) => {
           </div>
 
           {/* Pagination hint */}
-          <div className="px-6 py-4 border-t border-[#27272a] bg-[#0a0a0a]">
+          <div className="px-6 py-4 border-t border-border bg-background">
             <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Showing {startIdx + 1}-{Math.min(endIdx, videos.length)} of {videos.length.toLocaleString('ko-KR')} videos
               </p>
             </div>

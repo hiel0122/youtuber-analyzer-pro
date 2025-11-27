@@ -34,7 +34,7 @@ const App = () => (
           toastOptions={{
             duration: 2200,
             className:
-              "rounded-xl border border-white/10 bg-[var(--modal-bg,#0F1117)] text-white shadow-xl",
+              "rounded-xl border border-border bg-card text-card-foreground shadow-xl",
             style: {
               boxShadow: "0 10px 30px rgba(0,0,0,.35)",
               backdropFilter: "blur(6px)",
