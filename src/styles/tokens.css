@@ -21,6 +21,11 @@
   --ring: #3b82f6 !important;
   --radius: 0.75rem !important;
 
+  /* Text hierarchy (semantic) */
+  --text-primary: #fafafa !important;      /* Main text (titles, important info) */
+  --text-secondary: #a1a1aa !important;    /* Secondary text (labels, icons) */
+  --text-muted: #71717a !important;        /* Muted text (descriptions, meta) */
+
   /* Chart Colors */
   --chart-1: #3b82f6 !important;
   --chart-2: #10b981 !important;
@@ -54,6 +59,11 @@
   --input: #e5e7eb !important;
   --ring: #3b82f6 !important;
   --radius: 0.75rem !important;
+
+  /* Text hierarchy (semantic) */
+  --text-primary: #18181b !important;      /* Main text (almost black) */
+  --text-secondary: #52525b !important;    /* Secondary text (dark gray) */
+  --text-muted: #71717a !important;        /* Muted text (medium gray) */
 
   /* Chart Colors (same for both modes) */
   --chart-1: #3b82f6 !important;

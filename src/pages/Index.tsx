@@ -626,10 +626,10 @@ const Index = () => {
                 {/* 상단: 제목 + 설명 */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <h1 className="text-3xl font-bold text-white tracking-tight">
+                    <h1 className="text-3xl font-bold text-foreground tracking-tight">
                       Dashboard
                     </h1>
-                    <p className="text-sm text-gray-400 mt-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                       유튜브 채널의 상세 데이터를 분석하고 시각화합니다
                     </p>
                   </div>
@@ -655,11 +655,11 @@ const Index = () => {
                 </div>
 
                 {/* 채널 입력 카드 */}
-                <div className="bg-[#141414] rounded-xl p-6 border border-[#27272a]">
+                <div className="bg-card rounded-xl p-6 border border-border">
                   <div className="flex flex-col gap-4">
                     <div className="flex items-center gap-2">
-                      <Search className="h-5 w-5 text-gray-400" />
-                      <h2 className="text-lg font-semibold text-white">채널 분석</h2>
+                      <Search className="h-5 w-5 text-muted-foreground" />
+                      <h2 className="text-lg font-semibold text-foreground">채널 분석</h2>
                     </div>
                     <ChannelInput onAnalyze={handleAnalyze} loading={isLoading} />
                   </div>
@@ -680,10 +680,10 @@ const Index = () => {
             <>
               {/* Channel Summary 섹션 */}
               <FadeIn delay={0.1}>
-                <div className="bg-[#141414] rounded-xl p-6 border border-[#27272a]">
+                <div className="bg-card rounded-xl p-6 border border-border">
                   <div className="flex items-center gap-2 mb-4">
                   <Video className="h-5 w-5 text-blue-500" />
-                  <h3 className="text-lg font-semibold text-white">채널 요약</h3>
+                  <h3 className="text-lg font-semibold text-foreground">채널 요약</h3>
                 </div>
                 <ChannelSummary
                   channelId={currentChannelId}
@@ -704,7 +704,7 @@ const Index = () => {
                   {/* Card 1: 총 구독자 */}
                   <FadeInStaggerItem>
                     <motion.div 
-                      className="bg-[#141414] rounded-xl p-4 border border-[#27272a] cursor-pointer"
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
                       whileHover={{ 
                         scale: 1.02,
                         borderColor: "rgba(59, 130, 246, 0.3)",
@@ -713,7 +713,7 @@ const Index = () => {
                       transition={{ duration: 0.2 }}
                     >
                       <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2 text-gray-400">
+                        <div className="flex items-center gap-2 text-secondary-foreground">
                           <Users className="w-4 h-4" />
                           <span className="text-xs font-medium">Total Subscribers</span>
                         </div>
@@ -722,17 +722,17 @@ const Index = () => {
                           <span>+20.1%</span>
                         </div>
                       </div>
-                      <div className="text-2xl font-bold text-white mb-1">
+                      <div className="text-2xl font-bold text-foreground mb-1">
                         {formatMetric(channelStats?.subscriberCount || 0)}
                       </div>
-                      <p className="text-xs text-gray-500">총 구독자 수</p>
+                      <p className="text-xs text-muted-foreground">총 구독자 수</p>
                     </motion.div>
                   </FadeInStaggerItem>
 
                   {/* Card 2: 총 영상 수 */}
                   <FadeInStaggerItem>
                     <motion.div 
-                      className="bg-[#141414] rounded-xl p-4 border border-[#27272a] cursor-pointer"
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
                       whileHover={{ 
                         scale: 1.02,
                         borderColor: "rgba(59, 130, 246, 0.3)",
@@ -741,7 +741,7 @@ const Index = () => {
                       transition={{ duration: 0.2 }}
                     >
                       <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2 text-gray-400">
+                        <div className="flex items-center gap-2 text-secondary-foreground">
                           <Video className="w-4 h-4" />
                           <span className="text-xs font-medium">Total Videos</span>
                         </div>
@@ -750,17 +750,17 @@ const Index = () => {
                           <span>+12.5%</span>
                         </div>
                       </div>
-                      <div className="text-2xl font-bold text-white mb-1">
+                      <div className="text-2xl font-bold text-foreground mb-1">
                         {formatInt(videoRows.length)}
                       </div>
-                      <p className="text-xs text-gray-500">총 영상 수</p>
+                      <p className="text-xs text-muted-foreground">총 영상 수</p>
                     </motion.div>
                   </FadeInStaggerItem>
 
                   {/* Card 3: 총 조회수 */}
                   <FadeInStaggerItem>
                     <motion.div 
-                      className="bg-[#141414] rounded-xl p-4 border border-[#27272a] cursor-pointer"
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
                       whileHover={{ 
                         scale: 1.02,
                         borderColor: "rgba(59, 130, 246, 0.3)",
@@ -769,7 +769,7 @@ const Index = () => {
                       transition={{ duration: 0.2 }}
                     >
                       <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2 text-gray-400">
+                        <div className="flex items-center gap-2 text-secondary-foreground">
                           <Eye className="w-4 h-4" />
                           <span className="text-xs font-medium">Total Views</span>
                         </div>
@@ -778,19 +778,19 @@ const Index = () => {
                           <span>+19.3%</span>
                         </div>
                       </div>
-                      <div className="text-2xl font-bold text-white mb-1">
+                      <div className="text-2xl font-bold text-foreground mb-1">
                         {formatMetric(
                           videoRows.reduce((sum, v) => sum + (v.views || 0), 0)
                         )}
                       </div>
-                      <p className="text-xs text-gray-500">총 조회수</p>
+                      <p className="text-xs text-muted-foreground">총 조회수</p>
                     </motion.div>
                   </FadeInStaggerItem>
 
                   {/* Card 4: 평균 조회수 */}
                   <FadeInStaggerItem>
                     <motion.div 
-                      className="bg-[#141414] rounded-xl p-4 border border-[#27272a] cursor-pointer"
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
                       whileHover={{ 
                         scale: 1.02,
                         borderColor: "rgba(59, 130, 246, 0.3)",
@@ -799,7 +799,7 @@ const Index = () => {
                       transition={{ duration: 0.2 }}
                     >
                       <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2 text-gray-400">
+                        <div className="flex items-center gap-2 text-secondary-foreground">
                           <BarChart3 className="w-4 h-4" />
                           <span className="text-xs font-medium">Avg Views</span>
                         </div>
@@ -808,7 +808,7 @@ const Index = () => {
                           <span>-4.3%</span>
                         </div>
                       </div>
-                      <div className="text-2xl font-bold text-white mb-1">
+                      <div className="text-2xl font-bold text-foreground mb-1">
                         {formatMetric(
                           videoRows.length > 0 
                             ? Math.round(
@@ -818,14 +818,14 @@ const Index = () => {
                             : 0
                         )}
                       </div>
-                      <p className="text-xs text-gray-500">영상당 평균 조회수</p>
+                      <p className="text-xs text-muted-foreground">영상당 평균 조회수</p>
                     </motion.div>
                   </FadeInStaggerItem>
 
                   {/* Card 5: 최근 업로드 */}
                   <FadeInStaggerItem>
                     <motion.div 
-                      className="bg-[#141414] rounded-xl p-4 border border-[#27272a] cursor-pointer"
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
                       whileHover={{ 
                         scale: 1.02,
                         borderColor: "rgba(59, 130, 246, 0.3)",
@@ -834,7 +834,7 @@ const Index = () => {
                       transition={{ duration: 0.2 }}
                     >
                       <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2 text-gray-400">
+                        <div className="flex items-center gap-2 text-secondary-foreground">
                           <Calendar className="w-4 h-4" />
                           <span className="text-xs font-medium">Latest Upload</span>
                         </div>
@@ -843,7 +843,7 @@ const Index = () => {
                           <span>+5.3%</span>
                         </div>
                       </div>
-                      <div className="text-2xl font-bold text-white mb-1">
+                      <div className="text-2xl font-bold text-foreground mb-1">
                         {videoRows[0]?.upload_date 
                           ? new Date(videoRows[0].upload_date).toLocaleDateString('ko-KR', {
                               month: 'short',
@@ -851,14 +851,14 @@ const Index = () => {
                             })
                           : '-'}
                       </div>
-                      <p className="text-xs text-gray-500">최근 업로드 날짜</p>
+                      <p className="text-xs text-muted-foreground">최근 업로드 날짜</p>
                     </motion.div>
                   </FadeInStaggerItem>
 
                   {/* Card 6: 총 좋아요 */}
                   <FadeInStaggerItem>
                     <motion.div 
-                      className="bg-[#141414] rounded-xl p-4 border border-[#27272a] cursor-pointer"
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
                       whileHover={{ 
                         scale: 1.02,
                         borderColor: "rgba(59, 130, 246, 0.3)",
@@ -867,7 +867,7 @@ const Index = () => {
                       transition={{ duration: 0.2 }}
                     >
                       <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2 text-gray-400">
+                        <div className="flex items-center gap-2 text-secondary-foreground">
                           <ThumbsUp className="w-4 h-4" />
                           <span className="text-xs font-medium">Total Likes</span>
                         </div>
@@ -876,12 +876,12 @@ const Index = () => {
                           <span>+15.7%</span>
                         </div>
                       </div>
-                      <div className="text-2xl font-bold text-white mb-1">
+                      <div className="text-2xl font-bold text-foreground mb-1">
                         {formatMetric(
                           videoRows.reduce((sum, v) => sum + (v.likes || 0), 0)
                         )}
                       </div>
-                      <p className="text-xs text-gray-500">총 좋아요 수</p>
+                      <p className="text-xs text-muted-foreground">총 좋아요 수</p>
                     </motion.div>
                   </FadeInStaggerItem>
                 </div>
@@ -891,7 +891,7 @@ const Index = () => {
 
           {/* Quality Metrics 로딩 */}
           {loading && !hasData && (
-            <div className="bg-[#141414] rounded-xl p-6 border border-[#27272a]">
+            <div className="bg-card rounded-xl p-6 border border-border">
               <Skeleton className="h-6 w-40 mb-6" />
               <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
                 {Array.from({ length: 4 }).map((_, idx) => (
@@ -908,13 +908,13 @@ const Index = () => {
             <>
               {/* Quality Metrics 섹션 */}
               <FadeIn delay={0.3}>
-                <div className="bg-[#141414] rounded-xl p-6 border border-[#27272a]">
+                <div className="bg-card rounded-xl p-6 border border-border">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-2">
                       <BarChart3 className="h-5 w-5 text-purple-500" />
-                      <h3 className="text-lg font-semibold text-white">Quality Metrics</h3>
+                      <h3 className="text-lg font-semibold text-foreground">Quality Metrics</h3>
                     </div>
-                    <span className="text-sm text-gray-400">영상 품질 지표</span>
+                    <span className="text-sm text-muted-foreground">영상 품질 지표</span>
                   </div>
                   <QuantityQuality
                     videos={videoRows}
@@ -933,11 +933,11 @@ const Index = () => {
           {/* 차트 로딩 */}
           {loading && !hasData && (
             <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
-              <div className="bg-[#141414] rounded-xl p-6 border border-[#27272a]">
+              <div className="bg-card rounded-xl p-6 border border-border">
                 <Skeleton className="h-6 w-32 mb-6" />
                 <LoadingChart />
               </div>
-              <div className="bg-[#141414] rounded-xl p-6 border border-[#27272a]">
+              <div className="bg-card rounded-xl p-6 border border-border">
                 <Skeleton className="h-6 w-32 mb-6" />
                 <LoadingChart height={300} />
               </div>
@@ -950,13 +950,13 @@ const Index = () => {
               <FadeIn delay={0.4}>
                 <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
                   {/* Sales Overview - 조회수 추이 */}
-                  <div className="bg-[#141414] rounded-xl p-6 border border-[#27272a]">
+                  <div className="bg-card rounded-xl p-6 border border-border">
                     <div className="flex items-center justify-between mb-6">
                       <div>
-                        <h3 className="text-lg font-semibold text-white">조회수 추이</h3>
-                        <p className="text-sm text-gray-500 mt-1">최근 30개 영상의 조회수와 좋아요</p>
+                        <h3 className="text-lg font-semibold text-foreground">조회수 추이</h3>
+                        <p className="text-sm text-muted-foreground mt-1">최근 30개 영상의 조회수와 좋아요</p>
                       </div>
-                      <select className="px-3 py-1.5 bg-[#27272a] border border-[#27272a] rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      <select className="px-3 py-1.5 bg-secondary border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
                         <option>Last 3 months</option>
                         <option>Last 6 months</option>
                         <option>Last year</option>
@@ -971,13 +971,13 @@ const Index = () => {
                 </div>
 
                 {/* Weekly Revenue - 상위 영상 */}
-                <div className="bg-[#141414] rounded-xl p-6 border border-[#27272a]">
+                <div className="bg-card rounded-xl p-6 border border-border">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h3 className="text-lg font-semibold text-white">조회수 순위</h3>
-                      <p className="text-sm text-gray-500 mt-1">가장 인기 있는 영상 Top 10</p>
+                      <h3 className="text-lg font-semibold text-foreground">조회수 순위</h3>
+                      <p className="text-sm text-muted-foreground mt-1">가장 인기 있는 영상 Top 10</p>
                     </div>
-                    <span className="text-sm text-gray-400 font-medium">Top 10</span>
+                    <span className="text-sm text-muted-foreground font-medium">Top 10</span>
                   </div>
                   <TopVideosChart videos={videoRows} loading={loading} />
                 </div>
@@ -988,8 +988,8 @@ const Index = () => {
 
             {/* 테이블 로딩 */}
             {loading && !hasData && (
-              <div className="bg-[#141414] rounded-xl border border-[#27272a] overflow-hidden">
-                <div className="p-6 border-b border-[#27272a]">
+              <div className="bg-card rounded-xl border border-border overflow-hidden">
+                <div className="p-6 border-b border-border">
                   <Skeleton className="h-6 w-40 mb-2" />
                   <Skeleton className="h-4 w-32" />
                 </div>
@@ -1001,18 +1001,18 @@ const Index = () => {
               <>
                 {/* Recent Orders - 영상 목록 테이블 */}
                 <FadeIn delay={0.5}>
-                  <div className="bg-[#141414] rounded-xl border border-[#27272a] overflow-hidden">
-                    <div className="p-6 border-b border-[#27272a]">
+                  <div className="bg-card rounded-xl border border-border overflow-hidden">
+                    <div className="p-6 border-b border-border">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Video className="h-5 w-5 text-green-500" />
-                          <h3 className="text-lg font-semibold text-white">채널 영상 목록</h3>
+                          <h3 className="text-lg font-semibold text-foreground">채널 영상 목록</h3>
                         </div>
-                        <button className="text-sm text-blue-500 hover:text-blue-400 font-medium transition-colors">
+                        <button className="text-sm text-primary hover:text-primary/80 font-medium transition-colors">
                           View all →
                         </button>
                       </div>
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm text-muted-foreground mt-1">
                         총 {videoRows.length.toLocaleString('ko-KR')}개 영상
                       </p>
                     </div>
