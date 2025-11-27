@@ -32,9 +32,47 @@
   --chart-8: #6366f1 !important;
 }
 
+/* Light Mode Colors */
+.light {
+  --background: #ffffff !important;
+  --foreground: #0a0a0a !important;
+  --card: #f9fafb !important;
+  --card-foreground: #0a0a0a !important;
+  --popover: #ffffff !important;
+  --popover-foreground: #0a0a0a !important;
+  --primary: #3b82f6 !important;
+  --primary-foreground: #ffffff !important;
+  --secondary: #f3f4f6 !important;
+  --secondary-foreground: #0a0a0a !important;
+  --muted: #f3f4f6 !important;
+  --muted-foreground: #6b7280 !important;
+  --accent: #f3f4f6 !important;
+  --accent-foreground: #0a0a0a !important;
+  --destructive: #ef4444 !important;
+  --destructive-foreground: #ffffff !important;
+  --border: #e5e7eb !important;
+  --input: #e5e7eb !important;
+  --ring: #3b82f6 !important;
+  --radius: 0.75rem !important;
+
+  /* Chart Colors (same for both modes) */
+  --chart-1: #3b82f6 !important;
+  --chart-2: #10b981 !important;
+  --chart-3: #f59e0b !important;
+  --chart-4: #8b5cf6 !important;
+  --chart-5: #ec4899 !important;
+  --chart-6: #06b6d4 !important;
+  --chart-7: #f97316 !important;
+  --chart-8: #6366f1 !important;
+}
+
 html, body {
-  background: #0a0a0a;
-  color: #fafafa;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+:root {
+  color-scheme: light dark;
 }
 
 /* Scrollbar Styling */
@@ -48,10 +86,11 @@ html, body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
+  background: var(--muted);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+  background: var(--muted-foreground);
+  cursor: pointer;
 }

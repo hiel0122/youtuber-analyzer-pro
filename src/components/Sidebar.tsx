@@ -112,16 +112,16 @@ export function Sidebar() {
 
   return (
     <>
-      <aside className="w-64 bg-[#141414] border-r border-[#27272a] flex flex-col h-screen">
+      <aside className="w-64 bg-card border-r border-border flex flex-col h-screen">
         {/* 로고 영역 */}
-        <div className="h-16 flex items-center px-6 border-b border-[#27272a]">
+        <div className="h-16 flex items-center px-6 border-b border-border">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
               <Video className="w-5 h-5 text-white" />
             </div>
             <div className="flex flex-col">
-              <span className="font-bold text-white text-sm">ContentStudio</span>
-              <span className="text-xs text-gray-500">YouTube Analytics</span>
+              <span className="font-bold text-foreground text-sm">ContentStudio</span>
+              <span className="text-xs text-muted-foreground">YouTube Analytics</span>
             </div>
           </div>
         </div>
@@ -131,7 +131,7 @@ export function Sidebar() {
           <nav className="px-3 space-y-6">
             {/* OVERVIEW 섹션 */}
             <div>
-              <h3 className="px-3 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <h3 className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Overview
               </h3>
               <div className="space-y-1">
@@ -160,7 +160,7 @@ export function Sidebar() {
 
             {/* YOUTUBE ANALYTICS 섹션 */}
             <div>
-              <h3 className="px-3 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <h3 className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 YouTube Analytics
               </h3>
               <div className="space-y-1">
@@ -190,7 +190,7 @@ export function Sidebar() {
             {user && (
               <div>
                 <div className="flex items-center justify-between px-3 mb-2">
-                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     분석 기록
                   </h3>
                   {historyItems.length > 0 && (
@@ -210,7 +210,7 @@ export function Sidebar() {
                 </div>
                 <div className="space-y-1">
                   {historyItems.length === 0 ? (
-                    <div className="px-3 py-6 text-center text-sm text-gray-500">
+                    <div className="px-3 py-6 text-center text-sm text-muted-foreground">
                       분석 기록이 없습니다
                     </div>
                   ) : (
@@ -218,19 +218,19 @@ export function Sidebar() {
                       <motion.button
                         key={log.id}
                         onClick={() => handleHistoryClick(log)}
-                        className="w-full group flex items-center gap-3 px-3 py-2 rounded-lg transition-colors"
-                        whileHover={{ x: 4, backgroundColor: "rgba(39, 39, 42, 1)" }}
+                        className="w-full group flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors"
+                        whileHover={{ x: 4 }}
                         whileTap={{ scale: 0.98 }}
                         transition={{ duration: 0.15 }}
                       >
-                        <div className="w-10 h-10 rounded-lg bg-[#27272a] flex items-center justify-center flex-shrink-0">
-                          <Video className="w-5 h-5 text-gray-400" />
+                        <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
+                          <Video className="w-5 h-5 text-muted-foreground" />
                         </div>
                         <div className="flex-1 min-w-0 text-left">
-                          <p className="text-sm font-medium text-white truncate">
+                          <p className="text-sm font-medium text-foreground truncate">
                             {log.channel_name}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-muted-foreground">
                             {log.video_count?.toLocaleString('ko-KR')}개 영상 • 
                             {new Date(log.analyzed_at || log.created_at).toLocaleDateString('ko-KR', {
                               month: 'short',
@@ -259,23 +259,23 @@ export function Sidebar() {
         </ScrollArea>
 
         {/* 하단 사용자 프로필 */}
-        <div className="border-t border-[#27272a] p-4">
+        <div className="border-t border-border p-4">
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="w-full flex items-center gap-3 hover:bg-[#27272a] rounded-lg p-2 transition-colors">
+                <button className="w-full flex items-center gap-3 hover:bg-accent rounded-lg p-2 transition-colors">
                   <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-blue-500 text-white">
+                    <AvatarFallback className="bg-primary text-primary-foreground">
                       {user?.email?.[0]?.toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 text-left min-w-0">
-                    <p className="text-sm font-medium text-white truncate">
+                    <p className="text-sm font-medium text-foreground truncate">
                       {user?.email?.split('@')[0] || 'User'}
                     </p>
-                    <p className="text-xs text-gray-500">Administrator</p>
+                    <p className="text-xs text-muted-foreground">Administrator</p>
                   </div>
-                  <ChevronDown className="h-4 w-4 text-gray-500" />
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -329,8 +329,8 @@ function NavItem({
       className={cn(
         "w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors group",
         active 
-          ? "bg-blue-500/10 text-blue-500" 
-          : "text-gray-400 hover:bg-[#27272a] hover:text-white"
+          ? "bg-primary/10 text-primary" 
+          : "text-muted-foreground hover:bg-accent hover:text-foreground"
       )}
       whileHover={{ x: 4 }}
       whileTap={{ scale: 0.98 }}
@@ -345,7 +345,7 @@ function NavItem({
           variant={active ? "default" : "secondary"}
           className={cn(
             "h-5 px-1.5 text-xs",
-            active && "bg-blue-500 text-white"
+            active && "bg-primary text-primary-foreground"
           )}
         >
           {badge}
