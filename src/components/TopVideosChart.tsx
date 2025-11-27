@@ -1,4 +1,5 @@
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { useTheme } from 'next-themes';
 import { formatInt } from '@/utils/format';
 
 interface TopVideosChartProps {
@@ -8,6 +9,8 @@ interface TopVideosChartProps {
 }
 
 export function TopVideosChart({ videos, loading, compact = false }: TopVideosChartProps) {
+  const { theme } = useTheme();
+  
   if (loading) {
     return (
       <div className="h-[300px] flex items-center justify-center">
@@ -61,13 +64,18 @@ export function TopVideosChart({ videos, loading, compact = false }: TopVideosCh
         
         <Tooltip 
           contentStyle={{
-            backgroundColor: '#18181b',
-            border: '1px solid #27272a',
+            backgroundColor: theme === 'dark' ? '#18181b' : '#ffffff',
+            border: `1px solid ${theme === 'dark' ? '#27272a' : '#e5e7eb'}`,
             borderRadius: '8px',
-            color: '#fafafa'
+            color: theme === 'dark' ? '#fafafa' : '#0a0a0a'
           }}
-          labelStyle={{ color: '#fafafa', marginBottom: '4px' }}
-          cursor={{ fill: '#27272a50' }}
+          labelStyle={{ 
+            color: theme === 'dark' ? '#fafafa' : '#0a0a0a', 
+            marginBottom: '4px' 
+          }}
+          cursor={{ 
+            fill: theme === 'dark' ? '#27272a50' : '#f3f4f650' 
+          }}
           formatter={(value: any) => [formatInt(value), '조회수']}
         />
         

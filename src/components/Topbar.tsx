@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +15,6 @@ import {
   Home,
   ChevronRight,
   Search,
-  Moon,
   Bell,
   Settings,
   User,
@@ -39,37 +39,35 @@ export function Topbar() {
 
   return (
     <>
-      <header className="h-16 border-b border-[#27272a] bg-[#141414] flex items-center justify-between px-6">
+      <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6">
         {/* 왼쪽: Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-gray-400">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Home className="w-4 h-4" />
           <ChevronRight className="w-4 h-4" />
           <span>Dashboard</span>
           <ChevronRight className="w-4 h-4" />
-          <span className="text-white">YouTube Analytics</span>
+          <span className="text-foreground">YouTube Analytics</span>
         </div>
 
         {/* 오른쪽: 검색 + 액션 버튼들 */}
         <div className="flex items-center gap-3">
           {/* 검색바 */}
           <div className="relative hidden md:block">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search..."
-              className="w-64 h-9 pl-9 pr-4 bg-[#27272a] border border-[#27272a] rounded-lg text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-64 h-9 pl-9 pr-4 bg-secondary border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
 
-          {/* 다크모드 토글 */}
-          <Button variant="ghost" size="icon" className="h-9 w-9">
-            <Moon className="h-4 w-4" />
-          </Button>
+          {/* 테마 토글 */}
+          <ThemeToggle />
 
           {/* 알림 */}
           <Button variant="ghost" size="icon" className="h-9 w-9 relative">
             <Bell className="h-4 w-4" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+            <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" />
           </Button>
 
           {/* 설정 */}
@@ -85,19 +83,19 @@ export function Topbar() {
           {/* 사용자 프로필 */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-2 pl-2 ml-2 border-l border-[#27272a] hover:bg-[#27272a] rounded-lg pr-2 py-1 transition-colors">
+              <button className="flex items-center gap-2 pl-2 ml-2 border-l border-border hover:bg-accent rounded-lg pr-2 py-1 transition-colors">
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-blue-500 text-white text-xs">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                     {user?.email?.[0]?.toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden lg:block text-left">
-                  <p className="text-sm font-medium text-white">
+                  <p className="text-sm font-medium text-foreground">
                     {user?.email?.split('@')[0] || 'User'}
                   </p>
-                  <p className="text-xs text-gray-500">Administrator</p>
+                  <p className="text-xs text-muted-foreground">Administrator</p>
                 </div>
-                <ChevronDown className="h-4 w-4 text-gray-500" />
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">

@@ -1,4 +1,5 @@
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { useTheme } from 'next-themes';
 import { formatInt } from '@/utils/format';
 
 interface ViewsTrendProps {
@@ -8,6 +9,8 @@ interface ViewsTrendProps {
 }
 
 export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendProps) {
+  const { theme } = useTheme();
+  
   if (loading) {
     return (
       <div className="h-[350px] flex items-center justify-center">
@@ -66,13 +69,18 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
         
         <Tooltip
           contentStyle={{
-            backgroundColor: '#18181b',
-            border: '1px solid #27272a',
+            backgroundColor: theme === 'dark' ? '#18181b' : '#ffffff',
+            border: `1px solid ${theme === 'dark' ? '#27272a' : '#e5e7eb'}`,
             borderRadius: '8px',
-            color: '#fafafa'
+            color: theme === 'dark' ? '#fafafa' : '#0a0a0a'
           }}
-          labelStyle={{ color: '#fafafa', marginBottom: '4px' }}
-          itemStyle={{ color: '#fafafa' }}
+          labelStyle={{ 
+            color: theme === 'dark' ? '#fafafa' : '#0a0a0a', 
+            marginBottom: '4px' 
+          }}
+          itemStyle={{ 
+            color: theme === 'dark' ? '#fafafa' : '#0a0a0a'
+          }}
         />
         
         <Legend 

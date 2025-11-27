@@ -2,6 +2,7 @@ import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route, Navigate } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
 import { DataProvider } from "@/contexts/DataContext";
 import { AppLayout } from "@/layouts/AppLayout";
 import Index from "./pages/Index";
@@ -15,8 +16,14 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <DataProvider>
-      <TooltipProvider>
+    <ThemeProvider 
+      attribute="class"
+      defaultTheme="dark"
+      enableSystem={false}
+      storageKey="youtube-analyzer-theme"
+    >
+      <DataProvider>
+        <TooltipProvider>
         <Toaster
           position="top-right"
           theme="dark"
@@ -51,6 +58,7 @@ const App = () => (
         </Routes>
       </TooltipProvider>
     </DataProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
