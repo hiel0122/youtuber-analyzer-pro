@@ -1,88 +1,103 @@
-:root {
-  /* v0 CMS Dark Theme Colors */
-  --background: #0a0a0a !important;
-  --foreground: #fafafa !important;
-  --card: #141414 !important;
-  --card-foreground: #fafafa !important;
-  --popover: #141414 !important;
-  --popover-foreground: #fafafa !important;
-  --primary: #3b82f6 !important;
-  --primary-foreground: #ffffff !important;
-  --secondary: #27272a !important;
-  --secondary-foreground: #fafafa !important;
-  --muted: #27272a !important;
-  --muted-foreground: #71717a !important;
-  --accent: #27272a !important;
-  --accent-foreground: #fafafa !important;
-  --destructive: #ef4444 !important;
-  --destructive-foreground: #fafafa !important;
-  --border: #27272a !important;
-  --input: #27272a !important;
-  --ring: #3b82f6 !important;
-  --radius: 0.75rem !important;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  /* Text hierarchy (semantic) */
-  --text-primary: #fafafa !important;      /* Main text (titles, important info) */
-  --text-secondary: #a1a1aa !important;    /* Secondary text (labels, icons) */
-  --text-muted: #71717a !important;        /* Muted text (descriptions, meta) */
+@layer base {
+  :root {
+    /* v0 Light Mode Colors (HSL format) */
+    --background: 0 0% 100%;           /* white background */
+    --foreground: 0 0% 3.9%;           /* almost black text */
+    
+    --card: 0 0% 100%;                 /* card background */
+    --card-foreground: 0 0% 3.9%;      /* card text */
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    
+    --primary: 217.2 91.2% 59.8%;      /* blue #3b82f6 */
+    --primary-foreground: 0 0% 98%;
+    
+    --secondary: 0 0% 96.1%;           /* light gray background */
+    --secondary-foreground: 0 0% 9%;   /* dark text */
+    
+    --muted: 0 0% 96.1%;               /* muted background */
+    --muted-foreground: 0 0% 45.1%;    /* medium gray text */
+    
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    
+    --border: 0 0% 89.8%;              /* light border */
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    
+    /* Chart Colors */
+    --chart-1: 217.2 91.2% 59.8%;      /* blue */
+    --chart-2: 142.1 76.2% 36.3%;      /* green */
+    --chart-3: 38 92% 50%;             /* orange */
+    --chart-4: 280 65% 60%;            /* purple */
+    --chart-5: 340 75% 55%;            /* pink */
+    --chart-6: 186.2 91.4% 42.2%;      /* cyan */
+    --chart-7: 24.6 95% 53.1%;         /* orange-red */
+    --chart-8: 262.1 83.3% 57.8%;      /* indigo */
+    
+    --radius: 0.75rem;
+  }
 
-  /* Chart Colors */
-  --chart-1: #3b82f6 !important;
-  --chart-2: #10b981 !important;
-  --chart-3: #f59e0b !important;
-  --chart-4: #8b5cf6 !important;
-  --chart-5: #ec4899 !important;
-  --chart-6: #06b6d4 !important;
-  --chart-7: #f97316 !important;
-  --chart-8: #6366f1 !important;
+  .dark {
+    /* v0 Dark Mode Colors (HSL format) */
+    --background: 0 0% 3.9%;           /* almost black background */
+    --foreground: 0 0% 98%;            /* bright white text */
+    
+    --card: 0 0% 3.9%;                 /* card background */
+    --card-foreground: 0 0% 98%;       /* card text */
+    
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    
+    --primary: 217.2 91.2% 59.8%;      /* blue stays same */
+    --primary-foreground: 0 0% 98%;
+    
+    --secondary: 0 0% 14.9%;           /* dark gray background */
+    --secondary-foreground: 0 0% 98%;  /* bright text */
+    
+    --muted: 0 0% 14.9%;               /* muted background */
+    --muted-foreground: 0 0% 63.9%;    /* medium bright gray text */
+    
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    
+    --border: 0 0% 14.9%;              /* dark border */
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    
+    /* Chart Colors (same) */
+    --chart-1: 217.2 91.2% 59.8%;
+    --chart-2: 142.1 76.2% 36.3%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --chart-6: 186.2 91.4% 42.2%;
+    --chart-7: 24.6 95% 53.1%;
+    --chart-8: 262.1 83.3% 57.8%;
+    
+    --radius: 0.75rem;
+  }
 }
 
-/* Light Mode Colors */
-.light {
-  --background: #ffffff !important;
-  --foreground: #0a0a0a !important;
-  --card: #f9fafb !important;
-  --card-foreground: #0a0a0a !important;
-  --popover: #ffffff !important;
-  --popover-foreground: #0a0a0a !important;
-  --primary: #3b82f6 !important;
-  --primary-foreground: #ffffff !important;
-  --secondary: #f3f4f6 !important;
-  --secondary-foreground: #0a0a0a !important;
-  --muted: #f3f4f6 !important;
-  --muted-foreground: #6b7280 !important;
-  --accent: #f3f4f6 !important;
-  --accent-foreground: #0a0a0a !important;
-  --destructive: #ef4444 !important;
-  --destructive-foreground: #ffffff !important;
-  --border: #e5e7eb !important;
-  --input: #e5e7eb !important;
-  --ring: #3b82f6 !important;
-  --radius: 0.75rem !important;
-
-  /* Text hierarchy (semantic) */
-  --text-primary: #18181b !important;      /* Main text (almost black) */
-  --text-secondary: #52525b !important;    /* Secondary text (dark gray) */
-  --text-muted: #71717a !important;        /* Muted text (medium gray) */
-
-  /* Chart Colors (same for both modes) */
-  --chart-1: #3b82f6 !important;
-  --chart-2: #10b981 !important;
-  --chart-3: #f59e0b !important;
-  --chart-4: #8b5cf6 !important;
-  --chart-5: #ec4899 !important;
-  --chart-6: #06b6d4 !important;
-  --chart-7: #f97316 !important;
-  --chart-8: #6366f1 !important;
-}
-
-html, body {
-  background: var(--background);
-  color: var(--foreground);
-}
-
-:root {
-  color-scheme: light dark;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+  }
 }
 
 /* Scrollbar Styling */
@@ -96,11 +111,11 @@ html, body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--muted);
+  background: hsl(var(--muted));
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--muted-foreground);
+  background: hsl(var(--muted-foreground));
   cursor: pointer;
 }

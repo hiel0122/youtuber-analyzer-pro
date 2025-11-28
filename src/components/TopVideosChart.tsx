@@ -42,23 +42,23 @@ export function TopVideosChart({ videos, loading, compact = false }: TopVideosCh
         
         <CartesianGrid 
           strokeDasharray="3 3" 
-          stroke="#27272a" 
+          stroke={theme === 'dark' ? '#262626' : '#e5e5e5'} 
           vertical={false} 
         />
         
         <XAxis 
           dataKey="name" 
-          stroke="#71717a"
-          tick={{ fill: '#71717a', fontSize: 11 }}
-          axisLine={{ stroke: '#27272a' }}
-          tickLine={{ stroke: '#27272a' }}
+          stroke={theme === 'dark' ? '#737373' : '#737373'}
+          tick={{ fill: theme === 'dark' ? '#a3a3a3' : '#737373', fontSize: 11 }}
+          axisLine={{ stroke: theme === 'dark' ? '#262626' : '#e5e5e5' }}
+          tickLine={{ stroke: theme === 'dark' ? '#262626' : '#e5e5e5' }}
         />
         
         <YAxis 
-          stroke="#71717a"
-          tick={{ fill: '#71717a', fontSize: 11 }}
-          axisLine={{ stroke: '#27272a' }}
-          tickLine={{ stroke: '#27272a' }}
+          stroke={theme === 'dark' ? '#737373' : '#737373'}
+          tick={{ fill: theme === 'dark' ? '#a3a3a3' : '#737373', fontSize: 11 }}
+          axisLine={{ stroke: theme === 'dark' ? '#262626' : '#e5e5e5' }}
+          tickLine={{ stroke: theme === 'dark' ? '#262626' : '#e5e5e5' }}
           tickFormatter={(value) => formatInt(value)}
         />
         
