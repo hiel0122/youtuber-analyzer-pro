@@ -1,9 +1,20 @@
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { useTheme } from 'next-themes';
 import { formatInt } from '@/utils/format';
+import { CustomTooltip } from './CustomTooltip';
+
+interface Video {
+  title?: string;
+  views?: number;
+  likes?: number;
+  upload_date?: string;
+  duration?: string;
+  topic?: string;
+  channel_name?: string;
+}
 
 interface TopVideosChartProps {
-  videos: any[];
+  videos: Video[];
   loading?: boolean;
   compact?: boolean;
 }
@@ -26,8 +37,18 @@ export function TopVideosChart({ videos, loading, compact = false }: TopVideosCh
 
   const chartData = topVideos.map((video, index) => ({
     name: `#${index + 1}`,
-    title: video.title.length > 20 ? video.title.substring(0, 20) + '...' : video.title,
+    title: video.title && video.title.length > 20 ? video.title.substring(0, 20) + '...' : video.title || `영상 ${index + 1}`,
     views: video.views || 0,
+    // 원본 영상 데이터 포함
+    videoData: {
+      title: video.title,
+      channelName: video.channel_name,
+      views: video.views,
+      likes: video.likes,
+      upload_date: video.upload_date,
+      duration: video.duration,
+      topic: video.topic,
+    },
   }));
 
   return (
@@ -62,27 +83,22 @@ export function TopVideosChart({ videos, loading, compact = false }: TopVideosCh
           tickFormatter={(value) => formatInt(value)}
         />
         
-        <Tooltip 
-          contentStyle={{
-            backgroundColor: theme === 'dark' ? '#18181b' : '#ffffff',
-            border: `1px solid ${theme === 'dark' ? '#27272a' : '#e5e7eb'}`,
-            borderRadius: '8px',
-            color: theme === 'dark' ? '#fafafa' : '#0a0a0a'
-          }}
-          labelStyle={{ 
-            color: theme === 'dark' ? '#fafafa' : '#0a0a0a', 
-            marginBottom: '4px' 
-          }}
-          cursor={{ 
-            fill: theme === 'dark' ? '#27272a50' : '#f3f4f650' 
-          }}
-          formatter={(value: any) => [formatInt(value), '조회수']}
+        <Tooltip
+          content={({ active, payload }) => (
+            <CustomTooltip
+              active={active}
+              payload={payload}
+              videoData={payload?.[0]?.payload?.videoData}
+            />
+          )}
+          cursor={{ fill: theme === 'dark' ? '#27272a50' : '#f3f4f650' }}
         />
         
         <Bar 
           dataKey="views" 
           fill="url(#barGradient)"
           radius={[6, 6, 0, 0]}
+          maxBarSize={60}
           animationDuration={1200}
           animationEasing="ease-out"
         />

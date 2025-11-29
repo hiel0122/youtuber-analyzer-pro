@@ -964,7 +964,10 @@ const Index = () => {
                       </select>
                   </div>
                   <ViewsTrend
-                    videos={videoRows}
+                    videos={videoRows.map(video => ({
+                      ...video,
+                      channel_name: summaryChannelName || currentChannelName,
+                    }))}
                     loading={loading}
                     channelTotalViews={videoRows.reduce((sum, v) => sum + (v.views || 0), 0)}
                   />
@@ -979,7 +982,13 @@ const Index = () => {
                     </div>
                     <span className="text-sm text-muted-foreground font-medium">Top 10</span>
                   </div>
-                  <TopVideosChart videos={videoRows} loading={loading} />
+                  <TopVideosChart 
+                    videos={videoRows.map(video => ({
+                      ...video,
+                      channel_name: summaryChannelName || currentChannelName,
+                    }))}
+                    loading={loading}
+                  />
                 </div>
               </div>
               </FadeIn>
