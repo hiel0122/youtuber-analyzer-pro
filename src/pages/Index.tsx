@@ -712,20 +712,24 @@ const Index = () => {
                       }}
                       transition={{ duration: 0.2 }}
                     >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2 text-secondary-foreground">
-                          <Users className="w-4 h-4" />
-                          <span className="text-xs font-medium">Total Subscribers</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500">
-                          <TrendingUp className="w-3 h-3" />
-                          <span>+20.1%</span>
-                        </div>
+                      <div className="flex items-center gap-2 text-secondary-foreground mb-3">
+                        <Users className="w-4 h-4" />
+                        <span className="text-xs font-medium">Total Subscribers</span>
                       </div>
-                      <div className="text-2xl font-bold text-foreground mb-1">
+                      <div className="text-2xl font-bold text-foreground mb-2">
                         {formatMetric(channelStats?.subscriberCount || 0)}
                       </div>
-                      <p className="text-xs text-muted-foreground">총 구독자 수</p>
+                      <div className="space-y-2">
+                        <p className="text-xs text-muted-foreground">총 구독자 수</p>
+                        <div 
+                          className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors duration-200 w-fit cursor-help"
+                          title="지난달 대비 20.1% 증가"
+                        >
+                          <TrendingUp className="w-3 h-3" />
+                          <span>+20.1%</span>
+                          <span className="text-muted-foreground ml-1 text-[10px]">vs last month</span>
+                        </div>
+                      </div>
                     </motion.div>
                   </FadeInStaggerItem>
 
@@ -740,20 +744,24 @@ const Index = () => {
                       }}
                       transition={{ duration: 0.2 }}
                     >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2 text-secondary-foreground">
-                          <Video className="w-4 h-4" />
-                          <span className="text-xs font-medium">Total Videos</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500">
-                          <TrendingUp className="w-3 h-3" />
-                          <span>+12.5%</span>
-                        </div>
+                      <div className="flex items-center gap-2 text-secondary-foreground mb-3">
+                        <Video className="w-4 h-4" />
+                        <span className="text-xs font-medium">Total Videos</span>
                       </div>
-                      <div className="text-2xl font-bold text-foreground mb-1">
+                      <div className="text-2xl font-bold text-foreground mb-2">
                         {formatInt(videoRows.length)}
                       </div>
-                      <p className="text-xs text-muted-foreground">총 영상 수</p>
+                      <div className="space-y-2">
+                        <p className="text-xs text-muted-foreground">총 영상 수</p>
+                        <div 
+                          className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors duration-200 w-fit cursor-help"
+                          title="지난달 대비 12.5% 증가"
+                        >
+                          <TrendingUp className="w-3 h-3" />
+                          <span>+12.5%</span>
+                          <span className="text-muted-foreground ml-1 text-[10px]">vs last month</span>
+                        </div>
+                      </div>
                     </motion.div>
                   </FadeInStaggerItem>
 
@@ -768,22 +776,26 @@ const Index = () => {
                       }}
                       transition={{ duration: 0.2 }}
                     >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2 text-secondary-foreground">
-                          <Eye className="w-4 h-4" />
-                          <span className="text-xs font-medium">Total Views</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500">
-                          <TrendingUp className="w-3 h-3" />
-                          <span>+19.3%</span>
-                        </div>
+                      <div className="flex items-center gap-2 text-secondary-foreground mb-3">
+                        <Eye className="w-4 h-4" />
+                        <span className="text-xs font-medium">Total Views</span>
                       </div>
-                      <div className="text-2xl font-bold text-foreground mb-1">
+                      <div className="text-2xl font-bold text-foreground mb-2">
                         {formatMetric(
                           videoRows.reduce((sum, v) => sum + (v.views || 0), 0)
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground">총 조회수</p>
+                      <div className="space-y-2">
+                        <p className="text-xs text-muted-foreground">총 조회수</p>
+                        <div 
+                          className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors duration-200 w-fit cursor-help"
+                          title="지난달 대비 19.3% 증가"
+                        >
+                          <TrendingUp className="w-3 h-3" />
+                          <span>+19.3%</span>
+                          <span className="text-muted-foreground ml-1 text-[10px]">vs last month</span>
+                        </div>
+                      </div>
                     </motion.div>
                   </FadeInStaggerItem>
 
@@ -798,17 +810,11 @@ const Index = () => {
                       }}
                       transition={{ duration: 0.2 }}
                     >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2 text-secondary-foreground">
-                          <BarChart3 className="w-4 h-4" />
-                          <span className="text-xs font-medium">Avg Views</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-red-500/10 text-red-500">
-                          <TrendingDown className="w-3 h-3" />
-                          <span>-4.3%</span>
-                        </div>
+                      <div className="flex items-center gap-2 text-secondary-foreground mb-3">
+                        <BarChart3 className="w-4 h-4" />
+                        <span className="text-xs font-medium">Avg Views</span>
                       </div>
-                      <div className="text-2xl font-bold text-foreground mb-1">
+                      <div className="text-2xl font-bold text-foreground mb-2">
                         {formatMetric(
                           videoRows.length > 0 
                             ? Math.round(
@@ -818,7 +824,17 @@ const Index = () => {
                             : 0
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground">영상당 평균 조회수</p>
+                      <div className="space-y-2">
+                        <p className="text-xs text-muted-foreground">영상당 평균 조회수</p>
+                        <div 
+                          className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors duration-200 w-fit cursor-help"
+                          title="지난달 대비 4.3% 감소"
+                        >
+                          <TrendingDown className="w-3 h-3" />
+                          <span>-4.3%</span>
+                          <span className="text-muted-foreground ml-1 text-[10px]">vs last month</span>
+                        </div>
+                      </div>
                     </motion.div>
                   </FadeInStaggerItem>
 
@@ -833,17 +849,11 @@ const Index = () => {
                       }}
                       transition={{ duration: 0.2 }}
                     >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2 text-secondary-foreground">
-                          <Calendar className="w-4 h-4" />
-                          <span className="text-xs font-medium">Latest Upload</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500">
-                          <TrendingUp className="w-3 h-3" />
-                          <span>+5.3%</span>
-                        </div>
+                      <div className="flex items-center gap-2 text-secondary-foreground mb-3">
+                        <Calendar className="w-4 h-4" />
+                        <span className="text-xs font-medium">Latest Upload</span>
                       </div>
-                      <div className="text-2xl font-bold text-foreground mb-1">
+                      <div className="text-2xl font-bold text-foreground mb-2">
                         {videoRows[0]?.upload_date 
                           ? new Date(videoRows[0].upload_date).toLocaleDateString('ko-KR', {
                               month: 'short',
@@ -851,7 +861,17 @@ const Index = () => {
                             })
                           : '-'}
                       </div>
-                      <p className="text-xs text-muted-foreground">최근 업로드 날짜</p>
+                      <div className="space-y-2">
+                        <p className="text-xs text-muted-foreground">최근 업로드 날짜</p>
+                        <div 
+                          className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors duration-200 w-fit cursor-help"
+                          title="지난달 대비 업로드 빈도 5.3% 증가"
+                        >
+                          <TrendingUp className="w-3 h-3" />
+                          <span>+5.3%</span>
+                          <span className="text-muted-foreground ml-1 text-[10px]">vs last month</span>
+                        </div>
+                      </div>
                     </motion.div>
                   </FadeInStaggerItem>
 
@@ -866,22 +886,26 @@ const Index = () => {
                       }}
                       transition={{ duration: 0.2 }}
                     >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2 text-secondary-foreground">
-                          <ThumbsUp className="w-4 h-4" />
-                          <span className="text-xs font-medium">Total Likes</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500">
-                          <TrendingUp className="w-3 h-3" />
-                          <span>+15.7%</span>
-                        </div>
+                      <div className="flex items-center gap-2 text-secondary-foreground mb-3">
+                        <ThumbsUp className="w-4 h-4" />
+                        <span className="text-xs font-medium">Total Likes</span>
                       </div>
-                      <div className="text-2xl font-bold text-foreground mb-1">
+                      <div className="text-2xl font-bold text-foreground mb-2">
                         {formatMetric(
                           videoRows.reduce((sum, v) => sum + (v.likes || 0), 0)
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground">총 좋아요 수</p>
+                      <div className="space-y-2">
+                        <p className="text-xs text-muted-foreground">총 좋아요 수</p>
+                        <div 
+                          className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors duration-200 w-fit cursor-help"
+                          title="지난달 대비 15.7% 증가"
+                        >
+                          <TrendingUp className="w-3 h-3" />
+                          <span>+15.7%</span>
+                          <span className="text-muted-foreground ml-1 text-[10px]">vs last month</span>
+                        </div>
+                      </div>
                     </motion.div>
                   </FadeInStaggerItem>
                 </div>
