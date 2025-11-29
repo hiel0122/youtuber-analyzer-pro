@@ -727,7 +727,6 @@ const Index = () => {
                         >
                           <TrendingUp className="w-3 h-3" />
                           <span>+20.1%</span>
-                          <span className="text-muted-foreground ml-1 text-[10px]">vs last month</span>
                         </div>
                       </div>
                     </motion.div>
@@ -759,7 +758,6 @@ const Index = () => {
                         >
                           <TrendingUp className="w-3 h-3" />
                           <span>+12.5%</span>
-                          <span className="text-muted-foreground ml-1 text-[10px]">vs last month</span>
                         </div>
                       </div>
                     </motion.div>
@@ -793,7 +791,6 @@ const Index = () => {
                         >
                           <TrendingUp className="w-3 h-3" />
                           <span>+19.3%</span>
-                          <span className="text-muted-foreground ml-1 text-[10px]">vs last month</span>
                         </div>
                       </div>
                     </motion.div>
@@ -832,7 +829,6 @@ const Index = () => {
                         >
                           <TrendingDown className="w-3 h-3" />
                           <span>-4.3%</span>
-                          <span className="text-muted-foreground ml-1 text-[10px]">vs last month</span>
                         </div>
                       </div>
                     </motion.div>
@@ -869,7 +865,6 @@ const Index = () => {
                         >
                           <TrendingUp className="w-3 h-3" />
                           <span>+5.3%</span>
-                          <span className="text-muted-foreground ml-1 text-[10px]">vs last month</span>
                         </div>
                       </div>
                     </motion.div>
@@ -903,7 +898,6 @@ const Index = () => {
                         >
                           <TrendingUp className="w-3 h-3" />
                           <span>+15.7%</span>
-                          <span className="text-muted-foreground ml-1 text-[10px]">vs last month</span>
                         </div>
                       </div>
                     </motion.div>
