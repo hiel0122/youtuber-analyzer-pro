@@ -893,6 +893,22 @@ export type Database = {
           title: string | null
           video_id: string | null
         }
+        Insert: {
+          channel_id?: string | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          published_at?: string | null
+          title?: string | null
+          video_id?: string | null
+        }
+        Update: {
+          channel_id?: string | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          published_at?: string | null
+          title?: string | null
+          video_id?: string | null
+        }
         Relationships: []
       }
       v_channel_comment_stats: {
