@@ -1,9 +1,22 @@
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { useTheme } from 'next-themes';
 import { formatInt } from '@/utils/format';
+import { formatDistanceToNow } from 'date-fns';
+import { ko } from 'date-fns/locale';
+import { CustomTooltip } from './CustomTooltip';
+
+interface Video {
+  title?: string;
+  upload_date?: string;
+  views?: number;
+  likes?: number;
+  duration?: string;
+  topic?: string;
+  channel_name?: string;
+}
 
 interface ViewsTrendProps {
-  videos: any[];
+  videos: Video[];
   loading?: boolean;
   channelTotalViews: number;
 }
@@ -20,16 +33,31 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
   }
 
   // 최근 30개 영상만 표시
-  const recentVideos = videos
-    .sort((a, b) => new Date(b.upload_date).getTime() - new Date(a.upload_date).getTime())
-    .slice(0, 30);
+  const recentVideos = [...videos]
+    .sort((a, b) => {
+      const dateA = new Date(a.upload_date || 0);
+      const dateB = new Date(b.upload_date || 0);
+      return dateA.getTime() - dateB.getTime();
+    })
+    .slice(-30);
 
   const chartData = recentVideos.map((video, index) => ({
-    name: `#${recentVideos.length - index}`,
-    date: new Date(video.upload_date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }),
+    name: video.upload_date 
+      ? new Date(video.upload_date).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })
+      : `영상 ${index + 1}`,
     views: video.views || 0,
     likes: video.likes || 0,
-  })).reverse();
+    // 원본 영상 데이터 포함
+    videoData: {
+      title: video.title,
+      channelName: video.channel_name,
+      views: video.views,
+      likes: video.likes,
+      upload_date: video.upload_date,
+      duration: video.duration,
+      topic: video.topic,
+    },
+  }));
 
   return (
     <ResponsiveContainer width="100%" height={350}>
@@ -47,45 +75,47 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
         
         <CartesianGrid 
           strokeDasharray="3 3" 
-          stroke={theme === 'dark' ? '#262626' : '#e5e5e5'} 
+          stroke={theme === 'dark' ? '#374151' : '#e5e7eb'} 
           vertical={false}
         />
         
         <XAxis 
-          dataKey="date" 
-          stroke={theme === 'dark' ? '#737373' : '#737373'}
-          tick={{ fill: theme === 'dark' ? '#a3a3a3' : '#737373', fontSize: 11 }}
-          axisLine={{ stroke: theme === 'dark' ? '#262626' : '#e5e5e5' }}
-          tickLine={{ stroke: theme === 'dark' ? '#262626' : '#e5e5e5' }}
+          dataKey="name" 
+          stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'}
+          tick={{ fill: theme === 'dark' ? '#9ca3af' : '#6b7280', fontSize: 11 }}
+          axisLine={{ stroke: theme === 'dark' ? '#374151' : '#e5e7eb' }}
+          tickLine={{ stroke: theme === 'dark' ? '#374151' : '#e5e7eb' }}
         />
         
         <YAxis 
-          stroke={theme === 'dark' ? '#737373' : '#737373'}
-          tick={{ fill: theme === 'dark' ? '#a3a3a3' : '#737373', fontSize: 11 }}
-          axisLine={{ stroke: theme === 'dark' ? '#262626' : '#e5e5e5' }}
-          tickLine={{ stroke: theme === 'dark' ? '#262626' : '#e5e5e5' }}
-          tickFormatter={(value) => formatInt(value)}
+          stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'}
+          tick={{ fill: theme === 'dark' ? '#9ca3af' : '#6b7280', fontSize: 11 }}
+          axisLine={{ stroke: theme === 'dark' ? '#374151' : '#e5e7eb' }}
+          tickLine={{ stroke: theme === 'dark' ? '#374151' : '#e5e7eb' }}
+          tickFormatter={(value) => {
+            if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+            if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
+            return value;
+          }}
         />
         
         <Tooltip
-          contentStyle={{
-            backgroundColor: theme === 'dark' ? '#18181b' : '#ffffff',
-            border: `1px solid ${theme === 'dark' ? '#27272a' : '#e5e7eb'}`,
-            borderRadius: '8px',
-            color: theme === 'dark' ? '#fafafa' : '#0a0a0a'
-          }}
-          labelStyle={{ 
-            color: theme === 'dark' ? '#fafafa' : '#0a0a0a', 
-            marginBottom: '4px' 
-          }}
-          itemStyle={{ 
-            color: theme === 'dark' ? '#fafafa' : '#0a0a0a'
-          }}
+          content={({ active, payload }) => (
+            <CustomTooltip
+              active={active}
+              payload={payload}
+              videoData={payload?.[0]?.payload?.videoData}
+            />
+          )}
+          cursor={{ stroke: theme === 'dark' ? '#374151' : '#e5e7eb', strokeWidth: 1 }}
         />
         
         <Legend 
-          wrapperStyle={{ paddingTop: '20px' }}
-          iconType="circle"
+          wrapperStyle={{
+            paddingTop: '20px',
+            fontSize: '12px',
+          }}
+          iconType="line"
         />
         
         <Line 
@@ -94,7 +124,7 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
           stroke="#3b82f6"
           strokeWidth={3}
           dot={false}
-          activeDot={{ r: 6, fill: '#3b82f6' }}
+          activeDot={{ r: 6, fill: '#3b82f6', stroke: '#fff', strokeWidth: 2 }}
           fill="url(#colorViews)"
           name="조회수"
           animationDuration={1500}
@@ -107,7 +137,7 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
           stroke="#10b981"
           strokeWidth={2}
           dot={false}
-          activeDot={{ r: 5, fill: '#10b981' }}
+          activeDot={{ r: 5, fill: '#10b981', stroke: '#fff', strokeWidth: 2 }}
           fill="url(#colorLikes)"
           name="좋아요"
           animationDuration={1500}
