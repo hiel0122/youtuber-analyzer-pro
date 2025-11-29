@@ -225,15 +225,18 @@ export function AuthCard({ onSuccess }: AuthCardProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="signup-password">비밀번호 *</Label>
+                <Label htmlFor="signup-password">비밀번호 (최소 8자) *</Label>
                 <Input
                   id="signup-password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  minLength={6}
+                  minLength={8}
                 />
+                <p className="text-xs text-muted-foreground">
+                  비밀번호는 최소 8자 이상이어야 합니다.
+                </p>
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? '처리 중...' : '회원가입'}
