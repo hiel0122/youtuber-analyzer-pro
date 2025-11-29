@@ -6,10 +6,28 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { z } from 'zod';
 
 interface AuthCardProps {
   onSuccess?: () => void;
 }
+
+// Input validation schemas
+const signUpSchema = z.object({
+  email: z.string().trim().email({ message: "유효한 이메일 주소를 입력해주세요" }),
+  password: z.string().min(8, { message: "비밀번호는 최소 8자 이상이어야 합니다" }),
+  displayName: z.string().trim().min(1, { message: "이름을 입력해주세요" }).max(100, { message: "이름은 100자를 초과할 수 없습니다" }),
+  nickname: z.string().trim().min(1, { message: "닉네임을 입력해주세요" }).max(50, { message: "닉네임은 50자를 초과할 수 없습니다" }),
+});
+
+const signInSchema = z.object({
+  email: z.string().trim().email({ message: "유효한 이메일 주소를 입력해주세요" }),
+  password: z.string().min(1, { message: "비밀번호를 입력해주세요" }),
+});
+
+const resetPasswordSchema = z.object({
+  email: z.string().trim().email({ message: "유효한 이메일 주소를 입력해주세요" }),
+});
 
 // Google/Apple SVG icons
 const GoogleIcon = () => (
@@ -36,17 +54,25 @@ export function AuthCard({ onSuccess }: AuthCardProps) {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate input
+    const validation = signUpSchema.safeParse({ email, password, displayName, nickname });
+    if (!validation.success) {
+      toast.error(validation.error.errors[0].message);
+      return;
+    }
+
     setLoading(true);
 
     try {
       const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
+        email: validation.data.email,
+        password: validation.data.password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: { 
-            full_name: displayName || email.split('@')[0],
-            nickname: nickname || displayName || email.split('@')[0]
+            full_name: validation.data.displayName,
+            nickname: validation.data.nickname
           }
         }
       });
@@ -57,8 +83,8 @@ export function AuthCard({ onSuccess }: AuthCardProps) {
         await supabase.from('profiles').upsert({
           id: data.user.id,
           email: data.user.email,
-          display_name: displayName || email.split('@')[0],
-          nickname: nickname || displayName || email.split('@')[0],
+          display_name: validation.data.displayName,
+          nickname: validation.data.nickname,
           updated_at: new Date().toISOString(),
         } as any);
       }
@@ -74,12 +100,20 @@ export function AuthCard({ onSuccess }: AuthCardProps) {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate input
+    const validation = signInSchema.safeParse({ email, password });
+    if (!validation.success) {
+      toast.error(validation.error.errors[0].message);
+      return;
+    }
+
     setLoading(true);
 
     try {
       const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: validation.data.email,
+        password: validation.data.password,
       });
 
       if (error) throw error;
@@ -95,10 +129,18 @@ export function AuthCard({ onSuccess }: AuthCardProps) {
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate input
+    const validation = resetPasswordSchema.safeParse({ email });
+    if (!validation.success) {
+      toast.error(validation.error.errors[0].message);
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await supabase.auth.resetPasswordForEmail(validation.data.email, {
         redirectTo: `${window.location.origin}/auth/callback`,
       });
 

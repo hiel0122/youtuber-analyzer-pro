@@ -505,6 +505,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_secrets: {
         Row: {
           created_at: string | null
@@ -978,6 +999,13 @@ export type Database = {
       }
     }
     Functions: {
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_admin: { Args: never; Returns: boolean }
       parse_duration_seconds: { Args: { t: string }; Returns: number }
       resolve_channel_key: { Args: { p_input: string }; Returns: string }
@@ -1008,6 +1036,7 @@ export type Database = {
       upsert_videos: { Args: { p_rows: Json }; Returns: number }
     }
     Enums: {
+      app_role: "admin" | "moderator" | "user"
       membership_tier: "free" | "plus" | "pro" | "Earlybird" | "admin"
     }
     CompositeTypes: {
@@ -1136,6 +1165,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "moderator", "user"],
       membership_tier: ["free", "plus", "pro", "Earlybird", "admin"],
     },
   },
