@@ -703,9 +703,9 @@ const Index = () => {
                 <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 mb-8">
                   {/* Card 1: 총 구독자 */}
                   <FadeInStaggerItem>
-                    <motion.div 
-                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
-                      whileHover={{ 
+                    <motion.div
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer h-[168px] flex flex-col"
+                      whileHover={{
                         scale: 1.02,
                         borderColor: "rgba(59, 130, 246, 0.3)",
                         boxShadow: "0 10px 30px -10px rgba(59, 130, 246, 0.3)"
@@ -734,9 +734,9 @@ const Index = () => {
 
                   {/* Card 2: 총 영상 수 */}
                   <FadeInStaggerItem>
-                    <motion.div 
-                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
-                      whileHover={{ 
+                    <motion.div
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer h-[168px] flex flex-col"
+                      whileHover={{
                         scale: 1.02,
                         borderColor: "rgba(59, 130, 246, 0.3)",
                         boxShadow: "0 10px 30px -10px rgba(59, 130, 246, 0.3)"
@@ -765,9 +765,9 @@ const Index = () => {
 
                   {/* Card 3: 총 조회수 */}
                   <FadeInStaggerItem>
-                    <motion.div 
-                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
-                      whileHover={{ 
+                    <motion.div
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer h-[168px] flex flex-col"
+                      whileHover={{
                         scale: 1.02,
                         borderColor: "rgba(59, 130, 246, 0.3)",
                         boxShadow: "0 10px 30px -10px rgba(59, 130, 246, 0.3)"
@@ -798,9 +798,9 @@ const Index = () => {
 
                   {/* Card 4: 평균 조회수 */}
                   <FadeInStaggerItem>
-                    <motion.div 
-                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
-                      whileHover={{ 
+                    <motion.div
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer h-[168px] flex flex-col"
+                      whileHover={{
                         scale: 1.02,
                         borderColor: "rgba(59, 130, 246, 0.3)",
                         boxShadow: "0 10px 30px -10px rgba(59, 130, 246, 0.3)"
@@ -836,9 +836,9 @@ const Index = () => {
 
                   {/* Card 5: 최근 업로드 */}
                   <FadeInStaggerItem>
-                    <motion.div 
-                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
-                      whileHover={{ 
+                    <motion.div
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer h-[168px] flex flex-col"
+                      whileHover={{
                         scale: 1.02,
                         borderColor: "rgba(59, 130, 246, 0.3)",
                         boxShadow: "0 10px 30px -10px rgba(59, 130, 246, 0.3)"
@@ -872,9 +872,9 @@ const Index = () => {
 
                   {/* Card 6: 총 좋아요 */}
                   <FadeInStaggerItem>
-                    <motion.div 
-                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
-                      whileHover={{ 
+                    <motion.div
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer h-[168px] flex flex-col"
+                      whileHover={{
                         scale: 1.02,
                         borderColor: "rgba(59, 130, 246, 0.3)",
                         boxShadow: "0 10px 30px -10px rgba(59, 130, 246, 0.3)"
