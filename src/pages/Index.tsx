@@ -19,7 +19,7 @@ import { useDataContext } from "@/contexts/DataContext";
 import { Badge } from "@/components/ui/badge";
 import { useSync } from "@/hooks/useSync";
 import SyncProgress from "@/components/SyncProgress";
-import QuantityQuality from "@/components/QuantityQuality";
+
 import ViewsTrend from "@/components/ViewsTrend";
 import SkeletonCard from "@/components/SkeletonCard";
 import { LoadingTable } from "@/components/LoadingTable";
@@ -698,10 +698,13 @@ const Index = () => {
 
           {hasData && (
             <>
-              {/* Overview Stats - 6개 메트릭 카드 */}
+              {/* Overview Stats - 21개 메트릭 카드 (4행 × 6열, 첫 열 3개 비움) */}
               <FadeInStagger staggerDelay={0.05}>
-                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 mb-8">
-                  {/* Card 1: 총 구독자 */}
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 mb-8">
+                  
+                  {/* ============ 1행: Total 지표 ============ */}
+                  
+                  {/* 1-1: Total Subscriber */}
                   <FadeInStaggerItem>
                     <motion.div 
                       className="bg-card rounded-xl p-4 border border-border cursor-pointer"
@@ -714,13 +717,12 @@ const Index = () => {
                     >
                       <div className="flex items-center gap-2 text-secondary-foreground mb-3">
                         <Users className="w-4 h-4" />
-                        <span className="text-xs font-medium">Total Subscribers</span>
+                        <span className="text-xs font-medium">Total Subscriber</span>
                       </div>
                       <div className="text-2xl font-bold text-foreground mb-2">
                         {formatMetric(channelStats?.subscriberCount || 0)}
                       </div>
                       <div className="space-y-2">
-                        <p className="text-xs text-muted-foreground">총 구독자 수</p>
                         <div 
                           className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors duration-200 w-fit cursor-help"
                           title="지난달 대비 20.1% 증가"
@@ -732,7 +734,7 @@ const Index = () => {
                     </motion.div>
                   </FadeInStaggerItem>
 
-                  {/* Card 2: 총 영상 수 */}
+                  {/* 1-2: Total Contents (L/S) */}
                   <FadeInStaggerItem>
                     <motion.div 
                       className="bg-card rounded-xl p-4 border border-border cursor-pointer"
@@ -745,13 +747,23 @@ const Index = () => {
                     >
                       <div className="flex items-center gap-2 text-secondary-foreground mb-3">
                         <Video className="w-4 h-4" />
-                        <span className="text-xs font-medium">Total Videos</span>
+                        <span className="text-xs font-medium">Total Contents (L/S)</span>
                       </div>
                       <div className="text-2xl font-bold text-foreground mb-2">
-                        {formatInt(videoRows.length)}
+                        {(() => {
+                          const longForm = videoRows.filter(v => {
+                            if (!v.duration) return false;
+                            const parts = v.duration.split(':').map(Number);
+                            const totalSeconds = parts.length === 3 
+                              ? parts[0] * 3600 + parts[1] * 60 + parts[2]
+                              : parts[0] * 60 + parts[1];
+                            return totalSeconds >= 60;
+                          }).length;
+                          const shortForm = videoRows.length - longForm;
+                          return `${formatInt(longForm)} / ${formatInt(shortForm)}`;
+                        })()}
                       </div>
                       <div className="space-y-2">
-                        <p className="text-xs text-muted-foreground">총 영상 수</p>
                         <div 
                           className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors duration-200 w-fit cursor-help"
                           title="지난달 대비 12.5% 증가"
@@ -763,7 +775,7 @@ const Index = () => {
                     </motion.div>
                   </FadeInStaggerItem>
 
-                  {/* Card 3: 총 조회수 */}
+                  {/* 1-3: Total Views */}
                   <FadeInStaggerItem>
                     <motion.div 
                       className="bg-card rounded-xl p-4 border border-border cursor-pointer"
@@ -779,12 +791,9 @@ const Index = () => {
                         <span className="text-xs font-medium">Total Views</span>
                       </div>
                       <div className="text-2xl font-bold text-foreground mb-2">
-                        {formatMetric(
-                          videoRows.reduce((sum, v) => sum + (v.views || 0), 0)
-                        )}
+                        {formatMetric(videoRows.reduce((sum, v) => sum + (v.views || 0), 0))}
                       </div>
                       <div className="space-y-2">
-                        <p className="text-xs text-muted-foreground">총 조회수</p>
                         <div 
                           className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors duration-200 w-fit cursor-help"
                           title="지난달 대비 19.3% 증가"
@@ -796,7 +805,7 @@ const Index = () => {
                     </motion.div>
                   </FadeInStaggerItem>
 
-                  {/* Card 4: 평균 조회수 */}
+                  {/* 1-4: Total hits */}
                   <FadeInStaggerItem>
                     <motion.div 
                       className="bg-card rounded-xl p-4 border border-border cursor-pointer"
@@ -809,68 +818,24 @@ const Index = () => {
                     >
                       <div className="flex items-center gap-2 text-secondary-foreground mb-3">
                         <BarChart3 className="w-4 h-4" />
-                        <span className="text-xs font-medium">Avg Views</span>
+                        <span className="text-xs font-medium">Total hits</span>
                       </div>
                       <div className="text-2xl font-bold text-foreground mb-2">
-                        {formatMetric(
-                          videoRows.length > 0 
-                            ? Math.round(
-                                videoRows.reduce((sum, v) => sum + (v.views || 0), 0) / 
-                                videoRows.length
-                              )
-                            : 0
-                        )}
+                        {formatMetric(videoRows.reduce((sum, v) => sum + (v.views || 0), 0))}
                       </div>
                       <div className="space-y-2">
-                        <p className="text-xs text-muted-foreground">영상당 평균 조회수</p>
-                        <div 
-                          className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors duration-200 w-fit cursor-help"
-                          title="지난달 대비 4.3% 감소"
-                        >
-                          <TrendingDown className="w-3 h-3" />
-                          <span>-4.3%</span>
-                        </div>
-                      </div>
-                    </motion.div>
-                  </FadeInStaggerItem>
-
-                  {/* Card 5: 최근 업로드 */}
-                  <FadeInStaggerItem>
-                    <motion.div 
-                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
-                      whileHover={{ 
-                        scale: 1.02,
-                        borderColor: "rgba(59, 130, 246, 0.3)",
-                        boxShadow: "0 10px 30px -10px rgba(59, 130, 246, 0.3)"
-                      }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <div className="flex items-center gap-2 text-secondary-foreground mb-3">
-                        <Calendar className="w-4 h-4" />
-                        <span className="text-xs font-medium">Latest Upload</span>
-                      </div>
-                      <div className="text-2xl font-bold text-foreground mb-2">
-                        {videoRows[0]?.upload_date 
-                          ? new Date(videoRows[0].upload_date).toLocaleDateString('ko-KR', {
-                              month: 'short',
-                              day: 'numeric'
-                            })
-                          : '-'}
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-xs text-muted-foreground">최근 업로드 날짜</p>
                         <div 
                           className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors duration-200 w-fit cursor-help"
-                          title="지난달 대비 업로드 빈도 5.3% 증가"
+                          title="지난달 대비 18.5% 증가"
                         >
                           <TrendingUp className="w-3 h-3" />
-                          <span>+5.3%</span>
+                          <span>+18.5%</span>
                         </div>
                       </div>
                     </motion.div>
                   </FadeInStaggerItem>
 
-                  {/* Card 6: 총 좋아요 */}
+                  {/* 1-5: Total Likes */}
                   <FadeInStaggerItem>
                     <motion.div 
                       className="bg-card rounded-xl p-4 border border-border cursor-pointer"
@@ -886,12 +851,9 @@ const Index = () => {
                         <span className="text-xs font-medium">Total Likes</span>
                       </div>
                       <div className="text-2xl font-bold text-foreground mb-2">
-                        {formatMetric(
-                          videoRows.reduce((sum, v) => sum + (v.likes || 0), 0)
-                        )}
+                        {formatMetric(videoRows.reduce((sum, v) => sum + (v.likes || 0), 0))}
                       </div>
                       <div className="space-y-2">
-                        <p className="text-xs text-muted-foreground">총 좋아요 수</p>
                         <div 
                           className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors duration-200 w-fit cursor-help"
                           title="지난달 대비 15.7% 증가"
@@ -902,49 +864,585 @@ const Index = () => {
                       </div>
                     </motion.div>
                   </FadeInStaggerItem>
+
+                  {/* 1-6: Total Comments */}
+                  <FadeInStaggerItem>
+                    <motion.div 
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
+                      whileHover={{ 
+                        scale: 1.02,
+                        borderColor: "rgba(59, 130, 246, 0.3)",
+                        boxShadow: "0 10px 30px -10px rgba(59, 130, 246, 0.3)"
+                      }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="flex items-center gap-2 text-secondary-foreground mb-3">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                        </svg>
+                        <span className="text-xs font-medium">Total Comments</span>
+                      </div>
+                      <div className="text-2xl font-bold text-foreground mb-2">
+                        {formatMetric(videoRows.reduce((sum, v) => sum + ((v as any).comments || 0), 0))}
+                      </div>
+                      <div className="space-y-2">
+                        <div 
+                          className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors duration-200 w-fit cursor-help"
+                          title="지난달 대비 22.3% 증가"
+                        >
+                          <TrendingUp className="w-3 h-3" />
+                          <span>+22.3%</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </FadeInStaggerItem>
+
+                  {/* ============ 2행: Max 지표 ============ */}
+
+                  {/* 2-1: 빈 카드 (첫 번째 열) */}
+                  <div className="hidden 2xl:block"></div>
+
+                  {/* 2-2: Max. Video Length */}
+                  <FadeInStaggerItem>
+                    <motion.div 
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
+                      whileHover={{ 
+                        scale: 1.02,
+                        borderColor: "rgba(59, 130, 246, 0.3)",
+                        boxShadow: "0 10px 30px -10px rgba(59, 130, 246, 0.3)"
+                      }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="flex items-center gap-2 text-secondary-foreground mb-3">
+                        <Video className="w-4 h-4" />
+                        <span className="text-xs font-medium">Max. Video Length</span>
+                      </div>
+                      <div className="text-2xl font-bold text-foreground mb-2">
+                        {(() => {
+                          const maxDuration = videoRows.reduce((max, v) => {
+                            if (!v.duration) return max;
+                            const parts = v.duration.split(':').map(Number);
+                            const totalSeconds = parts.length === 3 
+                              ? parts[0] * 3600 + parts[1] * 60 + parts[2]
+                              : parts[0] * 60 + parts[1];
+                            return totalSeconds > max ? totalSeconds : max;
+                          }, 0);
+                          const hours = Math.floor(maxDuration / 3600);
+                          const minutes = Math.floor((maxDuration % 3600) / 60);
+                          const seconds = maxDuration % 60;
+                          return hours > 0 
+                            ? `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+                            : `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                        })()}
+                      </div>
+                      <div className="space-y-2">
+                        <div 
+                          className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors duration-200 w-fit cursor-help"
+                          title="지난달 대비 5.2% 증가"
+                        >
+                          <TrendingUp className="w-3 h-3" />
+                          <span>+5.2%</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </FadeInStaggerItem>
+
+                  {/* 2-3: Max. Views */}
+                  <FadeInStaggerItem>
+                    <motion.div 
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
+                      whileHover={{ 
+                        scale: 1.02,
+                        borderColor: "rgba(59, 130, 246, 0.3)",
+                        boxShadow: "0 10px 30px -10px rgba(59, 130, 246, 0.3)"
+                      }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="flex items-center gap-2 text-secondary-foreground mb-3">
+                        <Eye className="w-4 h-4" />
+                        <span className="text-xs font-medium">Max. Views</span>
+                      </div>
+                      <div className="text-2xl font-bold text-foreground mb-2">
+                        {formatMetric(Math.max(...videoRows.map(v => v.views || 0), 0))}
+                      </div>
+                      <div className="space-y-2">
+                        <div 
+                          className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors duration-200 w-fit cursor-help"
+                          title="지난달 대비 30.5% 증가"
+                        >
+                          <TrendingUp className="w-3 h-3" />
+                          <span>+30.5%</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </FadeInStaggerItem>
+
+                  {/* 2-4: Max. hits */}
+                  <FadeInStaggerItem>
+                    <motion.div 
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
+                      whileHover={{ 
+                        scale: 1.02,
+                        borderColor: "rgba(59, 130, 246, 0.3)",
+                        boxShadow: "0 10px 30px -10px rgba(59, 130, 246, 0.3)"
+                      }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="flex items-center gap-2 text-secondary-foreground mb-3">
+                        <BarChart3 className="w-4 h-4" />
+                        <span className="text-xs font-medium">Max. hits</span>
+                      </div>
+                      <div className="text-2xl font-bold text-foreground mb-2">
+                        {formatMetric(Math.max(...videoRows.map(v => v.views || 0), 0))}
+                      </div>
+                      <div className="space-y-2">
+                        <div 
+                          className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors duration-200 w-fit cursor-help"
+                          title="지난달 대비 28.3% 증가"
+                        >
+                          <TrendingUp className="w-3 h-3" />
+                          <span>+28.3%</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </FadeInStaggerItem>
+
+                  {/* 2-5: Max. Likes */}
+                  <FadeInStaggerItem>
+                    <motion.div 
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
+                      whileHover={{ 
+                        scale: 1.02,
+                        borderColor: "rgba(59, 130, 246, 0.3)",
+                        boxShadow: "0 10px 30px -10px rgba(59, 130, 246, 0.3)"
+                      }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="flex items-center gap-2 text-secondary-foreground mb-3">
+                        <ThumbsUp className="w-4 h-4" />
+                        <span className="text-xs font-medium">Max. Likes</span>
+                      </div>
+                      <div className="text-2xl font-bold text-foreground mb-2">
+                        {formatMetric(Math.max(...videoRows.map(v => v.likes || 0), 0))}
+                      </div>
+                      <div className="space-y-2">
+                        <div 
+                          className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors duration-200 w-fit cursor-help"
+                          title="지난달 대비 25.7% 증가"
+                        >
+                          <TrendingUp className="w-3 h-3" />
+                          <span>+25.7%</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </FadeInStaggerItem>
+
+                  {/* 2-6: Max Comments */}
+                  <FadeInStaggerItem>
+                    <motion.div 
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
+                      whileHover={{ 
+                        scale: 1.02,
+                        borderColor: "rgba(59, 130, 246, 0.3)",
+                        boxShadow: "0 10px 30px -10px rgba(59, 130, 246, 0.3)"
+                      }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="flex items-center gap-2 text-secondary-foreground mb-3">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                        </svg>
+                        <span className="text-xs font-medium">Max Comments</span>
+                      </div>
+                      <div className="text-2xl font-bold text-foreground mb-2">
+                        {formatMetric(Math.max(...videoRows.map(v => (v as any).comments || 0), 0))}
+                      </div>
+                      <div className="space-y-2">
+                        <div 
+                          className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors duration-200 w-fit cursor-help"
+                          title="지난달 대비 35.2% 증가"
+                        >
+                          <TrendingUp className="w-3 h-3" />
+                          <span>+35.2%</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </FadeInStaggerItem>
+
+                  {/* ============ 3행: Min 지표 ============ */}
+
+                  {/* 3-1: 빈 카드 */}
+                  <div className="hidden 2xl:block"></div>
+
+                  {/* 3-2: Min. Video Length */}
+                  <FadeInStaggerItem>
+                    <motion.div 
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
+                      whileHover={{ 
+                        scale: 1.02,
+                        borderColor: "rgba(59, 130, 246, 0.3)",
+                        boxShadow: "0 10px 30px -10px rgba(59, 130, 246, 0.3)"
+                      }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="flex items-center gap-2 text-secondary-foreground mb-3">
+                        <Video className="w-4 h-4" />
+                        <span className="text-xs font-medium">Min. Video Length</span>
+                      </div>
+                      <div className="text-2xl font-bold text-foreground mb-2">
+                        {(() => {
+                          const durations = videoRows
+                            .map(v => {
+                              if (!v.duration) return 0;
+                              const parts = v.duration.split(':').map(Number);
+                              return parts.length === 3 
+                                ? parts[0] * 3600 + parts[1] * 60 + parts[2]
+                                : parts[0] * 60 + parts[1];
+                            })
+                            .filter(d => d > 0);
+                          const minDuration = durations.length > 0 ? Math.min(...durations) : 0;
+                          const minutes = Math.floor(minDuration / 60);
+                          const seconds = minDuration % 60;
+                          return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                        })()}
+                      </div>
+                      <div className="space-y-2">
+                        <div 
+                          className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors duration-200 w-fit cursor-help"
+                          title="지난달 대비 2.1% 감소"
+                        >
+                          <TrendingDown className="w-3 h-3" />
+                          <span>-2.1%</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </FadeInStaggerItem>
+
+                  {/* 3-3: Min. Views */}
+                  <FadeInStaggerItem>
+                    <motion.div 
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
+                      whileHover={{ 
+                        scale: 1.02,
+                        borderColor: "rgba(59, 130, 246, 0.3)",
+                        boxShadow: "0 10px 30px -10px rgba(59, 130, 246, 0.3)"
+                      }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="flex items-center gap-2 text-secondary-foreground mb-3">
+                        <Eye className="w-4 h-4" />
+                        <span className="text-xs font-medium">Min. Views</span>
+                      </div>
+                      <div className="text-2xl font-bold text-foreground mb-2">
+                        {(() => {
+                          const views = videoRows.map(v => v.views || 0).filter(v => v > 0);
+                          return formatMetric(views.length > 0 ? Math.min(...views) : 0);
+                        })()}
+                      </div>
+                      <div className="space-y-2">
+                        <div 
+                          className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors duration-200 w-fit cursor-help"
+                          title="지난달 대비 8.3% 증가"
+                        >
+                          <TrendingUp className="w-3 h-3" />
+                          <span>+8.3%</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </FadeInStaggerItem>
+
+                  {/* 3-4: Min. hits */}
+                  <FadeInStaggerItem>
+                    <motion.div 
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
+                      whileHover={{ 
+                        scale: 1.02,
+                        borderColor: "rgba(59, 130, 246, 0.3)",
+                        boxShadow: "0 10px 30px -10px rgba(59, 130, 246, 0.3)"
+                      }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="flex items-center gap-2 text-secondary-foreground mb-3">
+                        <BarChart3 className="w-4 h-4" />
+                        <span className="text-xs font-medium">Min. hits</span>
+                      </div>
+                      <div className="text-2xl font-bold text-foreground mb-2">
+                        {(() => {
+                          const views = videoRows.map(v => v.views || 0).filter(v => v > 0);
+                          return formatMetric(views.length > 0 ? Math.min(...views) : 0);
+                        })()}
+                      </div>
+                      <div className="space-y-2">
+                        <div 
+                          className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors duration-200 w-fit cursor-help"
+                          title="지난달 대비 7.5% 증가"
+                        >
+                          <TrendingUp className="w-3 h-3" />
+                          <span>+7.5%</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </FadeInStaggerItem>
+
+                  {/* 3-5: Min. Likes */}
+                  <FadeInStaggerItem>
+                    <motion.div 
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
+                      whileHover={{ 
+                        scale: 1.02,
+                        borderColor: "rgba(59, 130, 246, 0.3)",
+                        boxShadow: "0 10px 30px -10px rgba(59, 130, 246, 0.3)"
+                      }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="flex items-center gap-2 text-secondary-foreground mb-3">
+                        <ThumbsUp className="w-4 h-4" />
+                        <span className="text-xs font-medium">Min. Likes</span>
+                      </div>
+                      <div className="text-2xl font-bold text-foreground mb-2">
+                        {(() => {
+                          const likes = videoRows.map(v => v.likes || 0).filter(v => v > 0);
+                          return formatMetric(likes.length > 0 ? Math.min(...likes) : 0);
+                        })()}
+                      </div>
+                      <div className="space-y-2">
+                        <div 
+                          className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors duration-200 w-fit cursor-help"
+                          title="지난달 대비 5.8% 증가"
+                        >
+                          <TrendingUp className="w-3 h-3" />
+                          <span>+5.8%</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </FadeInStaggerItem>
+
+                  {/* 3-6: Min Comments */}
+                  <FadeInStaggerItem>
+                    <motion.div 
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
+                      whileHover={{ 
+                        scale: 1.02,
+                        borderColor: "rgba(59, 130, 246, 0.3)",
+                        boxShadow: "0 10px 30px -10px rgba(59, 130, 246, 0.3)"
+                      }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="flex items-center gap-2 text-secondary-foreground mb-3">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                        </svg>
+                        <span className="text-xs font-medium">Min Comments</span>
+                      </div>
+                      <div className="text-2xl font-bold text-foreground mb-2">
+                        {(() => {
+                          const comments = videoRows.map(v => (v as any).comments || 0).filter(v => v > 0);
+                          return formatMetric(comments.length > 0 ? Math.min(...comments) : 0);
+                        })()}
+                      </div>
+                      <div className="space-y-2">
+                        <div 
+                          className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors duration-200 w-fit cursor-help"
+                          title="지난달 대비 12.5% 증가"
+                        >
+                          <TrendingUp className="w-3 h-3" />
+                          <span>+12.5%</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </FadeInStaggerItem>
+
+                  {/* ============ 4행: Avg 지표 ============ */}
+
+                  {/* 4-1: 빈 카드 */}
+                  <div className="hidden 2xl:block"></div>
+
+                  {/* 4-2: Avg. Video Length */}
+                  <FadeInStaggerItem>
+                    <motion.div 
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
+                      whileHover={{ 
+                        scale: 1.02,
+                        borderColor: "rgba(59, 130, 246, 0.3)",
+                        boxShadow: "0 10px 30px -10px rgba(59, 130, 246, 0.3)"
+                      }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="flex items-center gap-2 text-secondary-foreground mb-3">
+                        <Video className="w-4 h-4" />
+                        <span className="text-xs font-medium">Avg. Video Length</span>
+                      </div>
+                      <div className="text-2xl font-bold text-foreground mb-2">
+                        {(() => {
+                          const durations = videoRows
+                            .map(v => {
+                              if (!v.duration) return 0;
+                              const parts = v.duration.split(':').map(Number);
+                              return parts.length === 3 
+                                ? parts[0] * 3600 + parts[1] * 60 + parts[2]
+                                : parts[0] * 60 + parts[1];
+                            })
+                            .filter(d => d > 0);
+                          const avgSeconds = durations.length > 0 
+                            ? durations.reduce((a, b) => a + b, 0) / durations.length 
+                            : 0;
+                          const minutes = Math.floor(avgSeconds / 60);
+                          const seconds = Math.round(avgSeconds % 60);
+                          return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                        })()}
+                      </div>
+                      <div className="space-y-2">
+                        <div 
+                          className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors duration-200 w-fit cursor-help"
+                          title="지난달 대비 3.2% 증가"
+                        >
+                          <TrendingUp className="w-3 h-3" />
+                          <span>+3.2%</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </FadeInStaggerItem>
+
+                  {/* 4-3: Avg. Views */}
+                  <FadeInStaggerItem>
+                    <motion.div 
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
+                      whileHover={{ 
+                        scale: 1.02,
+                        borderColor: "rgba(59, 130, 246, 0.3)",
+                        boxShadow: "0 10px 30px -10px rgba(59, 130, 246, 0.3)"
+                      }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="flex items-center gap-2 text-secondary-foreground mb-3">
+                        <Eye className="w-4 h-4" />
+                        <span className="text-xs font-medium">Avg. Views</span>
+                      </div>
+                      <div className="text-2xl font-bold text-foreground mb-2">
+                        {formatMetric(
+                          videoRows.length > 0 
+                            ? Math.round(videoRows.reduce((sum, v) => sum + (v.views || 0), 0) / videoRows.length)
+                            : 0
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <div 
+                          className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors duration-200 w-fit cursor-help"
+                          title="지난달 대비 4.3% 감소"
+                        >
+                          <TrendingDown className="w-3 h-3" />
+                          <span>-4.3%</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </FadeInStaggerItem>
+
+                  {/* 4-4: Avg. hits */}
+                  <FadeInStaggerItem>
+                    <motion.div 
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
+                      whileHover={{ 
+                        scale: 1.02,
+                        borderColor: "rgba(59, 130, 246, 0.3)",
+                        boxShadow: "0 10px 30px -10px rgba(59, 130, 246, 0.3)"
+                      }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="flex items-center gap-2 text-secondary-foreground mb-3">
+                        <BarChart3 className="w-4 h-4" />
+                        <span className="text-xs font-medium">Avg. hits</span>
+                      </div>
+                      <div className="text-2xl font-bold text-foreground mb-2">
+                        {formatMetric(
+                          videoRows.length > 0 
+                            ? Math.round(videoRows.reduce((sum, v) => sum + (v.views || 0), 0) / videoRows.length)
+                            : 0
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <div 
+                          className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors duration-200 w-fit cursor-help"
+                          title="지난달 대비 3.8% 감소"
+                        >
+                          <TrendingDown className="w-3 h-3" />
+                          <span>-3.8%</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </FadeInStaggerItem>
+
+                  {/* 4-5: Avg. Likes */}
+                  <FadeInStaggerItem>
+                    <motion.div 
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
+                      whileHover={{ 
+                        scale: 1.02,
+                        borderColor: "rgba(59, 130, 246, 0.3)",
+                        boxShadow: "0 10px 30px -10px rgba(59, 130, 246, 0.3)"
+                      }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="flex items-center gap-2 text-secondary-foreground mb-3">
+                        <ThumbsUp className="w-4 h-4" />
+                        <span className="text-xs font-medium">Avg. Likes</span>
+                      </div>
+                      <div className="text-2xl font-bold text-foreground mb-2">
+                        {formatMetric(
+                          videoRows.length > 0 
+                            ? Math.round(videoRows.reduce((sum, v) => sum + (v.likes || 0), 0) / videoRows.length)
+                            : 0
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <div 
+                          className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors duration-200 w-fit cursor-help"
+                          title="지난달 대비 6.5% 증가"
+                        >
+                          <TrendingUp className="w-3 h-3" />
+                          <span>+6.5%</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </FadeInStaggerItem>
+
+                  {/* 4-6: Avg. Comments */}
+                  <FadeInStaggerItem>
+                    <motion.div 
+                      className="bg-card rounded-xl p-4 border border-border cursor-pointer"
+                      whileHover={{ 
+                        scale: 1.02,
+                        borderColor: "rgba(59, 130, 246, 0.3)",
+                        boxShadow: "0 10px 30px -10px rgba(59, 130, 246, 0.3)"
+                      }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="flex items-center gap-2 text-secondary-foreground mb-3">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                        </svg>
+                        <span className="text-xs font-medium">Avg. Comments</span>
+                      </div>
+                      <div className="text-2xl font-bold text-foreground mb-2">
+                        {formatMetric(
+                          videoRows.length > 0 
+                            ? Math.round(videoRows.reduce((sum, v) => sum + ((v as any).comments || 0), 0) / videoRows.length)
+                            : 0
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <div 
+                          className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors duration-200 w-fit cursor-help"
+                          title="지난달 대비 14.2% 증가"
+                        >
+                          <TrendingUp className="w-3 h-3" />
+                          <span>+14.2%</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </FadeInStaggerItem>
+
                 </div>
               </FadeInStagger>
-            </>
-          )}
-
-          {/* Quality Metrics 로딩 */}
-          {loading && !hasData && (
-            <div className="bg-card rounded-xl p-6 border border-border">
-              <Skeleton className="h-6 w-40 mb-6" />
-              <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-                {Array.from({ length: 4 }).map((_, idx) => (
-                  <div key={idx} className="space-y-2">
-                    <Skeleton className="h-4 w-20" />
-                    <Skeleton className="h-8 w-24" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {hasData && (
-            <>
-              {/* Quality Metrics 섹션 */}
-              <FadeIn delay={0.3}>
-                <div className="bg-card rounded-xl p-6 border border-border">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-2">
-                      <BarChart3 className="h-5 w-5 text-purple-500" />
-                      <h3 className="text-lg font-semibold text-foreground">Quality Metrics</h3>
-                    </div>
-                    <span className="text-sm text-muted-foreground">영상 품질 지표</span>
-                  </div>
-                  <QuantityQuality
-                    videos={videoRows}
-                    uploadFrequency={uploadFrequency}
-                    subscriptionRates={subscriptionRates}
-                    commentStats={commentStats}
-                    loading={false}
-                    isLoaded={isLoaded}
-                    hasData={hasData}
-                  />
-                </div>
-              </FadeIn>
             </>
           )}
 
