@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -7,46 +6,27 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { 
   Video,
-  LayoutDashboard,
   BarChart3,
   GitCompare,
-  Settings,
-  LogOut,
   MoreVertical,
   X,
-  ChevronDown,
-  Building2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { AnalysisLog } from '@/contexts/AnalysisLogsContext';
-import { SettingsModal } from '@/components/settings/SettingsModal';
 
 export function Sidebar() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { logs: historyItems, removeLog, refreshLogs } = useAnalysisLogs();
-  const [settingsOpen, setSettingsOpen] = useState(false);
-
-  const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast.success('로그아웃되었습니다.');
-    } catch (error) {
-      toast.error('로그아웃에 실패했습니다.');
-    }
-  };
 
   const handleHistoryClick = (log: AnalysisLog) => {
     const event = new CustomEvent('loadAnalysisFromHistory', { detail: { log } });
@@ -129,35 +109,6 @@ export function Sidebar() {
         {/* 네비게이션 메뉴 */}
         <ScrollArea className="flex-1 py-4 scroll-smooth">
           <nav className="px-3 space-y-6">
-            {/* OVERVIEW 섹션 */}
-            <div>
-              <h3 className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Overview
-              </h3>
-              <div className="space-y-1">
-                <NavItem 
-                  icon={LayoutDashboard} 
-                  label="Dashboard" 
-                  path="/" 
-                  active={location.pathname === '/'} 
-                  onClick={() => navigate('/')}
-                />
-                <NavItem 
-                  icon={BarChart3} 
-                  label="Analytics" 
-                  path="/analytics"
-                  active={location.pathname === '/analytics'} 
-                  onClick={() => navigate('/analytics')}
-                />
-                <NavItem 
-                  icon={Building2} 
-                  label="Organization" 
-                  path="/organization"
-                  onClick={() => navigate('/organization')}
-                />
-              </div>
-            </div>
-
             {/* YOUTUBE ANALYTICS 섹션 */}
             <div>
               <h3 className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -258,51 +209,7 @@ export function Sidebar() {
           </nav>
         </ScrollArea>
 
-        {/* 하단 사용자 프로필 */}
-        <div className="border-t border-border p-4">
-          {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="w-full flex items-center gap-3 hover:bg-accent rounded-lg p-2 transition-colors">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-primary text-primary-foreground">
-                      {user?.email?.[0]?.toUpperCase() || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 text-left min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">
-                      {user?.email?.split('@')[0] || 'User'}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Administrator</p>
-                  </div>
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
-                  <Settings className="h-4 w-4 mr-2" />
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut}>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Log out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <Button 
-              onClick={() => navigate('/')} 
-              className="w-full"
-            >
-              로그인
-            </Button>
-          )}
-        </div>
       </aside>
-
-      {/* Settings Modal */}
-      <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
     </>
   );
 }
@@ -311,17 +218,14 @@ export function Sidebar() {
 function NavItem({ 
   icon: Icon, 
   label, 
-  path,
   active,
   onClick,
-  badge
 }: { 
   icon: React.ElementType; 
   label: string; 
-  path: string;
+  path?: string;
   active?: boolean;
   onClick: () => void;
-  badge?: string;
 }) {
   return (
     <motion.button
@@ -340,17 +244,6 @@ function NavItem({
         <Icon className="w-4 h-4 flex-shrink-0" />
         <span className="text-sm font-medium">{label}</span>
       </div>
-      {badge && (
-        <Badge 
-          variant={active ? "default" : "secondary"}
-          className={cn(
-            "h-5 px-1.5 text-xs",
-            active && "bg-primary text-primary-foreground"
-          )}
-        >
-          {badge}
-        </Badge>
-      )}
     </motion.button>
   );
 }
