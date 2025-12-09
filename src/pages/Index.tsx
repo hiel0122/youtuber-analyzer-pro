@@ -598,19 +598,24 @@ const Index = () => {
 
         {/* 재분석 확인 다이얼로그 */}
         <AlertDialog open={showResyncDialog} onOpenChange={setShowResyncDialog}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
+          <AlertDialogContent className="max-w-md">
+            <AlertDialogHeader className="space-y-3">
               <AlertDialogTitle>이미 분석한 채널입니다</AlertDialogTitle>
-              <AlertDialogDescription>
+              <AlertDialogDescription className="leading-relaxed">
                 새로운 데이터만 분석하시겠습니까?
-                <br />
-                <span className="text-xs text-muted-foreground mt-2 block">
-                  • 예: 최근 업로드된 영상만 추가 (빠름)
-                  <br />• 아니오: 모든 영상 재분석 (느림, API 할당량 소모)
-                </span>
+                <ul className="mt-4 space-y-2.5 text-sm">
+                  <li className="flex items-start gap-2.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 flex-shrink-0" />
+                    <span><strong className="font-medium text-foreground">예:</strong> 최근 업로드된 영상만 추가 (빠름)</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 flex-shrink-0" />
+                    <span><strong className="font-medium text-foreground">아니오:</strong> 모든 영상 재분석 (느림, API 할당량 소모)</span>
+                  </li>
+                </ul>
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter>
+            <AlertDialogFooter className="mt-6 gap-2">
               <AlertDialogCancel onClick={() => handleResyncConfirm(false)}>아니오 (전체 재분석)</AlertDialogCancel>
               <AlertDialogAction onClick={() => handleResyncConfirm(true)}>예 (새 영상만)</AlertDialogAction>
             </AlertDialogFooter>
