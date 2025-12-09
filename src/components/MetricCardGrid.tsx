@@ -148,11 +148,11 @@ export function MetricCardGrid({ videoRows, channelStats }: MetricCardGridProps)
   
   const totalViews = videoRows.reduce((sum, v) => sum + (v.views || 0), 0);
   const totalLikes = videoRows.reduce((sum, v) => sum + (v.likes || 0), 0);
-  const totalComments = videoRows.reduce((sum, v) => sum + ((v as any).comments || 0), 0);
+  const totalComments = videoRows.reduce((sum, v) => sum + (v.comments || 0), 0);
   
   const viewsList = videoRows.map(v => v.views || 0);
   const likesList = videoRows.map(v => v.likes || 0);
-  const commentsList = videoRows.map(v => (v as any).comments || 0);
+  const commentsList = videoRows.map(v => v.comments || 0);
   const durationsList = videoRows.map(v => parseDuration(v.duration)).filter(d => d > 0);
   
   const maxViews = viewsList.length > 0 ? Math.max(...viewsList) : 0;

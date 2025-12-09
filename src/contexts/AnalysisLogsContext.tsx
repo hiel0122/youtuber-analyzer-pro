@@ -59,7 +59,22 @@ export function AnalysisLogsProvider({ children, userId }: { children: ReactNode
       if (error) throw error;
       
       console.log('[LOGS] ✅ Logs fetched:', data?.length || 0, 'items');
-      setLogs((data ?? []) as AnalysisLog[]);
+      
+      // Fetch actual video counts from youtube_videos table
+      const logsWithRealCounts = await Promise.all(
+        (data ?? []).map(async (log) => {
+          if (log.channel_id) {
+            const { count } = await supabase
+              .from('youtube_videos')
+              .select('*', { count: 'exact', head: true })
+              .eq('channel_id', log.channel_id);
+            return { ...log, video_count: count ?? log.video_count };
+          }
+          return log;
+        })
+      );
+      
+      setLogs(logsWithRealCounts as AnalysisLog[]);
     } catch (error) {
       console.error('[LOGS] ❌ Failed to load analysis logs:', error);
     } finally {
