@@ -119,6 +119,7 @@ const Index = () => {
         presenter: v.presenter,
         views: v.views,
         likes: v.likes,
+        comments: v.comments || 0,
         upload_date: v.upload_date,
         duration: v.duration,
         url: v.url,
