@@ -1,7 +1,7 @@
 import * as React from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { pickTagColor, textOn } from "@/lib/ui/tagPalette";
 import { cn } from "@/lib/utils";
+import { analyzeChannelTags, ChannelTags } from "@/lib/channelAnalyzer";
 
 type Video = {
   upload_date?: string | null;
@@ -16,21 +16,6 @@ type UploadFrequency = {
   averages?: {
     perWeek?: number;
   };
-};
-
-// 간단한 duration 파서
-const parseDurationToSeconds = (d?: string | null) => {
-  if (!d) return 0;
-  const parts = d.split(":").map(Number);
-  if (parts.length === 3) {
-    const [h, m, s] = parts;
-    return h * 3600 + m * 60 + s;
-  }
-  if (parts.length === 2) {
-    const [m, s] = parts;
-    return m * 60 + s;
-  }
-  return Number(parts[0]) || 0;
 };
 
 // 운영기간 계산(년/월/일)
@@ -51,36 +36,12 @@ const calcPeriod = (start: Date, end = new Date()) => {
   return { years, months, days, start, end };
 };
 
-// 토픽 추출용(아주 가벼운 불용어/토큰화)
-const STOP = new Set([
-  "은","는","이","가","을","를","에","의","와","과","도","로","으로","에서","하다",
-  "영상","유튜브","조회수","최신","공개","등","및","것","수","개","소개","리뷰","분석",
-  "the","a","is","and","or","to","of","in","on","for","with"
-]);
-
-function extractTopTopicsFromTitles(videos: { title?: string | null }[], topN = 3) {
-  const counts = new Map<string, number>();
-  for (const v of videos) {
-    const t = (v.title ?? "").toLowerCase();
-    const tokens = t.split(/[^0-9a-zA-Z가-힣]+/).filter(Boolean);
-    for (let i = 0; i < tokens.length; i++) {
-      const tok = tokens[i];
-      if (tok.length < 2) continue;
-      if (STOP.has(tok)) continue;
-      // unigram
-      counts.set(tok, (counts.get(tok) || 0) + 1);
-      // bigram(가중치 0.5)
-      if (i < tokens.length - 1) {
-        const bi = tok + " " + tokens[i + 1];
-        counts.set(bi, (counts.get(bi) || 0) + 0.5);
-      }
-    }
-  }
-  return [...counts.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, topN)
-    .map(([k]) => k);
-}
+// 태그 색상 타입별 정의
+const tagStyles = {
+  contentType: "bg-cyan-500/15 text-cyan-400 border-cyan-500/30",
+  keyword: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+  identity: "bg-amber-500/15 text-amber-400 border-amber-500/30",
+} as const;
 
 type Props = {
   channelId?: string;
@@ -96,6 +57,46 @@ export default function ChannelSummary({
   uploadFrequency,
 }: Props) {
   const hasVideos = Array.isArray(videos) && videos.length > 0;
+  
+  // 스마트 태그 분석
+  const [channelTags, setChannelTags] = React.useState<ChannelTags>({
+    contentType: '',
+    mainKeywords: [],
+    identity: [],
+  });
+
+  // channel_meta 연동 (manager_name)
+  const [manager, setManager] = React.useState("");
+  const [loadingMeta, setLoadingMeta] = React.useState(false);
+
+  // 영상 데이터가 변경되면 태그 재분석
+  React.useEffect(() => {
+    if (hasVideos) {
+      const tags = analyzeChannelTags(videos);
+      setChannelTags(tags);
+    }
+  }, [videos, hasVideos]);
+
+  // channel_meta 로드
+  React.useEffect(() => {
+    if (!channelId) return;
+    (async () => {
+      setLoadingMeta(true);
+      const { data, error } = await supabase
+        .from("channel_meta" as any)
+        .select("manager_name")
+        .eq("channel_id", channelId)
+        .maybeSingle();
+      if (!error && data) {
+        const metaData = data as any;
+        setManager(metaData.manager_name ?? "");
+      } else {
+        setManager("");
+      }
+      setLoadingMeta(false);
+    })();
+  }, [channelId]);
+
   if (!hasVideos) {
     return (
       <div className="text-sm text-muted-foreground">
@@ -104,7 +105,7 @@ export default function ChannelSummary({
     );
   }
 
-  // ① 첫 업로드 날짜 → 운영기간
+  // 첫 업로드 날짜 → 운영기간
   const firstUpload = new Date(
     videos.reduce((min, v) => {
       const t = new Date(v.upload_date ?? "").getTime();
@@ -114,56 +115,12 @@ export default function ChannelSummary({
   const hasStart = isFinite(firstUpload.getTime());
   const period = hasStart ? calcPeriod(firstUpload) : null;
 
-  // ② 자동 토픽 후보
-  const topicCandidates = extractTopTopicsFromTitles(videos, 5);
-
-  // ③ 평균 길이/업로드 빈도/좋아요 반응 기반 특징(간단 태그)
-  const durations = videos.map(v => parseDurationToSeconds(v.duration)).filter(n => n > 0);
-  const avgMin = durations.length ? durations.reduce((a,b)=>a+b,0)/durations.length/60 : 0;
-  const traits: string[] = [];
-  if (avgMin >= 8) traits.push("롱폼 중심");
-  else if (avgMin > 0) traits.push("숏폼/쇼츠 중심");
-
-  const perWeek = Number(uploadFrequency?.averages?.perWeek || 0);
-  if (perWeek >= 2) traits.push("활발한 업로드");
-  else if (perWeek >= 1) traits.push("주 1회");
-  else if (perWeek > 0) traits.push("비정기");
-
-  const withStats = videos.filter(v => (v.views || 0) > 0 && (v.likes || 0) >= 0);
-  if (withStats.length) {
-    const likeRatio = withStats.reduce((s,v)=> s + (((v.likes||0)/(v.views||1))*100), 0) / withStats.length;
-    if (likeRatio >= 3) traits.push("좋아요 반응 높음");
-  }
-
-  // ④ channel_meta 연동 (manager_name / topic_tags) - 표시만
-  const [manager, setManager] = React.useState("");
-  const [topicTags, setTopicTags] = React.useState<string[]>([]);
-  const [loadingMeta, setLoadingMeta] = React.useState(false);
-
-  React.useEffect(() => {
-    if (!channelId) return;
-    (async () => {
-      setLoadingMeta(true);
-      const { data, error } = await supabase
-        .from("channel_meta" as any)
-        .select("manager_name, topic_tags")
-        .eq("channel_id", channelId)
-        .maybeSingle();
-      if (!error && data) {
-        const metaData = data as any;
-        setManager(metaData.manager_name ?? "");
-        setTopicTags(metaData.topic_tags ?? []);
-      } else {
-        setManager("");
-        setTopicTags([]);
-      }
-      setLoadingMeta(false);
-    })();
-  }, [channelId]);
-
-  // 표시할 태그: channel_meta의 topic_tags 또는 자동 추출된 topicCandidates
-  const displayTags = (topicTags?.length ? topicTags : topicCandidates) ?? [];
   const fmt = (d: Date) => d.toISOString().slice(0, 10);
+
+  // 태그가 하나라도 있는지 확인
+  const hasTags = channelTags.contentType || 
+                  channelTags.mainKeywords.length > 0 || 
+                  channelTags.identity.length > 0;
 
   return (
     <div className="space-y-4">
@@ -198,64 +155,52 @@ export default function ChannelSummary({
             </div>
           </div>
 
-          {/* 우: 주제 & 특징 */}
+          {/* 우: 스마트 태그 */}
           <div>
             <div className="text-sm text-muted-foreground mb-1">주제</div>
             
-            {/* 토픽 태그 뱃지만 표시 */}
-            {displayTags.length > 0 && (
+            {hasTags ? (
               <div className="mt-2 flex flex-wrap gap-2">
-                {displayTags.map((t, i) => {
-                  const bg = pickTagColor(i);
-                  const fg = textOn(bg);
-                  return (
-                    <span
-                      key={`${t}-${i}`}
-                      className={cn(
-                        "inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium",
-                        "border focus-visible:outline-none focus-visible:ring-2",
-                        "focus-visible:ring-[var(--brand-ink,#1D348F)] focus-visible:ring-offset-0"
-                      )}
-                      style={{
-                        backgroundColor: bg,
-                        color: fg,
-                        borderColor: bg
-                      }}
-                      title={t}
-                    >
-                      {t}
-                    </span>
-                  );
-                })}
-              </div>
-            )}
+                {/* 콘텐츠 타입 (cyan) */}
+                {channelTags.contentType && (
+                  <span
+                    className={cn(
+                      "inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border",
+                      tagStyles.contentType
+                    )}
+                  >
+                    {channelTags.contentType}
+                  </span>
+                )}
 
-            {/* 특징 태그 */}
-            {!!traits.length && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {traits.map((t, i) => {
-                  const bg = pickTagColor(i + displayTags.length);
-                  const fg = textOn(bg);
-                  return (
-                    <span
-                      key={`${t}-${i}`}
-                      className={cn(
-                        "inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium",
-                        "border focus-visible:outline-none focus-visible:ring-2",
-                        "focus-visible:ring-[var(--brand-ink,#1D348F)] focus-visible:ring-offset-0"
-                      )}
-                      style={{
-                        backgroundColor: bg,
-                        color: fg,
-                        borderColor: bg
-                      }}
-                      title={t}
-                    >
-                      {t}
-                    </span>
-                  );
-                })}
+                {/* 주요 키워드 (emerald/green) */}
+                {channelTags.mainKeywords.map((keyword, i) => (
+                  <span
+                    key={`keyword-${i}`}
+                    className={cn(
+                      "inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border",
+                      tagStyles.keyword
+                    )}
+                  >
+                    {keyword}
+                  </span>
+                ))}
+
+                {/* 채널 정체성 (amber) */}
+                {channelTags.identity.map((tag, i) => (
+                  <span
+                    key={`identity-${i}`}
+                    className={cn(
+                      "inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border",
+                      tagStyles.identity
+                    )}
+                  >
+                    {tag}
+                  </span>
+                ))}
               </div>
+            ) : (
+              <div className="mt-2 text-sm text-muted-foreground">분석 중...</div>
             )}
           </div>
         </div>
