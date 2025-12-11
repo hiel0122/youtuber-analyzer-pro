@@ -11,6 +11,7 @@ import AuthCallback from "./pages/AuthCallback";
 import ResetPassword from "./pages/ResetPassword";
 import DoctorDebug from "./pages/DoctorDebug";
 import NotFound from "./pages/NotFound";
+import SunoAiPromptMaker from "./pages/SunoAiPromptMaker";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="/analytics/channel" element={<Index />} />
             <Route path="/analytics/video" element={<Index />} />
             <Route path="/analytics/compare" element={<Index />} />
+            <Route path="/work-tool/suno-ai-prompt-maker" element={<SunoAiPromptMaker />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/debug/doctor" element={<DoctorDebug />} />
             <Route path="*" element={<Navigate to="/analytics/channel" replace />} />
