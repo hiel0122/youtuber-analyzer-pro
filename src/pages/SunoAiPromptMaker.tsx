@@ -4,13 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { useApiKeys } from '@/hooks/useApiKeys';
 
 // ============================================================
 // Data Definitions
@@ -102,10 +96,8 @@ const SunoAiPromptMaker = () => {
   // State Management
   // ============================================================
   
-  const [userApiKey, setUserApiKey] = useState(
-    localStorage.getItem('gemini_api_key') || ''
-  );
-  const [showSettings, setShowSettings] = useState(false);
+  const { getApiKey } = useApiKeys();
+  const geminiApiKey = getApiKey('gemini_api');
   
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedMoods, setSelectedMoods] = useState<string[]>([]);
@@ -168,13 +160,6 @@ const SunoAiPromptMaker = () => {
   // ============================================================
   // Effects
   // ============================================================
-
-  // API 키 저장
-  const saveApiKey = () => {
-    localStorage.setItem('gemini_api_key', userApiKey);
-    setShowSettings(false);
-    toast.success("API 키가 저장되었습니다!");
-  };
 
   // 템포 자동 추천 로직
   useEffect(() => {
@@ -320,8 +305,8 @@ const SunoAiPromptMaker = () => {
   };
 
   const callGeminiApi = useCallback(async (promptText: string) => {
-    if (!userApiKey) {
-      toast.error('API 키를 먼저 설정해주세요.');
+    if (!geminiApiKey) {
+      toast.error('설정에서 Gemini API 키를 먼저 등록해주세요.');
       return "API 키가 설정되지 않았습니다.";
     }
 
@@ -331,7 +316,7 @@ const SunoAiPromptMaker = () => {
     while (retryCount < maxRetries) {
       try {
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${userApiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -359,7 +344,7 @@ const SunoAiPromptMaker = () => {
       }
     }
     return "API 호출에 실패했습니다.";
-  }, [userApiKey]);
+  }, [geminiApiKey]);
 
   const buildPrompt = useCallback(() => {
     const selectedTempo = tempoData[tempoIndex].value;
@@ -449,9 +434,8 @@ ${guideLine}
   }, []);
 
   const handleGenerateWithAI = useCallback(async () => {
-    if (!userApiKey) {
-      toast.error('API 키를 먼저 설정해주세요.');
-      setShowSettings(true);
+    if (!geminiApiKey) {
+      toast.error('설정에서 Gemini API 키를 먼저 등록해주세요.');
       return;
     }
 
@@ -478,7 +462,7 @@ ${guideLine}
     }
 
     setIsLoading(false);
-  }, [buildPrompt, callGeminiApi, parseGeminiResult, userApiKey]);
+  }, [buildPrompt, callGeminiApi, parseGeminiResult, geminiApiKey]);
 
   const handleEnhanceGuide = useCallback(async () => {
     if (!guideLine.trim()) {
@@ -581,54 +565,22 @@ ${guideLine}
             AI 기반 음악 작사/작곡 도우미
           </p>
         </div>
-        <Button 
-          variant="outline" 
-          onClick={() => setShowSettings(true)}
-          className="gap-2"
-        >
-          <Settings className="w-4 h-4" />
-          API 설정
-        </Button>
+        <div className="flex items-center gap-2">
+          {!geminiApiKey && (
+            <span className="text-xs text-amber-500 bg-amber-500/10 px-2 py-1 rounded">
+              API 키 미설정
+            </span>
+          )}
+          <Button 
+            variant="outline" 
+            onClick={() => window.location.href = '/#/settings'}
+            className="gap-2"
+          >
+            <Settings className="w-4 h-4" />
+            API 설정
+          </Button>
+        </div>
       </div>
-
-      {/* API Key Modal */}
-      <Dialog open={showSettings} onOpenChange={setShowSettings}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>API 설정</DialogTitle>
-            <DialogDescription>
-              Google Gemini API 키를 입력해주세요.{' '}
-              <a 
-                href="https://aistudio.google.com/app/apikey" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                무료 키 발급받기
-              </a>
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Input
-              type="password"
-              value={userApiKey}
-              onChange={(e) => setUserApiKey(e.target.value)}
-              placeholder="AIza..."
-            />
-            <div className="flex gap-2 justify-end">
-              <Button 
-                variant="outline" 
-                onClick={() => setShowSettings(false)}
-              >
-                취소
-              </Button>
-              <Button onClick={saveApiKey}>
-                저장
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -853,7 +805,7 @@ ${guideLine}
                   variant="default"
                   size="sm"
                   onClick={handleEnhanceGuide}
-                  disabled={isEnhancing || !userApiKey}
+                  disabled={isEnhancing || !geminiApiKey}
                 >
                   {isEnhancing ? (
                     <Loader2 className="w-3 h-3 mr-1 animate-spin" />
