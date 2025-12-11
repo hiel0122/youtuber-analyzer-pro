@@ -18,6 +18,8 @@ import {
   GitCompare,
   MoreVertical,
   X,
+  Wrench,
+  Music,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { AnalysisLog } from '@/contexts/AnalysisLogsContext';
@@ -133,6 +135,22 @@ export function Sidebar() {
                   label="채널 비교" 
                   path="/analytics/compare"
                   onClick={() => navigate('/analytics/compare')}
+                />
+              </div>
+            </div>
+
+            {/* WORK TOOL 섹션 */}
+            <div>
+              <h3 className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Work Tool
+              </h3>
+              <div className="space-y-1">
+                <NavItem 
+                  icon={Music} 
+                  label="Suno AI Prompt Maker" 
+                  path="/work-tool/suno-ai-prompt-maker"
+                  active={location.pathname === '/work-tool/suno-ai-prompt-maker'} 
+                  onClick={() => navigate('/work-tool/suno-ai-prompt-maker')}
                 />
               </div>
             </div>
