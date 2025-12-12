@@ -93,17 +93,17 @@ export default function QuantityQuality({
         <div className="grid gap-4">
           <div className="grid grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
-              <div key={`q1-${i}`} className="h-24 bg-gray-900 animate-pulse rounded-2xl" />
+              <div key={`q1-${i}`} className="h-24 bg-muted animate-pulse rounded-2xl" />
             ))}
           </div>
           <div className="grid grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
-              <div key={`q2-${i}`} className="h-24 bg-gray-900 animate-pulse rounded-2xl" />
+              <div key={`q2-${i}`} className="h-24 bg-muted animate-pulse rounded-2xl" />
             ))}
           </div>
           <div className="grid grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
-              <div key={`q3-${i}`} className="h-24 bg-gray-900 animate-pulse rounded-2xl" />
+              <div key={`q3-${i}`} className="h-24 bg-muted animate-pulse rounded-2xl" />
             ))}
           </div>
         </div>

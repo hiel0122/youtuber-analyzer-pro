@@ -49,7 +49,7 @@ export function CustomTooltip({ active, payload, videoData }: CustomTooltipProps
     <div className="bg-popover border border-border rounded-lg shadow-lg p-4 max-w-xs text-popover-foreground">
       {/* 영상 제목 */}
       {video.title && (
-        <div className="font-semibold text-sm text-gray-900 dark:text-white mb-2 line-clamp-2">
+        <div className="font-semibold text-sm text-foreground mb-2 line-clamp-2">
           {video.title}
         </div>
       )}
@@ -69,8 +69,8 @@ export function CustomTooltip({ active, payload, videoData }: CustomTooltipProps
         {/* 조회수 */}
         {video.views !== undefined && (
           <div className="flex items-center justify-between text-xs">
-            <span className="text-gray-600 dark:text-gray-400">조회수</span>
-            <span className="font-semibold text-gray-900 dark:text-white">
+            <span className="text-muted-foreground">조회수</span>
+            <span className="font-semibold text-foreground">
               {formatNumber(video.views)}
             </span>
           </div>
@@ -79,8 +79,8 @@ export function CustomTooltip({ active, payload, videoData }: CustomTooltipProps
         {/* 좋아요 */}
         {video.likes !== undefined && (
           <div className="flex items-center justify-between text-xs">
-            <span className="text-gray-600 dark:text-gray-400">좋아요</span>
-            <span className="font-semibold text-gray-900 dark:text-white">
+            <span className="text-muted-foreground">좋아요</span>
+            <span className="font-semibold text-foreground">
               {formatNumber(video.likes)}
             </span>
           </div>

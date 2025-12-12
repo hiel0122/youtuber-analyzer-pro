@@ -30,7 +30,7 @@ export const ChannelInput = ({ onAnalyze, loading }: ChannelInputProps) => {
         placeholder="YouTube 채널 URL을 입력하세요 (예: https://www.youtube.com/@channelname)"
         value={url}
         onChange={(e) => setUrl(e.target.value)}
-        className="flex-1 h-12 bg-white text-neutral-900 placeholder:text-neutral-500 caret-neutral-900 border border-input focus-visible:ring-2 focus-visible:ring-[var(--brand-ink,#1D348F)] focus-visible:ring-offset-0"
+        className="flex-1 h-12 bg-input text-foreground placeholder:text-muted-foreground caret-foreground border border-input focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0"
         disabled={loading}
       />
       <Button
