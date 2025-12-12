@@ -46,7 +46,7 @@ export function CustomTooltip({ active, payload, videoData }: CustomTooltipProps
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4 max-w-xs">
+    <div className="bg-popover border border-border rounded-lg shadow-lg p-4 max-w-xs text-popover-foreground">
       {/* 영상 제목 */}
       {video.title && (
         <div className="font-semibold text-sm text-gray-900 dark:text-white mb-2 line-clamp-2">
@@ -62,7 +62,7 @@ export function CustomTooltip({ active, payload, videoData }: CustomTooltipProps
       )}
 
       {/* 구분선 */}
-      <div className="border-t border-gray-200 dark:border-gray-700 my-2" />
+      <div className="border-t border-border my-2" />
 
       {/* 통계 정보 */}
       <div className="space-y-1.5">

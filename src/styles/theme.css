@@ -1,127 +1,106 @@
-/* === Default Theme Tokens (고정) === */
-:root {
-  /* 기본 색상 */
-  --bg: #F1F5F9;          /* 앱 배경 */
-  --surface: #FFFFFF;     /* 카드/패널 */
-  --ink: #0F172A;         /* 기본 텍스트 */
-  --muted: #475569;       /* 보조 텍스트 */
-  --border: #E2E8F0;      /* 경계선 */
+/* === Theme Tokens (respecting dark/light mode) === */
 
-  /* 강조 */
-  --primary: #2563EB;     /* 주요 버튼/링크/포커스 */
-  --accent:  #14B8A6;     /* 보조 강조(성공/완료 뉘앙스) */
-  --warning: #F59E0B;     /* 경고(주의) */
-  --danger:  #EF4444;     /* 치명적 경고(항상 빨강, 테마 무관) */
+/* Light mode CSS variables are defined in tokens.css */
+/* This file only adds utility classes that use semantic tokens */
 
-  /* 차트 팔레트 */
-  --chart-1: #2563EB;
-  --chart-2: #14B8A6;
-  --chart-3: #F59E0B;
-  --chart-4: #0F172A;
-  --chart-5: #93C5FD; /* 보조 톤(밝은 인디고) */
-  --chart-6: #A78BFA; /* violet-400 */
-  --chart-7: #34D399; /* emerald-400 */
-  --chart-8: #FB923C; /* orange-400 */
-}
-
-/* 유틸리티(기존 Tailwind 클래스와 함께 사용) */
-.bg-app     { background: var(--bg); }
-.bg-surface { background: var(--surface); }
-.text-ink   { color: var(--ink); }
-.text-muted { color: var(--muted); }
-.border-app { border-color: var(--border); }
+/* Utility classes using CSS variables from tokens.css */
+.bg-app     { background: hsl(var(--background)); }
+.bg-surface { background: hsl(var(--card)); }
+.text-ink   { color: hsl(var(--foreground)); }
+.text-muted { color: hsl(var(--muted-foreground)); }
+.border-app { border-color: hsl(var(--border)); }
 
 .btn-primary {
-  background: var(--primary);
-  color: #fff;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
 }
 .btn-primary:hover { filter: brightness(0.95); }
 
-.tag-accent  { background: color-mix(in oklab, var(--accent) 18%, white); color: var(--ink); }
-.tag-warning { background: color-mix(in oklab, var(--warning) 18%, white); color: var(--ink); }
+.tag-accent  { 
+  background: hsl(var(--accent) / 0.18); 
+  color: hsl(var(--foreground)); 
+}
+.tag-warning { 
+  background: hsl(var(--chart-3) / 0.18); 
+  color: hsl(var(--foreground)); 
+}
 
 /* 중요 경고: 테마와 무관하게 항상 빨간 톤 */
 .alert-danger, [data-importance="critical"], .text-danger {
-  --danger-bg: #FEE2E2;
-  --danger-br: #FCA5A5;
-  color: #B91C1C;
-  background: var(--danger-bg);
-  border: 1px solid var(--danger-br);
+  color: hsl(var(--destructive));
+  background: hsl(var(--destructive) / 0.1);
+  border: 1px solid hsl(var(--destructive) / 0.3);
 }
 
 /* 포커스 링, 입력 포커스 */
 :focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid hsl(var(--primary));
   outline-offset: 2px;
 }
 
 /* 스크롤바(지원 브라우저 한정) */
-*::-webkit-scrollbar-thumb { background: color-mix(in oklab, var(--ink) 25%, white); }
-
-/* 전역 베이스 스타일 */
-html, body {
-  background: var(--bg);
-  color: var(--ink);
+*::-webkit-scrollbar-thumb { 
+  background: hsl(var(--muted-foreground) / 0.25); 
 }
 
-/* 차트/표 기본 글자색 */
+/* 차트/표 기본 글자색 - 테마 반응형 */
 .recharts-default-tooltip, 
 .recharts-cartesian-axis-tick tspan,
 .recharts-legend-item-text {
-  fill: var(--ink) !important;
-  color: var(--ink) !important;
+  fill: hsl(var(--foreground)) !important;
+  color: hsl(var(--foreground)) !important;
 }
 
 table { 
-  color: var(--ink); 
+  color: hsl(var(--foreground)); 
 }
 
 th, td { 
-  color: var(--ink); 
+  color: hsl(var(--foreground)); 
 }
 
 input::placeholder { 
-  color: color-mix(in oklab, var(--muted) 70%, transparent); 
+  color: hsl(var(--muted-foreground) / 0.7); 
 }
 
 /* 사이드바 */
 .sidebar {
-  background-color: var(--surface);
-  border-color: var(--border);
-  color: var(--ink);
+  background-color: hsl(var(--card));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
 }
 
 .sidebar .nav-item {
-  color: var(--muted);
+  color: hsl(var(--muted-foreground));
 }
 
 .sidebar .nav-item:hover,
 .sidebar .nav-item[aria-current="page"] {
-  background-color: color-mix(in oklab, var(--primary) 10%, white);
-  color: var(--ink);
+  background-color: hsl(var(--primary) / 0.1);
+  color: hsl(var(--foreground));
   font-weight: 500;
 }
 
 /* ===== Gradient 클래스 ===== */
 .bg-gradient-primary {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-  color: #ffffff;
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--chart-2)) 100%);
+  color: hsl(var(--primary-foreground));
 }
 
 .bg-gradient-card {
-  background: linear-gradient(135deg, var(--surface) 0%, color-mix(in oklab, var(--primary) 5%, var(--surface)) 100%);
+  background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--primary) / 0.05) 100%);
 }
 
 /* ===== Shadow 클래스 ===== */
 .shadow-card {
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  box-shadow: 0 1px 3px 0 hsl(var(--foreground) / 0.1), 0 1px 2px -1px hsl(var(--foreground) / 0.1);
 }
 
 .shadow-glow {
-  box-shadow: 0 0 20px 0 color-mix(in oklab, var(--primary) 20%, transparent);
+  box-shadow: 0 0 20px 0 hsl(var(--primary) / 0.2);
   transition: box-shadow 0.3s ease;
 }
 
 .shadow-glow:hover {
-  box-shadow: 0 0 30px 0 color-mix(in oklab, var(--primary) 35%, transparent);
+  box-shadow: 0 0 30px 0 hsl(var(--primary) / 0.35);
 }
