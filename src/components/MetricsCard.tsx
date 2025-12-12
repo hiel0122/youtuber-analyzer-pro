@@ -26,7 +26,7 @@ export const MetricsCard = ({ title, value, icon: Icon, description, tooltip, in
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-5 w-5 p-0 hover:bg-white/5 rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      className="h-5 w-5 p-0 hover:bg-muted rounded focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                       aria-label={`${title} 안내`}
                     >
                       <Info className="h-3.5 w-3.5 text-muted-foreground/70" />
