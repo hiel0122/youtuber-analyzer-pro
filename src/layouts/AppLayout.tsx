@@ -10,7 +10,7 @@ export function AppLayout() {
 
   return (
     <AnalysisLogsProvider userId={user?.id}>
-      <div className="flex h-screen overflow-hidden bg-[#0a0a0a]">
+      <div className="flex h-screen overflow-hidden bg-background">
         {/* 좌측 사이드바 */}
         <Sidebar />
         
