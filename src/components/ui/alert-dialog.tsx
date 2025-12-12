@@ -39,7 +39,7 @@ const AlertDialogContent = React.forwardRef<
         "fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2",
         "rounded-2xl bg-card text-card-foreground p-6",
         "border border-border",
-        "outline-none ring-0 ring-offset-0 shadow-none modal-seamless",
+        "outline-none ring-0 ring-offset-0 shadow-xl",
         className
       )}
       {...props}
