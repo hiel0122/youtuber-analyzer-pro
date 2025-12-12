@@ -175,7 +175,7 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
       <DialogContent className="max-w-5xl h-[85vh] p-0">
         <div className="flex h-full">
           {/* Left Sidebar - 30% */}
-          <div className="w-48 border-r border-white/10 bg-muted/30 p-4">
+          <div className="w-48 border-r border-border bg-muted/30 p-4">
             <DialogHeader className="mb-6 px-2">
               <DialogTitle className="flex items-center gap-2 text-lg">
                 <Settings className="w-5 h-5" />
@@ -305,7 +305,7 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
 
                   <div>
                     <h3 className="text-base font-semibold">{t.account_manage}</h3>
-                    <div className="mt-3 rounded-lg border border-white/10 p-4">
+                    <div className="mt-3 rounded-lg border border-border p-4">
                       <div className="text-sm">{t.team_section}</div>
                       <div className="text-xs text-muted-foreground mt-1">
                         향후 팀/엔터프라이즈 플랜에서 리더가 팀원을 초대/권한 설정할 수 있도록 확장 (지금은 디자인만)
@@ -322,7 +322,7 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="text-base font-semibold">{t.credits}</h3>
                     </div>
-                    <div className="h-3 w-full overflow-hidden rounded-full bg-white/10">
+                    <div className="h-3 w-full overflow-hidden rounded-full bg-muted">
                       <div
                         className="h-full bg-blue-500 transition-all duration-1000 ease-out"
                         style={{ width: `${Math.min(100, usage.creditsUsedPct)}%` }}
@@ -334,7 +334,7 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
                   </div>
 
                   {/* 사용량 추이 */}
-                  <div className="rounded-lg border border-white/10 p-3">
+                  <div className="rounded-lg border border-border p-3">
                     <div className="mb-2 text-sm font-medium">일별 사용량 추이 (최근 최대 30일)</div>
                     <div className="h-72 w-full">
                       <ResponsiveContainer>
@@ -358,14 +358,13 @@ export function SettingsModal({ open, onOpenChange, defaultTab = 'general' }: Se
             </div>
 
             {/* Footer buttons */}
-            <div className="border-t border-white/10 p-4 flex justify-end gap-2">
-              <button
-                type="button"
+            <div className="border-t border-border p-4 flex justify-end gap-2">
+              <Button
+                variant="outline"
                 onClick={() => onOpenChange(false)}
-                className="px-3 py-2 rounded-md bg-transparent text-neutral-300 hover:bg-white/10"
               >
                 닫기
-              </button>
+              </Button>
               <Button onClick={onSave} disabled={loading || !reqFilled}>
                 {loading ? "저장 중..." : t.save}
               </Button>
