@@ -752,19 +752,17 @@ const Index = () => {
 
                 {/* Weekly Revenue - 상위 영상 */}
                 <div className="bg-card rounded-xl p-6 border border-border">
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h3 className="text-lg font-semibold text-foreground">조회수 순위</h3>
-                      <p className="text-sm text-muted-foreground mt-1">가장 인기 있는 영상 Top 10</p>
-                    </div>
-                    <span className="text-sm text-muted-foreground font-medium">Top 10</span>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-foreground">조회수 순위</h3>
                   </div>
+                  <p className="text-sm text-muted-foreground mb-4">가장 인기 있는 영상 Top 10</p>
                   <TopVideosChart 
                     videos={videoRows.map(video => ({
                       ...video,
                       channel_name: summaryChannelName || currentChannelName,
                     }))}
                     loading={loading}
+                    showFilter={true}
                   />
                 </div>
               </div>

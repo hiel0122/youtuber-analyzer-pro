@@ -22,7 +22,7 @@ interface TopVideosChartProps {
   showFilter?: boolean;
 }
 
-export function TopVideosChart({ videos, loading, compact = false, showFilter = true }: TopVideosChartProps) {
+export function TopVideosChart({ videos, loading, compact = false, showFilter = false }: TopVideosChartProps) {
   const { theme } = useTheme();
   const [videoFilter, setVideoFilter] = useState<'all' | 'long' | 'short'>('all');
 

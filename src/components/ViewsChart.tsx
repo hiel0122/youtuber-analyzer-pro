@@ -105,6 +105,7 @@ export const ViewsChart = ({ videos }: ViewsChartProps) => {
             </Button>
           </div>
         </div>
+        <p className="text-sm text-muted-foreground mt-1">최근 30개 영상의 조회수를 표시합니다</p>
       </CardHeader>
       <CardContent className="chart-root">
         <ResponsiveContainer width="100%" height={300}>
