@@ -81,10 +81,10 @@ interface SingleMetricCardProps {
 const SingleMetricCard = ({ icon, label, value, trend, period }: SingleMetricCardProps) => (
   <FadeInStaggerItem>
     <motion.div 
-      className="bg-card rounded-xl p-4 border border-border cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+      className="bg-card rounded-xl p-4 border border-border cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 [&:not(:focus-visible)]:outline-none"
+      tabIndex={-1}
       whileHover={{ 
         scale: 1.02,
-        borderColor: "rgba(59, 130, 246, 0.3)",
         boxShadow: "0 10px 30px -10px rgba(59, 130, 246, 0.3)"
       }}
       transition={{ duration: 0.2 }}

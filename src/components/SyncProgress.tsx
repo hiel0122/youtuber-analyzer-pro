@@ -54,7 +54,7 @@ export default function SyncProgress({
     : '동기화 준비 중...';
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+    <div className="fixed inset-0 bg-black/50 dark:bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
       <div className="bg-background border border-border rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium">{progressMessage}</span>
