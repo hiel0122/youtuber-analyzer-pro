@@ -728,18 +728,35 @@ const Index = () => {
                 <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
                   {/* Sales Overview - 조회수 추이 */}
                   <div className="bg-card rounded-xl p-6 border border-border">
-                    <div className="flex items-center justify-between mb-6">
-                      <div>
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-2">
                         <h3 className="text-lg font-semibold text-foreground">조회수 추이</h3>
-                        <p className="text-sm text-muted-foreground mt-1">최근 30개 영상의 조회수와 좋아요</p>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="default"
+                            size="sm"
+                            className="h-8 text-xs"
+                          >
+                            전체
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 text-xs"
+                          >
+                            롱폼
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 text-xs"
+                          >
+                            숏폼
+                          </Button>
+                        </div>
                       </div>
-                      <select className="px-3 py-1.5 bg-secondary border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
-                        <option>Last 3 months</option>
-                        <option>Last 6 months</option>
-                        <option>Last year</option>
-                        <option>All time</option>
-                      </select>
-                  </div>
+                      <p className="text-sm text-muted-foreground">최근 30개 영상의 조회수와 좋아요</p>
+                    </div>
                   <ViewsTrend
                     videos={videoRows.map(video => ({
                       ...video,
