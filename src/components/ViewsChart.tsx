@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart3 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { YouTubeVideo } from "@/lib/youtubeApi";
 import { formatMMDD, yTicks200kTo2M, yTickLabel, formatInt } from "@/utils/format";
 import { pickColor } from "@/lib/charts/palette";
-import { Button } from "@/components/ui/button";
 
 interface ViewsChartProps {
   videos: YouTubeVideo[];
@@ -14,25 +14,16 @@ interface ViewsChartProps {
 export const ViewsChart = ({ videos }: ViewsChartProps) => {
   const [videoFilter, setVideoFilter] = useState<'all' | 'long' | 'short'>('all');
 
-  // duration을 초 단위로 변환하는 함수
   const parseDuration = (duration: string): number => {
     if (!duration) return 0;
-    // PT 형식 (PT1M30S) 처리
-    const ptMatch = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
-    if (ptMatch) {
-      const hours = parseInt(ptMatch[1] || '0');
-      const minutes = parseInt(ptMatch[2] || '0');
-      const seconds = parseInt(ptMatch[3] || '0');
-      return hours * 3600 + minutes * 60 + seconds;
-    }
-    // HH:MM:SS 또는 MM:SS 형식 처리
-    const parts = duration.split(':').map(Number);
-    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
-    if (parts.length === 2) return parts[0] * 60 + parts[1];
-    return parseInt(duration) || 0;
+    const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+    if (!match) return 0;
+    const hours = parseInt(match[1] || '0');
+    const minutes = parseInt(match[2] || '0');
+    const seconds = parseInt(match[3] || '0');
+    return hours * 3600 + minutes * 60 + seconds;
   };
 
-  // 필터링된 영상
   const filteredVideos = videos.filter(video => {
     if (videoFilter === 'all') return true;
     const durationInSeconds = parseDuration(video.duration || '');
@@ -73,17 +64,17 @@ export const ViewsChart = ({ videos }: ViewsChartProps) => {
   return (
     <Card className="bg-gradient-card border-border shadow-card">
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-2">
           <CardTitle className="section-title flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-primary" />
             조회수 추이
           </CardTitle>
-          <div className="flex gap-1">
+          <div className="flex items-center gap-2">
             <Button
               variant={videoFilter === 'all' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setVideoFilter('all')}
-              className="h-7 text-xs px-2"
+              className="h-8 text-xs"
             >
               전체
             </Button>
@@ -91,7 +82,7 @@ export const ViewsChart = ({ videos }: ViewsChartProps) => {
               variant={videoFilter === 'long' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setVideoFilter('long')}
-              className="h-7 text-xs px-2"
+              className="h-8 text-xs"
             >
               롱폼
             </Button>
@@ -99,13 +90,13 @@ export const ViewsChart = ({ videos }: ViewsChartProps) => {
               variant={videoFilter === 'short' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setVideoFilter('short')}
-              className="h-7 text-xs px-2"
+              className="h-8 text-xs"
             >
               숏폼
             </Button>
           </div>
         </div>
-        <p className="text-sm text-muted-foreground mt-1">최근 30개 영상의 조회수를 표시합니다</p>
+        <p className="text-sm text-muted-foreground">최근 30개 영상의 조회수를 표시합니다</p>
       </CardHeader>
       <CardContent className="chart-root">
         <ResponsiveContainer width="100%" height={300}>
