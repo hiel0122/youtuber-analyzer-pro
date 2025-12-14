@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { useTheme } from 'next-themes';
+import { Button } from '@/components/ui/button';
 import { formatInt } from '@/utils/format';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -23,6 +25,17 @@ interface ViewsTrendProps {
 
 export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendProps) {
   const { theme } = useTheme();
+  const [videoFilter, setVideoFilter] = useState<'all' | 'long' | 'short'>('all');
+
+  const parseDuration = (duration: string): number => {
+    if (!duration) return 0;
+    const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+    if (!match) return 0;
+    const hours = parseInt(match[1] || '0');
+    const minutes = parseInt(match[2] || '0');
+    const seconds = parseInt(match[3] || '0');
+    return hours * 3600 + minutes * 60 + seconds;
+  };
   
   if (loading) {
     return (
@@ -32,8 +45,17 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
     );
   }
 
+  // 필터링된 영상
+  const filteredVideos = videos.filter(video => {
+    if (videoFilter === 'all') return true;
+    const durationInSeconds = parseDuration(video.duration || '');
+    if (videoFilter === 'short') return durationInSeconds < 60;
+    if (videoFilter === 'long') return durationInSeconds >= 60;
+    return true;
+  });
+
   // 최근 30개 영상만 표시
-  const recentVideos = [...videos]
+  const recentVideos = [...filteredVideos]
     .sort((a, b) => {
       const dateA = new Date(a.upload_date || 0);
       const dateB = new Date(b.upload_date || 0);
