@@ -728,75 +728,25 @@ const Index = () => {
                 <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
                   {/* Sales Overview - 조회수 추이 */}
                   <div className="bg-card rounded-xl p-6 border border-border">
-                    <div className="mb-6">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-lg font-semibold text-foreground">조회수 추이</h3>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="default"
-                            size="sm"
-                            className="h-8 text-xs"
-                          >
-                            전체
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 text-xs"
-                          >
-                            롱폼
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 text-xs"
-                          >
-                            숏폼
-                          </Button>
-                        </div>
-                      </div>
-                      <p className="text-sm text-muted-foreground">최근 30개 영상의 조회수와 좋아요</p>
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold text-foreground">조회수 추이</h3>
+                      <p className="text-sm text-muted-foreground mt-1">최근 30개 영상의 조회수와 좋아요</p>
                     </div>
-                  <ViewsTrend
-                    videos={videoRows.map(video => ({
-                      ...video,
-                      channel_name: summaryChannelName || currentChannelName,
-                    }))}
-                    loading={loading}
-                    channelTotalViews={videoRows.reduce((sum, v) => sum + (v.views || 0), 0)}
-                  />
-                </div>
+                    <ViewsTrend
+                      videos={videoRows.map(video => ({
+                        ...video,
+                        channel_name: summaryChannelName || currentChannelName,
+                      }))}
+                      loading={loading}
+                      channelTotalViews={videoRows.reduce((sum, v) => sum + (v.views || 0), 0)}
+                    />
+                  </div>
 
                 {/* Weekly Revenue - 상위 영상 */}
                 <div className="bg-card rounded-xl p-6 border border-border">
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-lg font-semibold text-foreground">조회수 순위</h3>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="default"
-                          size="sm"
-                          className="h-8 text-xs"
-                        >
-                          전체
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 text-xs"
-                        >
-                          롱폼
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 text-xs"
-                        >
-                          숏폼
-                        </Button>
-                      </div>
-                    </div>
-                    <p className="text-sm text-muted-foreground">가장 인기 있는 영상 Top 10</p>
+                  <div className="mb-4">
+                    <h3 className="text-lg font-semibold text-foreground">조회수 순위</h3>
+                    <p className="text-sm text-muted-foreground mt-1">가장 인기 있는 영상 Top 10</p>
                   </div>
                   <TopVideosChart 
                     videos={videoRows.map(video => ({
@@ -804,6 +754,7 @@ const Index = () => {
                       channel_name: summaryChannelName || currentChannelName,
                     }))}
                     loading={loading}
+                    showFilter={true}
                   />
                 </div>
               </div>
