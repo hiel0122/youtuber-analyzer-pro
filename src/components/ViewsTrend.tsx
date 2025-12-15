@@ -82,91 +82,119 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
   }));
 
   return (
-    <ResponsiveContainer width="100%" height={350}>
-      <LineChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-        <defs>
-          <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-          </linearGradient>
-          <linearGradient id="colorLikes" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-            <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-          </linearGradient>
-        </defs>
-        
-        <CartesianGrid 
-          strokeDasharray="3 3" 
-          stroke={theme === 'dark' ? '#374151' : '#e5e7eb'} 
-          vertical={false}
-        />
-        
-        <XAxis 
-          dataKey="name" 
-          stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'}
-          tick={{ fill: theme === 'dark' ? '#9ca3af' : '#6b7280', fontSize: 11 }}
-          axisLine={{ stroke: theme === 'dark' ? '#374151' : '#e5e7eb' }}
-          tickLine={{ stroke: theme === 'dark' ? '#374151' : '#e5e7eb' }}
-        />
-        
-        <YAxis 
-          stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'}
-          tick={{ fill: theme === 'dark' ? '#9ca3af' : '#6b7280', fontSize: 11 }}
-          axisLine={{ stroke: theme === 'dark' ? '#374151' : '#e5e7eb' }}
-          tickLine={{ stroke: theme === 'dark' ? '#374151' : '#e5e7eb' }}
-          tickFormatter={(value) => {
-            if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
-            if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
-            return value;
-          }}
-        />
-        
-        <Tooltip
-          content={({ active, payload }) => (
-            <CustomTooltip
-              active={active}
-              payload={payload}
-              videoData={payload?.[0]?.payload?.videoData}
-            />
-          )}
-          cursor={{ stroke: theme === 'dark' ? '#374151' : '#e5e7eb', strokeWidth: 1 }}
-        />
-        
-        <Legend 
-          wrapperStyle={{
-            paddingTop: '20px',
-            fontSize: '12px',
-          }}
-          iconType="line"
-        />
-        
-        <Line 
-          type="monotone" 
-          dataKey="views" 
-          stroke="#3b82f6"
-          strokeWidth={3}
-          dot={false}
-          activeDot={{ r: 6, fill: '#3b82f6', stroke: '#fff', strokeWidth: 2 }}
-          fill="url(#colorViews)"
-          name="조회수"
-          animationDuration={1500}
-          animationEasing="ease-in-out"
-        />
-        
-        <Line 
-          type="monotone" 
-          dataKey="likes" 
-          stroke="#10b981"
-          strokeWidth={2}
-          dot={false}
-          activeDot={{ r: 5, fill: '#10b981', stroke: '#fff', strokeWidth: 2 }}
-          fill="url(#colorLikes)"
-          name="좋아요"
-          animationDuration={1500}
-          animationEasing="ease-in-out"
-        />
-      </LineChart>
-    </ResponsiveContainer>
+    <div className="space-y-3">
+      <div className="flex justify-end gap-1">
+        <Button
+          variant={videoFilter === 'all' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setVideoFilter('all')}
+          className="h-7 text-xs px-2"
+        >
+          전체
+        </Button>
+        <Button
+          variant={videoFilter === 'long' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setVideoFilter('long')}
+          className="h-7 text-xs px-2"
+        >
+          롱폼
+        </Button>
+        <Button
+          variant={videoFilter === 'short' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setVideoFilter('short')}
+          className="h-7 text-xs px-2"
+        >
+          숏폼
+        </Button>
+      </div>
+      <ResponsiveContainer width="100%" height={350}>
+        <LineChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+          <defs>
+            <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+            </linearGradient>
+            <linearGradient id="colorLikes" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+              <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+            </linearGradient>
+          </defs>
+          
+          <CartesianGrid 
+            strokeDasharray="3 3" 
+            stroke={theme === 'dark' ? '#374151' : '#e5e7eb'} 
+            vertical={false}
+          />
+          
+          <XAxis 
+            dataKey="name" 
+            stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'}
+            tick={{ fill: theme === 'dark' ? '#9ca3af' : '#6b7280', fontSize: 11 }}
+            axisLine={{ stroke: theme === 'dark' ? '#374151' : '#e5e7eb' }}
+            tickLine={{ stroke: theme === 'dark' ? '#374151' : '#e5e7eb' }}
+          />
+          
+          <YAxis 
+            stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'}
+            tick={{ fill: theme === 'dark' ? '#9ca3af' : '#6b7280', fontSize: 11 }}
+            axisLine={{ stroke: theme === 'dark' ? '#374151' : '#e5e7eb' }}
+            tickLine={{ stroke: theme === 'dark' ? '#374151' : '#e5e7eb' }}
+            tickFormatter={(value) => {
+              if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+              if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
+              return value;
+            }}
+          />
+          
+          <Tooltip
+            content={({ active, payload }) => (
+              <CustomTooltip
+                active={active}
+                payload={payload}
+                videoData={payload?.[0]?.payload?.videoData}
+              />
+            )}
+            cursor={{ stroke: theme === 'dark' ? '#374151' : '#e5e7eb', strokeWidth: 1 }}
+          />
+          
+          <Legend 
+            wrapperStyle={{
+              paddingTop: '20px',
+              fontSize: '12px',
+            }}
+            iconType="line"
+          />
+          
+          <Line 
+            type="monotone" 
+            dataKey="views" 
+            stroke="#3b82f6"
+            strokeWidth={3}
+            dot={false}
+            activeDot={{ r: 6, fill: '#3b82f6', stroke: '#fff', strokeWidth: 2 }}
+            fill="url(#colorViews)"
+            name="조회수"
+            animationDuration={1500}
+            animationEasing="ease-in-out"
+          />
+          
+          <Line 
+            type="monotone" 
+            dataKey="likes" 
+            stroke="#10b981"
+            strokeWidth={2}
+            dot={false}
+            activeDot={{ r: 5, fill: '#10b981', stroke: '#fff', strokeWidth: 2 }}
+            fill="url(#colorLikes)"
+            name="좋아요"
+            animationDuration={1500}
+            animationEasing="ease-in-out"
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
 
