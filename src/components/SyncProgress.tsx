@@ -55,7 +55,7 @@ export default function SyncProgress({
 
   return (
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
-      <div className="bg-card text-card-foreground border border-border rounded-lg p-6 max-w-md w-full mx-4">
+      <div className="bg-card text-card-foreground border border-border rounded-lg p-6 max-w-md w-full mx-4 shadow-none">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium">{progressMessage}</span>
           <span className="text-sm font-bold tabular-nums text-primary">
