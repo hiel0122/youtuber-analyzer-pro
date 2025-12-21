@@ -81,7 +81,7 @@ interface SingleMetricCardProps {
 const SingleMetricCard = ({ icon, label, value, trend, period }: SingleMetricCardProps) => (
   <FadeInStaggerItem>
     <motion.div 
-      className="bg-card rounded-xl p-4 border border-border cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 [&:not(:focus-visible)]:outline-none"
+      className="bg-card rounded-xl p-4 border border-border cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 [&:not(:focus-visible)]:outline-none min-h-[120px] flex flex-col"
       tabIndex={-1}
       whileHover={{ 
         scale: 1.02,
@@ -91,12 +91,12 @@ const SingleMetricCard = ({ icon, label, value, trend, period }: SingleMetricCar
     >
       <div className="flex items-center gap-2 text-secondary-foreground mb-3">
         {icon}
-        <span className="text-xs font-medium">{label}</span>
+        <span className="text-xs font-medium truncate">{label}</span>
       </div>
-      <div className="text-2xl font-bold text-foreground mb-2">
+      <div className="text-2xl font-bold text-foreground mb-2 truncate" title={String(value)}>
         {value}
       </div>
-      <div className="space-y-2">
+      <div className="mt-auto">
         <TrendBadge value={trend} period={period} />
       </div>
     </motion.div>
