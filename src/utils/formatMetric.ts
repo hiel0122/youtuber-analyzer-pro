@@ -9,17 +9,21 @@ export interface FormatMetricOptions {
 }
 
 /**
- * 큰 숫자를 K/M/B 형태로 축약
+ * 큰 숫자를 한국식 단위(억, 만)로 축약
  */
 export function formatCompact(n: number): string {
-  if (n >= 1_000_000_000) {
-    return `${(n / 1_000_000_000).toFixed(1).replace(/\.0$/, '')}B`;
+  if (n >= 100_000_000) {
+    // 1억 이상
+    const eok = n / 100_000_000;
+    if (eok >= 10) {
+      return `${Math.floor(eok).toLocaleString('ko-KR')}억`;
+    }
+    return `${eok.toFixed(1).replace(/\.0$/, '')}억`;
   }
-  if (n >= 1_000_000) {
-    return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
-  }
-  if (n >= 1_000) {
-    return `${(n / 1_000).toFixed(1).replace(/\.0$/, '')}K`;
+  if (n >= 10_000) {
+    // 1만 이상
+    const man = Math.floor(n / 10_000);
+    return `${man.toLocaleString('ko-KR')}만`;
   }
   return n.toLocaleString('ko-KR');
 }
