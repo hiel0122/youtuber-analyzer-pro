@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Video, Eye, Users, BarChart3, ThumbsUp, TrendingUp, TrendingDown } from "lucide-react";
+import { Video, Eye, Users, ThumbsUp, TrendingUp, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FadeInStagger, FadeInStaggerItem } from "@/components/FadeInStagger";
 import { FadeIn } from "@/components/FadeIn";
@@ -76,9 +76,10 @@ interface SingleMetricCardProps {
   value: string | number;
   trend: number;
   period: ComparisonPeriod;
+  useKoreanUnit?: boolean;
 }
 
-const SingleMetricCard = ({ icon, label, value, trend, period }: SingleMetricCardProps) => (
+const SingleMetricCard = ({ icon, label, value, trend, period, useKoreanUnit = false }: SingleMetricCardProps) => (
   <FadeInStaggerItem>
     <motion.div 
       className="bg-card rounded-xl p-4 border border-border cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 [&:not(:focus-visible)]:outline-none min-h-[120px] flex flex-col"
@@ -93,7 +94,13 @@ const SingleMetricCard = ({ icon, label, value, trend, period }: SingleMetricCar
         {icon}
         <span className="text-xs font-medium truncate">{label}</span>
       </div>
-      <div className="text-2xl font-bold text-foreground mb-2 truncate" title={String(value)}>
+      <div 
+        className={cn(
+          "font-bold text-foreground mb-2 truncate",
+          useKoreanUnit ? "text-2xl" : "text-lg"
+        )} 
+        title={String(value)}
+      >
         {value}
       </div>
       <div className="mt-auto">
@@ -117,22 +124,18 @@ const getDefaultTrends = (period: ComparisonPeriod) => {
     subscriber: 20.1 * multiplier,
     videos: 12.5 * multiplier,
     views: 19.3 * multiplier,
-    hits: 18.5 * multiplier,
     likes: 15.7 * multiplier,
     comments: 22.3 * multiplier,
     maxVideoLength: 5.2 * multiplier,
     maxViews: 30.5 * multiplier,
-    maxHits: 28.3 * multiplier,
     maxLikes: 25.7 * multiplier,
     maxComments: 35.2 * multiplier,
     minVideoLength: -2.1 * multiplier,
     minViews: 8.3 * multiplier,
-    minHits: 7.5 * multiplier,
     minLikes: 5.8 * multiplier,
     minComments: 12.5 * multiplier,
     avgVideoLength: 3.2 * multiplier,
     avgViews: -4.3 * multiplier,
-    avgHits: -3.8 * multiplier,
     avgLikes: 6.5 * multiplier,
     avgComments: 14.2 * multiplier,
   };
@@ -222,15 +225,16 @@ export function MetricCardGrid({ videoRows, channelStats }: MetricCardGridProps)
 
       {/* Metrics Grid */}
       <FadeInStagger staggerDelay={0.05}>
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 mb-8">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 mb-8">
           
-          {/* Row 1: Total metrics */}
+          {/* Row 1: Total metrics (5개) */}
           <SingleMetricCard
             icon={<Users className="w-4 h-4" />}
             label="Total Subscriber"
             value={formatMetric(channelStats?.subscriberCount || 0)}
             trend={trends.subscriber}
             period={comparisonPeriod}
+            useKoreanUnit={true}
           />
           <SingleMetricCard
             icon={<Video className="w-4 h-4" />}
@@ -242,34 +246,26 @@ export function MetricCardGrid({ videoRows, channelStats }: MetricCardGridProps)
           <SingleMetricCard
             icon={<Eye className="w-4 h-4" />}
             label="Total Views"
-            value={formatMetric(totalViews)}
+            value={(totalViews).toLocaleString('ko-KR')}
             trend={trends.views}
-            period={comparisonPeriod}
-          />
-          <SingleMetricCard
-            icon={<BarChart3 className="w-4 h-4" />}
-            label="Total hits"
-            value={formatMetric(totalViews)}
-            trend={trends.hits}
             period={comparisonPeriod}
           />
           <SingleMetricCard
             icon={<ThumbsUp className="w-4 h-4" />}
             label="Total Likes"
-            value={formatMetric(totalLikes)}
+            value={(totalLikes).toLocaleString('ko-KR')}
             trend={trends.likes}
             period={comparisonPeriod}
           />
           <SingleMetricCard
             icon={<CommentIcon />}
             label="Total Comments"
-            value={formatMetric(totalComments)}
+            value={(totalComments).toLocaleString('ko-KR')}
             trend={trends.comments}
             period={comparisonPeriod}
           />
 
-          {/* Row 2: Max metrics */}
-          <div className="hidden 2xl:block"></div>
+          {/* Row 2: Max metrics (4개) */}
           <SingleMetricCard
             icon={<Video className="w-4 h-4" />}
             label="Max. Video Length"
@@ -280,34 +276,26 @@ export function MetricCardGrid({ videoRows, channelStats }: MetricCardGridProps)
           <SingleMetricCard
             icon={<Eye className="w-4 h-4" />}
             label="Max. Views"
-            value={formatMetric(maxViews)}
+            value={(maxViews).toLocaleString('ko-KR')}
             trend={trends.maxViews}
-            period={comparisonPeriod}
-          />
-          <SingleMetricCard
-            icon={<BarChart3 className="w-4 h-4" />}
-            label="Max. hits"
-            value={formatMetric(maxViews)}
-            trend={trends.maxHits}
             period={comparisonPeriod}
           />
           <SingleMetricCard
             icon={<ThumbsUp className="w-4 h-4" />}
             label="Max. Likes"
-            value={formatMetric(maxLikes)}
+            value={(maxLikes).toLocaleString('ko-KR')}
             trend={trends.maxLikes}
             period={comparisonPeriod}
           />
           <SingleMetricCard
             icon={<CommentIcon />}
             label="Max Comments"
-            value={formatMetric(maxComments)}
+            value={(maxComments).toLocaleString('ko-KR')}
             trend={trends.maxComments}
             period={comparisonPeriod}
           />
 
-          {/* Row 3: Min metrics */}
-          <div className="hidden 2xl:block"></div>
+          {/* Row 3: Min metrics (4개) */}
           <SingleMetricCard
             icon={<Video className="w-4 h-4" />}
             label="Min. Video Length"
@@ -318,34 +306,26 @@ export function MetricCardGrid({ videoRows, channelStats }: MetricCardGridProps)
           <SingleMetricCard
             icon={<Eye className="w-4 h-4" />}
             label="Min. Views"
-            value={formatMetric(minViews)}
+            value={(minViews).toLocaleString('ko-KR')}
             trend={trends.minViews}
-            period={comparisonPeriod}
-          />
-          <SingleMetricCard
-            icon={<BarChart3 className="w-4 h-4" />}
-            label="Min. hits"
-            value={formatMetric(minViews)}
-            trend={trends.minHits}
             period={comparisonPeriod}
           />
           <SingleMetricCard
             icon={<ThumbsUp className="w-4 h-4" />}
             label="Min. Likes"
-            value={formatMetric(minLikes)}
+            value={(minLikes).toLocaleString('ko-KR')}
             trend={trends.minLikes}
             period={comparisonPeriod}
           />
           <SingleMetricCard
             icon={<CommentIcon />}
             label="Min Comments"
-            value={formatMetric(minComments)}
+            value={(minComments).toLocaleString('ko-KR')}
             trend={trends.minComments}
             period={comparisonPeriod}
           />
 
-          {/* Row 4: Avg metrics */}
-          <div className="hidden 2xl:block"></div>
+          {/* Row 4: Avg metrics (4개) */}
           <SingleMetricCard
             icon={<Video className="w-4 h-4" />}
             label="Avg. Video Length"
@@ -356,28 +336,21 @@ export function MetricCardGrid({ videoRows, channelStats }: MetricCardGridProps)
           <SingleMetricCard
             icon={<Eye className="w-4 h-4" />}
             label="Avg. Views"
-            value={formatMetric(avgViews)}
+            value={(avgViews).toLocaleString('ko-KR')}
             trend={trends.avgViews}
-            period={comparisonPeriod}
-          />
-          <SingleMetricCard
-            icon={<BarChart3 className="w-4 h-4" />}
-            label="Avg. hits"
-            value={formatMetric(avgViews)}
-            trend={trends.avgHits}
             period={comparisonPeriod}
           />
           <SingleMetricCard
             icon={<ThumbsUp className="w-4 h-4" />}
             label="Avg. Likes"
-            value={formatMetric(avgLikes)}
+            value={(avgLikes).toLocaleString('ko-KR')}
             trend={trends.avgLikes}
             period={comparisonPeriod}
           />
           <SingleMetricCard
             icon={<CommentIcon />}
             label="Avg. Comments"
-            value={formatMetric(avgComments)}
+            value={(avgComments).toLocaleString('ko-KR')}
             trend={trends.avgComments}
             period={comparisonPeriod}
           />
