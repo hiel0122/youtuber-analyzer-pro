@@ -1,10 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
-import { formatInt } from '@/utils/format';
-import { formatDistanceToNow } from 'date-fns';
-import { ko } from 'date-fns/locale';
 import { CustomTooltip } from './CustomTooltip';
 
 interface Video {
@@ -36,6 +33,19 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
     const seconds = parseInt(match[3] || '0');
     return hours * 3600 + minutes * 60 + seconds;
   };
+
+  // 디버깅: 필터 변경 시 로그
+  useEffect(() => {
+    console.log('🎬 Filter changed:', videoFilter);
+    console.log('📹 Total videos:', videos.length);
+    
+    const samples = videos.slice(0, 5).map(v => ({
+      title: v.title?.substring(0, 30),
+      duration: v.duration,
+      seconds: parseDuration(v.duration || '')
+    }));
+    console.log('📊 Sample durations:', samples);
+  }, [videoFilter, videos]);
   
   if (loading) {
     return (
@@ -48,11 +58,23 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
   // 필터링된 영상
   const filteredVideos = videos.filter(video => {
     if (videoFilter === 'all') return true;
+    
     const durationInSeconds = parseDuration(video.duration || '');
-    if (videoFilter === 'short') return durationInSeconds < 60;
-    if (videoFilter === 'long') return durationInSeconds >= 60;
+    
+    // 숏폼: 60초 미만 (1분 미만)
+    if (videoFilter === 'short') {
+      return durationInSeconds > 0 && durationInSeconds < 60;
+    }
+    
+    // 롱폼: 60초 이상 (1분 이상)
+    if (videoFilter === 'long') {
+      return durationInSeconds >= 60;
+    }
+    
     return true;
   });
+
+  console.log('✅ Filtered videos:', filteredVideos.length);
 
   // 최근 30개 영상만 표시
   const recentVideos = [...filteredVideos]
@@ -62,6 +84,8 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
       return dateA.getTime() - dateB.getTime();
     })
     .slice(-30);
+
+  console.log('📈 Chart data points:', recentVideos.length);
 
   const chartData = recentVideos.map((video, index) => ({
     name: video.upload_date 
@@ -80,6 +104,48 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
       topic: video.topic,
     },
   }));
+
+  // 데이터가 없을 때 처리
+  if (filteredVideos.length === 0) {
+    return (
+      <div className="space-y-3">
+        <div className="flex justify-end gap-1">
+          <Button
+            variant={videoFilter === 'all' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setVideoFilter('all')}
+            className="h-7 text-xs px-2"
+          >
+            전체
+          </Button>
+          <Button
+            variant={videoFilter === 'long' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setVideoFilter('long')}
+            className="h-7 text-xs px-2"
+          >
+            롱폼
+          </Button>
+          <Button
+            variant={videoFilter === 'short' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setVideoFilter('short')}
+            className="h-7 text-xs px-2"
+          >
+            숏폼
+          </Button>
+        </div>
+        <div className="h-[350px] flex items-center justify-center">
+          <div className="text-center text-muted-foreground">
+            <p className="text-lg">
+              {videoFilter === 'short' && '숏폼 영상이 없습니다'}
+              {videoFilter === 'long' && '롱폼 영상이 없습니다'}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
