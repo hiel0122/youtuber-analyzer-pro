@@ -24,14 +24,22 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
   const { theme } = useTheme();
   const [videoFilter, setVideoFilter] = useState<'all' | 'long' | 'short'>('all');
 
+  // duration을 초 단위로 변환 (TopVideosChart와 동일한 로직)
   const parseDuration = (duration: string): number => {
     if (!duration) return 0;
-    const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
-    if (!match) return 0;
-    const hours = parseInt(match[1] || '0');
-    const minutes = parseInt(match[2] || '0');
-    const seconds = parseInt(match[3] || '0');
-    return hours * 3600 + minutes * 60 + seconds;
+    // PT 형식 (PT1M30S) 처리
+    const ptMatch = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+    if (ptMatch) {
+      const hours = parseInt(ptMatch[1] || '0');
+      const minutes = parseInt(ptMatch[2] || '0');
+      const seconds = parseInt(ptMatch[3] || '0');
+      return hours * 3600 + minutes * 60 + seconds;
+    }
+    // HH:MM:SS 또는 MM:SS 형식 처리
+    const parts = duration.split(':').map(Number);
+    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    if (parts.length === 2) return parts[0] * 60 + parts[1];
+    return parseInt(duration) || 0;
   };
 
   // 디버깅: 필터 변경 시 로그
@@ -55,22 +63,12 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
     );
   }
 
-  // 유튜브 공식 기준 필터링 (https://support.google.com/youtube/answer/15424877)
+  // 필터링된 영상 (TopVideosChart와 동일한 조건)
   const filteredVideos = videos.filter(video => {
     if (videoFilter === 'all') return true;
-    
     const durationInSeconds = parseDuration(video.duration || '');
-    
-    // 숏폼: 0초 초과 180초 이하 (유튜브 공식 기준: 최대 3분)
-    if (videoFilter === 'short') {
-      return durationInSeconds > 0 && durationInSeconds <= 180;
-    }
-    
-    // 롱폼: 180초 초과 (3분 초과)
-    if (videoFilter === 'long') {
-      return durationInSeconds > 180;
-    }
-    
+    if (videoFilter === 'short') return durationInSeconds < 60;
+    if (videoFilter === 'long') return durationInSeconds >= 60;
     return true;
   });
 
