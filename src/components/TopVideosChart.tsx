@@ -159,8 +159,10 @@ export function TopVideosChart({ videos, loading, compact = false, showFilter = 
           fill="url(#barGradient)"
           radius={[6, 6, 0, 0]}
           maxBarSize={60}
-          animationDuration={1200}
-          animationEasing="ease-out"
+          animationDuration={1000}
+          animationEasing="ease-in-out"
+          isAnimationActive={true}
+          animationBegin={0}
         />
       </BarChart>
     </ResponsiveContainer>
