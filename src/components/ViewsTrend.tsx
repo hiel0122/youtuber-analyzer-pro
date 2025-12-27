@@ -55,20 +55,20 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
     );
   }
 
-  // 필터링된 영상
+  // 유튜브 공식 기준 필터링 (https://support.google.com/youtube/answer/15424877)
   const filteredVideos = videos.filter(video => {
     if (videoFilter === 'all') return true;
     
     const durationInSeconds = parseDuration(video.duration || '');
     
-    // 숏폼: 60초 미만 (1분 미만)
+    // 숏폼: 0초 초과 180초 이하 (유튜브 공식 기준: 최대 3분)
     if (videoFilter === 'short') {
-      return durationInSeconds > 0 && durationInSeconds < 60;
+      return durationInSeconds > 0 && durationInSeconds <= 180;
     }
     
-    // 롱폼: 60초 이상 (1분 이상)
+    // 롱폼: 180초 초과 (3분 초과)
     if (videoFilter === 'long') {
-      return durationInSeconds >= 60;
+      return durationInSeconds > 180;
     }
     
     return true;
