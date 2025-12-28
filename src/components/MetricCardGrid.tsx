@@ -40,12 +40,23 @@ const formatDuration = (totalSeconds: number): string => {
 };
 
 interface TrendBadgeProps {
-  value: number;
+  value: number | null;
   period: ComparisonPeriod;
+  hasData: boolean;
 }
 
-const TrendBadge = ({ value, period }: TrendBadgeProps) => {
+const TrendBadge = ({ value, period, hasData }: TrendBadgeProps) => {
   const periodLabel = period === 'daily' ? '전일' : period === 'monthly' ? '전월' : '전년도';
+  
+  // 데이터가 없으면 하이픈 표시
+  if (!hasData || value === null) {
+    return (
+      <div className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-muted text-muted-foreground w-fit">
+        <span>-</span>
+      </div>
+    );
+  }
+  
   const isPositive = value >= 0;
   
   return (
@@ -74,12 +85,23 @@ interface SingleMetricCardProps {
   icon: React.ReactNode;
   label: string;
   value: string | number;
-  trend: number;
+  trend: number | null;
   period: ComparisonPeriod;
+  hasData: boolean;
+  insufficientData?: boolean;
   useKoreanUnit?: boolean;
 }
 
-const SingleMetricCard = ({ icon, label, value, trend, period, useKoreanUnit = false }: SingleMetricCardProps) => (
+const SingleMetricCard = ({ 
+  icon, 
+  label, 
+  value, 
+  trend, 
+  period, 
+  hasData,
+  insufficientData = false,
+  useKoreanUnit = false 
+}: SingleMetricCardProps) => (
   <FadeInStaggerItem>
     <motion.div 
       className="bg-card rounded-xl p-4 border border-border cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 [&:not(:focus-visible)]:outline-none min-h-[120px] flex flex-col"
@@ -101,10 +123,16 @@ const SingleMetricCard = ({ icon, label, value, trend, period, useKoreanUnit = f
         )} 
         title={String(value)}
       >
-        {value}
+        {hasData ? value : '-'}
       </div>
       <div className="mt-auto">
-        <TrendBadge value={trend} period={period} />
+        {insufficientData ? (
+          <div className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-yellow-500/10 text-yellow-600 w-fit">
+            <span>데이터 부족</span>
+          </div>
+        ) : (
+          <TrendBadge value={trend} period={period} hasData={hasData} />
+        )}
       </div>
     </motion.div>
   </FadeInStaggerItem>
@@ -116,34 +144,193 @@ const CommentIcon = () => (
   </svg>
 );
 
-// Default trend values (mock data for now)
-const getDefaultTrends = (period: ComparisonPeriod) => {
-  // In a real implementation, these would be calculated from historical data
-  const multiplier = period === 'daily' ? 0.3 : period === 'monthly' ? 1 : 2.5;
+// 과거 데이터와 비교하여 증감률 계산
+const calculateTrend = (
+  current: number,
+  previous: number | null
+): number | null => {
+  if (previous === null || previous === 0) return null;
+  return ((current - previous) / previous) * 100;
+};
+
+// 채널 운영 기간 확인
+const checkDataAvailability = (
+  videoRows: VideoRow[],
+  period: ComparisonPeriod
+): { hasData: boolean; insufficientData: boolean } => {
+  if (videoRows.length === 0) {
+    return { hasData: false, insufficientData: false };
+  }
+  
+  const now = new Date();
+  const oldestVideo = videoRows.reduce((oldest, video) => {
+    const videoDate = new Date(video.upload_date || now);
+    return videoDate < oldest ? videoDate : oldest;
+  }, now);
+  
+  const daysSinceOldest = Math.floor((now.getTime() - oldestVideo.getTime()) / (1000 * 60 * 60 * 24));
+  
+  // 비교 기준에 따른 필요 기간
+  const requiredDays = {
+    daily: 2,      // 최소 2일
+    monthly: 31,   // 최소 1개월
+    yearly: 366    // 최소 1년
+  };
+  
+  const hasData = videoRows.length > 0;
+  const insufficientData = daysSinceOldest < requiredDays[period];
+  
+  return { hasData, insufficientData };
+};
+
+// 기간별 과거 데이터 필터링
+const getComparisonData = (
+  videoRows: VideoRow[],
+  period: ComparisonPeriod
+) => {
+  const now = new Date();
+  let compareDate: Date;
+  
+  switch (period) {
+    case 'daily':
+      compareDate = new Date(now);
+      compareDate.setDate(compareDate.getDate() - 1);
+      break;
+    case 'monthly':
+      compareDate = new Date(now);
+      compareDate.setMonth(compareDate.getMonth() - 1);
+      break;
+    case 'yearly':
+      compareDate = new Date(now);
+      compareDate.setFullYear(compareDate.getFullYear() - 1);
+      break;
+  }
+  
+  // 비교 기간의 데이터 필터링
+  const currentPeriodVideos = videoRows.filter(v => {
+    const uploadDate = new Date(v.upload_date || 0);
+    return uploadDate >= compareDate && uploadDate <= now;
+  });
+  
+  // 이전 기간의 데이터 필터링
+  let previousCompareDate: Date;
+  switch (period) {
+    case 'daily':
+      previousCompareDate = new Date(compareDate);
+      previousCompareDate.setDate(previousCompareDate.getDate() - 1);
+      break;
+    case 'monthly':
+      previousCompareDate = new Date(compareDate);
+      previousCompareDate.setMonth(previousCompareDate.getMonth() - 1);
+      break;
+    case 'yearly':
+      previousCompareDate = new Date(compareDate);
+      previousCompareDate.setFullYear(previousCompareDate.getFullYear() - 1);
+      break;
+  }
+  
+  const previousPeriodVideos = videoRows.filter(v => {
+    const uploadDate = new Date(v.upload_date || 0);
+    return uploadDate >= previousCompareDate && uploadDate < compareDate;
+  });
+  
+  return { currentPeriodVideos, previousPeriodVideos };
+};
+
+// 실제 증감률 계산
+const calculateTrends = (
+  videoRows: VideoRow[],
+  period: ComparisonPeriod
+) => {
+  const { currentPeriodVideos, previousPeriodVideos } = getComparisonData(videoRows, period);
+  
+  if (previousPeriodVideos.length === 0) {
+    // 이전 기간 데이터 없음 - null 반환
+    return {
+      subscriber: null,
+      videos: null,
+      views: null,
+      likes: null,
+      comments: null,
+      maxVideoLength: null,
+      maxViews: null,
+      maxLikes: null,
+      maxComments: null,
+      minVideoLength: null,
+      minViews: null,
+      minLikes: null,
+      minComments: null,
+      avgVideoLength: null,
+      avgViews: null,
+      avgLikes: null,
+      avgComments: null,
+    };
+  }
+  
+  // 현재 기간 통계
+  const currentStats = {
+    videoCount: currentPeriodVideos.length,
+    totalViews: currentPeriodVideos.reduce((sum, v) => sum + (v.views || 0), 0),
+    totalLikes: currentPeriodVideos.reduce((sum, v) => sum + (v.likes || 0), 0),
+    totalComments: currentPeriodVideos.reduce((sum, v) => sum + (v.comments || 0), 0),
+    avgViews: currentPeriodVideos.length > 0 
+      ? currentPeriodVideos.reduce((sum, v) => sum + (v.views || 0), 0) / currentPeriodVideos.length 
+      : 0,
+    avgLikes: currentPeriodVideos.length > 0
+      ? currentPeriodVideos.reduce((sum, v) => sum + (v.likes || 0), 0) / currentPeriodVideos.length
+      : 0,
+    avgComments: currentPeriodVideos.length > 0
+      ? currentPeriodVideos.reduce((sum, v) => sum + (v.comments || 0), 0) / currentPeriodVideos.length
+      : 0,
+  };
+  
+  // 이전 기간 통계
+  const previousStats = {
+    videoCount: previousPeriodVideos.length,
+    totalViews: previousPeriodVideos.reduce((sum, v) => sum + (v.views || 0), 0),
+    totalLikes: previousPeriodVideos.reduce((sum, v) => sum + (v.likes || 0), 0),
+    totalComments: previousPeriodVideos.reduce((sum, v) => sum + (v.comments || 0), 0),
+    avgViews: previousPeriodVideos.length > 0
+      ? previousPeriodVideos.reduce((sum, v) => sum + (v.views || 0), 0) / previousPeriodVideos.length
+      : 0,
+    avgLikes: previousPeriodVideos.length > 0
+      ? previousPeriodVideos.reduce((sum, v) => sum + (v.likes || 0), 0) / previousPeriodVideos.length
+      : 0,
+    avgComments: previousPeriodVideos.length > 0
+      ? previousPeriodVideos.reduce((sum, v) => sum + (v.comments || 0), 0) / previousPeriodVideos.length
+      : 0,
+  };
+  
+  // 증감률 계산
   return {
-    subscriber: 20.1 * multiplier,
-    videos: 12.5 * multiplier,
-    views: 19.3 * multiplier,
-    likes: 15.7 * multiplier,
-    comments: 22.3 * multiplier,
-    maxVideoLength: 5.2 * multiplier,
-    maxViews: 30.5 * multiplier,
-    maxLikes: 25.7 * multiplier,
-    maxComments: 35.2 * multiplier,
-    minVideoLength: -2.1 * multiplier,
-    minViews: 8.3 * multiplier,
-    minLikes: 5.8 * multiplier,
-    minComments: 12.5 * multiplier,
-    avgVideoLength: 3.2 * multiplier,
-    avgViews: -4.3 * multiplier,
-    avgLikes: 6.5 * multiplier,
-    avgComments: 14.2 * multiplier,
+    subscriber: null, // 구독자는 스냅샷 데이터가 없으므로 null
+    videos: calculateTrend(currentStats.videoCount, previousStats.videoCount),
+    views: calculateTrend(currentStats.totalViews, previousStats.totalViews),
+    likes: calculateTrend(currentStats.totalLikes, previousStats.totalLikes),
+    comments: calculateTrend(currentStats.totalComments, previousStats.totalComments),
+    maxVideoLength: null, // 단일 영상 비교는 의미 없으므로 null
+    maxViews: null,
+    maxLikes: null,
+    maxComments: null,
+    minVideoLength: null,
+    minViews: null,
+    minLikes: null,
+    minComments: null,
+    avgVideoLength: null,
+    avgViews: calculateTrend(currentStats.avgViews, previousStats.avgViews),
+    avgLikes: calculateTrend(currentStats.avgLikes, previousStats.avgLikes),
+    avgComments: calculateTrend(currentStats.avgComments, previousStats.avgComments),
   };
 };
 
 export function MetricCardGrid({ videoRows, channelStats }: MetricCardGridProps) {
-  const [comparisonPeriod, setComparisonPeriod] = useState<ComparisonPeriod>('monthly');
-  const trends = getDefaultTrends(comparisonPeriod);
+  const [comparisonPeriod, setComparisonPeriod] = useState<ComparisonPeriod>('daily');
+  
+  // 데이터 가용성 체크
+  const { hasData, insufficientData } = checkDataAvailability(videoRows, comparisonPeriod);
+  
+  // 실제 증감률 계산
+  const trends = calculateTrends(videoRows, comparisonPeriod);
 
   // Calculate metrics
   const longForm = videoRows.filter(v => parseDuration(v.duration) >= 60).length;
@@ -234,6 +421,8 @@ export function MetricCardGrid({ videoRows, channelStats }: MetricCardGridProps)
             value={formatMetric(channelStats?.subscriberCount || 0)}
             trend={trends.subscriber}
             period={comparisonPeriod}
+            hasData={hasData}
+            insufficientData={insufficientData}
             useKoreanUnit={true}
           />
           <SingleMetricCard
@@ -242,6 +431,8 @@ export function MetricCardGrid({ videoRows, channelStats }: MetricCardGridProps)
             value={`${formatInt(longForm)} / ${formatInt(shortForm)}`}
             trend={trends.videos}
             period={comparisonPeriod}
+            hasData={hasData}
+            insufficientData={insufficientData}
           />
           <SingleMetricCard
             icon={<Eye className="w-4 h-4" />}
@@ -249,6 +440,8 @@ export function MetricCardGrid({ videoRows, channelStats }: MetricCardGridProps)
             value={(totalViews).toLocaleString('ko-KR')}
             trend={trends.views}
             period={comparisonPeriod}
+            hasData={hasData}
+            insufficientData={insufficientData}
           />
           <SingleMetricCard
             icon={<ThumbsUp className="w-4 h-4" />}
@@ -256,6 +449,8 @@ export function MetricCardGrid({ videoRows, channelStats }: MetricCardGridProps)
             value={(totalLikes).toLocaleString('ko-KR')}
             trend={trends.likes}
             period={comparisonPeriod}
+            hasData={hasData}
+            insufficientData={insufficientData}
           />
           <SingleMetricCard
             icon={<CommentIcon />}
@@ -263,6 +458,8 @@ export function MetricCardGrid({ videoRows, channelStats }: MetricCardGridProps)
             value={(totalComments).toLocaleString('ko-KR')}
             trend={trends.comments}
             period={comparisonPeriod}
+            hasData={hasData}
+            insufficientData={insufficientData}
           />
 
           {/* Row 2: Max metrics (4개) */}
@@ -272,6 +469,8 @@ export function MetricCardGrid({ videoRows, channelStats }: MetricCardGridProps)
             value={formatDuration(maxDuration)}
             trend={trends.maxVideoLength}
             period={comparisonPeriod}
+            hasData={hasData}
+            insufficientData={insufficientData}
           />
           <SingleMetricCard
             icon={<Eye className="w-4 h-4" />}
@@ -279,6 +478,8 @@ export function MetricCardGrid({ videoRows, channelStats }: MetricCardGridProps)
             value={(maxViews).toLocaleString('ko-KR')}
             trend={trends.maxViews}
             period={comparisonPeriod}
+            hasData={hasData}
+            insufficientData={insufficientData}
           />
           <SingleMetricCard
             icon={<ThumbsUp className="w-4 h-4" />}
@@ -286,6 +487,8 @@ export function MetricCardGrid({ videoRows, channelStats }: MetricCardGridProps)
             value={(maxLikes).toLocaleString('ko-KR')}
             trend={trends.maxLikes}
             period={comparisonPeriod}
+            hasData={hasData}
+            insufficientData={insufficientData}
           />
           <SingleMetricCard
             icon={<CommentIcon />}
@@ -293,6 +496,8 @@ export function MetricCardGrid({ videoRows, channelStats }: MetricCardGridProps)
             value={(maxComments).toLocaleString('ko-KR')}
             trend={trends.maxComments}
             period={comparisonPeriod}
+            hasData={hasData}
+            insufficientData={insufficientData}
           />
 
           {/* Row 3: Min metrics (4개) */}
@@ -302,6 +507,8 @@ export function MetricCardGrid({ videoRows, channelStats }: MetricCardGridProps)
             value={formatDuration(minDuration)}
             trend={trends.minVideoLength}
             period={comparisonPeriod}
+            hasData={hasData}
+            insufficientData={insufficientData}
           />
           <SingleMetricCard
             icon={<Eye className="w-4 h-4" />}
@@ -309,6 +516,8 @@ export function MetricCardGrid({ videoRows, channelStats }: MetricCardGridProps)
             value={(minViews).toLocaleString('ko-KR')}
             trend={trends.minViews}
             period={comparisonPeriod}
+            hasData={hasData}
+            insufficientData={insufficientData}
           />
           <SingleMetricCard
             icon={<ThumbsUp className="w-4 h-4" />}
@@ -316,6 +525,8 @@ export function MetricCardGrid({ videoRows, channelStats }: MetricCardGridProps)
             value={(minLikes).toLocaleString('ko-KR')}
             trend={trends.minLikes}
             period={comparisonPeriod}
+            hasData={hasData}
+            insufficientData={insufficientData}
           />
           <SingleMetricCard
             icon={<CommentIcon />}
@@ -323,6 +534,8 @@ export function MetricCardGrid({ videoRows, channelStats }: MetricCardGridProps)
             value={(minComments).toLocaleString('ko-KR')}
             trend={trends.minComments}
             period={comparisonPeriod}
+            hasData={hasData}
+            insufficientData={insufficientData}
           />
 
           {/* Row 4: Avg metrics (4개) */}
@@ -332,6 +545,8 @@ export function MetricCardGrid({ videoRows, channelStats }: MetricCardGridProps)
             value={formatDuration(avgDuration)}
             trend={trends.avgVideoLength}
             period={comparisonPeriod}
+            hasData={hasData}
+            insufficientData={insufficientData}
           />
           <SingleMetricCard
             icon={<Eye className="w-4 h-4" />}
@@ -339,6 +554,8 @@ export function MetricCardGrid({ videoRows, channelStats }: MetricCardGridProps)
             value={(avgViews).toLocaleString('ko-KR')}
             trend={trends.avgViews}
             period={comparisonPeriod}
+            hasData={hasData}
+            insufficientData={insufficientData}
           />
           <SingleMetricCard
             icon={<ThumbsUp className="w-4 h-4" />}
@@ -346,6 +563,8 @@ export function MetricCardGrid({ videoRows, channelStats }: MetricCardGridProps)
             value={(avgLikes).toLocaleString('ko-KR')}
             trend={trends.avgLikes}
             period={comparisonPeriod}
+            hasData={hasData}
+            insufficientData={insufficientData}
           />
           <SingleMetricCard
             icon={<CommentIcon />}
@@ -353,6 +572,8 @@ export function MetricCardGrid({ videoRows, channelStats }: MetricCardGridProps)
             value={(avgComments).toLocaleString('ko-KR')}
             trend={trends.avgComments}
             period={comparisonPeriod}
+            hasData={hasData}
+            insufficientData={insufficientData}
           />
 
         </div>
