@@ -20,6 +20,7 @@ import {
   X,
   Wrench,
   Music,
+  FolderOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { AnalysisLog } from '@/contexts/AnalysisLogsContext';
@@ -123,6 +124,13 @@ export function Sidebar() {
                   path="/work-tool/suno-ai-prompt-maker"
                   active={location.pathname === '/work-tool/suno-ai-prompt-maker'} 
                   onClick={() => navigate('/work-tool/suno-ai-prompt-maker')}
+                />
+                <NavItem 
+                  icon={FolderOpen} 
+                  label="Prompt Repository" 
+                  path="/prompt-repository"
+                  active={location.pathname === '/prompt-repository'} 
+                  onClick={() => navigate('/prompt-repository')}
                 />
               </div>
             </div>
