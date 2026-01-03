@@ -11,7 +11,7 @@ export async function getPrompts(
 ) {
   let query = supabase
     .from('prompts')
-    .select('*', { count: 'exact' });
+    .select('*');
 
   // 필터 적용
   if (filters?.model && filters.model !== 'Model') {
