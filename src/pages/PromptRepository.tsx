@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Search, RefreshCw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { PromptCard } from '@/components/PromptCard';
+import PromptCard from '@/components/PromptCard';
 import { PromptFilters } from '@/components/PromptFilters';
 import type { Prompt, PromptFilters as Filters } from '@/types/prompt';
 import { getPrompts, getStats } from '@/lib/api/prompts';
