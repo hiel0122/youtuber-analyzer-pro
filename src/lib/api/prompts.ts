@@ -130,50 +130,16 @@ export async function deletePrompt(id: string) {
 }
 
 // ========================================
-// 좋아요 증가
+// 복사 횟수 증가
 // ========================================
 
-export async function incrementLikes(id: string) {
-  const { error } = await supabase.rpc('increment_likes', {
+export async function incrementCopyCount(id: string) {
+  const { error } = await supabase.rpc('increment_copy_count', {
     prompt_id: id,
   });
 
   if (error) {
-    console.error('Error incrementing likes:', error);
-    throw error;
-  }
-
-  return { success: true };
-}
-
-// ========================================
-// 좋아요 감소
-// ========================================
-
-export async function decrementLikes(id: string) {
-  const { error } = await supabase.rpc('decrement_likes', {
-    prompt_id: id,
-  });
-
-  if (error) {
-    console.error('Error decrementing likes:', error);
-    throw error;
-  }
-
-  return { success: true };
-}
-
-// ========================================
-// 조회수 증가
-// ========================================
-
-export async function incrementViews(id: string) {
-  const { error } = await supabase.rpc('increment_views', {
-    prompt_id: id,
-  });
-
-  if (error) {
-    console.error('Error incrementing views:', error);
+    console.error('Error incrementing copy count:', error);
     throw error;
   }
 

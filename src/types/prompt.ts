@@ -8,8 +8,7 @@ export interface Prompt {
   form: 'natural' | 'query' | 'json';
   tags: string[];
   imageUrl?: string;
-  likes: number;
-  views: number;
+  copy_count: number;
   created_at: string;
   updated_at: string;
   user_id: string;
@@ -29,6 +28,6 @@ export interface PromptsResponse {
   error?: string;
 }
 
-export type PromptInsert = Omit<Prompt, 'id' | 'created_at' | 'updated_at' | 'likes' | 'views'>;
+export type PromptInsert = Omit<Prompt, 'id' | 'created_at' | 'updated_at' | 'copy_count'>;
 
 export type PromptUpdate = Partial<PromptInsert>;
