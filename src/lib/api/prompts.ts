@@ -14,15 +14,15 @@ export async function getPrompts(
     .select('*');
 
   // 필터 적용
-  if (filters?.model && filters.model !== 'Model') {
+  if (filters?.model && filters.model !== 'Model' && filters.model !== '전체') {
     query = query.eq('model', filters.model);
   }
 
-  if (filters?.category && filters.category !== 'Category') {
+  if (filters?.category && filters.category !== 'Category' && filters.category !== '전체') {
     query = query.eq('category', filters.category);
   }
 
-  if (filters?.form && filters.form !== 'Form') {
+  if (filters?.form && filters.form !== 'Form' && filters.form !== '전체') {
     const formValue = filters.form === '자연어' ? 'natural' 
                     : filters.form === 'Query' ? 'query' 
                     : filters.form === 'JSON' ? 'json' 
