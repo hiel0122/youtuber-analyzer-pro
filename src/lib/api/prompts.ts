@@ -197,16 +197,28 @@ export async function getStats() {
   
   const uniqueCategories = new Set(categories?.map(c => c.category) || []);
 
-  // 총 좋아요 수
-  const { data: likesData } = await supabase
-    .from('prompts')
-    .select('likes');
-  
-  const totalLikes = likesData?.reduce((sum, p) => sum + (p.likes || 0), 0) || 0;
-
   return {
     totalPrompts: totalPrompts || 0,
     categories: uniqueCategories.size,
-    likes: totalLikes,
   };
+}
+
+// ========================================
+// 모델별 프롬프트 개수 조회
+// ========================================
+
+export async function getModelCounts(): Promise<Record<string, number>> {
+  const { data } = await supabase
+    .from('prompts')
+    .select('model');
+  
+  if (!data) return {};
+
+  const counts: Record<string, number> = {};
+  data.forEach((p) => {
+    const model = p.model || 'Unknown';
+    counts[model] = (counts[model] || 0) + 1;
+  });
+
+  return counts;
 }
