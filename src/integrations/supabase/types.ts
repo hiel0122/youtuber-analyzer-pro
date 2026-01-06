@@ -405,52 +405,49 @@ export type Database = {
           author_name: string | null
           category: string
           content: string
+          copy_count: number | null
           created_at: string
           description: string
           form: string
           id: string
           image_url: string | null
-          likes: number | null
           model: string
           tags: string[] | null
           title: string
           updated_at: string
           user_id: string | null
-          views: number | null
         }
         Insert: {
           author_name?: string | null
           category: string
           content: string
+          copy_count?: number | null
           created_at?: string
           description: string
           form: string
           id?: string
           image_url?: string | null
-          likes?: number | null
           model: string
           tags?: string[] | null
           title: string
           updated_at?: string
           user_id?: string | null
-          views?: number | null
         }
         Update: {
           author_name?: string | null
           category?: string
           content?: string
+          copy_count?: number | null
           created_at?: string
           description?: string
           form?: string
           id?: string
           image_url?: string | null
-          likes?: number | null
           model?: string
           tags?: string[] | null
           title?: string
           updated_at?: string
           user_id?: string | null
-          views?: number | null
         }
         Relationships: []
       }
@@ -1053,7 +1050,6 @@ export type Database = {
       }
     }
     Functions: {
-      decrement_likes: { Args: { prompt_id: string }; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1061,8 +1057,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      increment_likes: { Args: { prompt_id: string }; Returns: undefined }
-      increment_views: { Args: { prompt_id: string }; Returns: undefined }
+      increment_copy_count: { Args: { prompt_id: string }; Returns: undefined }
       is_admin: { Args: never; Returns: boolean }
       parse_duration_seconds: { Args: { t: string }; Returns: number }
       resolve_channel_key: { Args: { p_input: string }; Returns: string }

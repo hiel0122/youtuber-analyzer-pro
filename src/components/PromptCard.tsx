@@ -1,7 +1,7 @@
-import { Heart, Copy, Eye } from 'lucide-react';
+import { Copy } from 'lucide-react';
 import { useState } from 'react';
 import { Prompt } from '@/types/prompt';
-import { incrementLikes, decrementLikes } from '@/lib/api/prompts';
+import { incrementCopyCount } from '@/lib/api/prompts';
 import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
@@ -13,63 +13,45 @@ import { Button } from '@/components/ui/button';
 
 interface Props {
   prompt: Prompt;
-  onLikeChange?: () => void;
+  onCopyCountChange?: () => void;
 }
 
-export default function PromptCard({ prompt, onLikeChange }: Props) {
-  const [isLiked, setIsLiked] = useState(false);
-  const [likes, setLikes] = useState(prompt.likes || 0);
-  const [isLiking, setIsLiking] = useState(false);
+export default function PromptCard({ prompt, onCopyCountChange }: Props) {
+  const [copyCount, setCopyCount] = useState(prompt.copy_count || 0);
+  const [isCopying, setIsCopying] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   const { toast } = useToast();
 
-  const handleLike = async (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleCopy = async (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     
-    if (isLiking) return;
+    if (isCopying) return;
     
-    setIsLiking(true);
+    setIsCopying(true);
     
-    try {
-      if (isLiked) {
-        await decrementLikes(prompt.id);
-        setLikes(prev => Math.max(0, prev - 1));
-        setIsLiked(false);
-      } else {
-        await incrementLikes(prompt.id);
-        setLikes(prev => prev + 1);
-        setIsLiked(true);
-      }
-      
-      if (onLikeChange) {
-        onLikeChange();
-      }
-    } catch (error) {
-      console.error('Failed to update likes:', error);
-      toast({
-        title: '오류',
-        description: '좋아요 처리에 실패했습니다.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLiking(false);
-    }
-  };
-
-  const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(prompt.content);
+      await incrementCopyCount(prompt.id);
+      setCopyCount(prev => prev + 1);
+      
       toast({
         title: '복사 완료',
-        description: '프롬프트가 클립보드에 복사되었습니다.',
+        description: '클립보드에 복사되었습니다.',
       });
+      
+      if (onCopyCountChange) {
+        onCopyCountChange();
+      }
     } catch (error) {
+      console.error('Failed to copy:', error);
       toast({
         title: '오류',
         description: '복사에 실패했습니다.',
         variant: 'destructive',
       });
+    } finally {
+      setIsCopying(false);
     }
   };
 
@@ -169,18 +151,6 @@ export default function PromptCard({ prompt, onLikeChange }: Props) {
             <span className="text-xs text-muted-foreground">
               {formatTimeAgo(prompt.created_at)}
             </span>
-            <button
-              onClick={handleLike}
-              disabled={isLiking}
-              className="flex items-center gap-1 text-muted-foreground hover:text-red-500 transition-colors disabled:opacity-50"
-            >
-              <Heart
-                className={`w-4 h-4 transition-all ${isLiked ? 'fill-red-500 text-red-500' : ''}`}
-              />
-              <span className={`text-sm ${isLiked ? 'text-red-500' : ''}`}>
-                {likes}
-              </span>
-            </button>
           </div>
         </div>
       </div>
@@ -239,17 +209,11 @@ export default function PromptCard({ prompt, onLikeChange }: Props) {
               </div>
             )}
 
-            {/* 통계 및 날짜 */}
+            {/* 복사 횟수 및 날짜 */}
             <div className="flex items-center justify-between text-sm text-muted-foreground pt-4 border-t border-border">
-              <div className="flex items-center gap-4">
-                <span className="flex items-center gap-1">
-                  <Heart className="w-4 h-4" />
-                  {likes}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Eye className="w-4 h-4" />
-                  {prompt.views || 0}
-                </span>
+              <div className="flex items-center gap-1">
+                <Copy className="w-4 h-4" />
+                <span>복사 {copyCount}회</span>
               </div>
               <span>{formatDate(prompt.created_at)}</span>
             </div>
@@ -260,7 +224,7 @@ export default function PromptCard({ prompt, onLikeChange }: Props) {
             <Button variant="outline" onClick={() => setIsModalOpen(false)}>
               닫기
             </Button>
-            <Button onClick={handleCopy} className="gap-2">
+            <Button onClick={handleCopy} disabled={isCopying} className="gap-2">
               <Copy className="w-4 h-4" />
               복사
             </Button>
