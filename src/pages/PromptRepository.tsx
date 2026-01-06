@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import PromptCard from '@/components/PromptCard';
 import { PromptFilters } from '@/components/PromptFilters';
+import { PromptCreateDialog } from '@/components/PromptCreateDialog';
 import type { Prompt, PromptFilters as Filters } from '@/types/prompt';
 import { getPrompts, getStats } from '@/lib/api/prompts';
 import { useToast } from '@/hooks/use-toast';
@@ -139,6 +140,10 @@ export default function PromptRepository() {
               <RefreshCw className="w-4 h-4" />
               초기화
             </Button>
+            <PromptCreateDialog onSuccess={() => {
+              loadPrompts();
+              loadStats();
+            }} />
           </div>
         </div>
 
