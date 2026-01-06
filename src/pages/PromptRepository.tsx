@@ -8,6 +8,7 @@ import { PromptCreateDialog } from '@/components/PromptCreateDialog';
 import type { Prompt, PromptFilters as Filters } from '@/types/prompt';
 import { getPrompts, getStats } from '@/lib/api/prompts';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 export default function PromptRepository() {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
@@ -65,32 +66,33 @@ export default function PromptRepository() {
   };
 
   const handleReset = () => {
-    setSelectedModel('전체');
     setSelectedCategory('전체');
+    setSelectedModel('전체');
     setSelectedForm('전체');
     setSearchQuery('');
+    setSortBy('latest');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         {/* 헤더 */}
         <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl font-bold text-foreground mb-4">
             AI 프롬프트 컬렉션
           </h1>
 
           {/* 검색창 */}
           <div className="max-w-2xl mx-auto mb-8">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <Input
                 type="text"
                 placeholder="프롬프트 검색..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 pr-4 py-6 text-lg rounded-2xl border-2 border-gray-200 focus:border-blue-400 shadow-sm"
+                className="pl-12 pr-4 py-6 text-lg rounded-2xl border-2 border-border focus:border-primary shadow-sm bg-card text-foreground"
               />
             </div>
           </div>
@@ -98,16 +100,16 @@ export default function PromptRepository() {
           {/* 통계 카드 */}
           <div className="flex justify-center gap-8 mb-8">
             <div className="text-center">
-              <p className="text-3xl font-bold text-blue-600">{stats.totalPrompts}</p>
-              <p className="text-sm text-gray-500">프롬프트</p>
+              <p className="text-3xl font-bold text-primary">{stats.totalPrompts}</p>
+              <p className="text-sm text-muted-foreground">프롬프트</p>
             </div>
             <div className="text-center">
-              <p className="text-3xl font-bold text-green-600">{stats.categories}</p>
-              <p className="text-sm text-gray-500">카테고리</p>
+              <p className="text-3xl font-bold text-green-600 dark:text-green-400">{stats.categories}</p>
+              <p className="text-sm text-muted-foreground">카테고리</p>
             </div>
             <div className="text-center">
-              <p className="text-3xl font-bold text-red-500">{stats.likes}</p>
-              <p className="text-sm text-gray-500">좋아요</p>
+              <p className="text-3xl font-bold text-red-500 dark:text-red-400">{stats.likes}</p>
+              <p className="text-sm text-muted-foreground">좋아요</p>
             </div>
           </div>
         </div>
@@ -124,19 +126,36 @@ export default function PromptRepository() {
 
         {/* 정렬 및 초기화 */}
         <div className="flex items-center justify-between mt-6 mb-6">
-          <span className="text-gray-600 font-medium">
+          <span className="text-muted-foreground font-medium">
             {prompts.length}개의 프롬프트
           </span>
           <div className="flex items-center gap-3">
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as 'latest' | 'oldest')}
-              className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-            >
-              <option value="latest">최신순</option>
-              <option value="oldest">오래된순</option>
-            </select>
-            <Button variant="outline" onClick={handleReset} className="gap-2">
+            <div className="flex items-center gap-2 text-sm">
+              <button
+                onClick={() => setSortBy('latest')}
+                className={cn(
+                  "px-3 py-1.5 rounded-md transition-colors",
+                  sortBy === 'latest' 
+                    ? "text-primary font-semibold" 
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                최신순
+              </button>
+              <span className="text-muted-foreground">/</span>
+              <button
+                onClick={() => setSortBy('oldest')}
+                className={cn(
+                  "px-3 py-1.5 rounded-md transition-colors",
+                  sortBy === 'oldest' 
+                    ? "text-primary font-semibold" 
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                오래된순
+              </button>
+            </div>
+            <Button variant="destructive" onClick={handleReset} className="gap-2">
               <RefreshCw className="w-4 h-4" />
               초기화
             </Button>
@@ -150,13 +169,13 @@ export default function PromptRepository() {
         {/* 프롬프트 그리드 */}
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <RefreshCw className="w-8 h-8 text-blue-500 animate-spin mb-4" />
-            <p className="text-gray-500">프롬프트를 불러오는 중...</p>
+            <RefreshCw className="w-8 h-8 text-primary animate-spin mb-4" />
+            <p className="text-muted-foreground">프롬프트를 불러오는 중...</p>
           </div>
         ) : prompts.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-xl text-gray-600 mb-2">프롬프트가 없습니다.</p>
-            <p className="text-gray-400">첫 번째 프롬프트를 추가해보세요!</p>
+            <p className="text-xl text-foreground mb-2">프롬프트가 없습니다.</p>
+            <p className="text-muted-foreground">첫 번째 프롬프트를 추가해보세요!</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
