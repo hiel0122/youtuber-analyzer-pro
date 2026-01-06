@@ -57,7 +57,7 @@ export default function PromptCard({ prompt, onLikeChange }: Props) {
     'Gemini': 'bg-orange-500',
     'Perplexity': 'bg-indigo-500',
     'Suno': 'bg-pink-500',
-    '나노베나': 'bg-orange-500',
+    'Nanobanana': 'bg-amber-500',
   };
 
   const formatTimeAgo = (dateString: string) => {
@@ -73,7 +73,7 @@ export default function PromptCard({ prompt, onLikeChange }: Props) {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer group">
+    <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer group">
       {/* 이미지 영역 */}
       {prompt.imageUrl ? (
         <div className="h-48 overflow-hidden">
@@ -84,7 +84,7 @@ export default function PromptCard({ prompt, onLikeChange }: Props) {
           />
         </div>
       ) : (
-        <div className="h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+        <div className="h-48 bg-muted flex items-center justify-center">
           <span className="text-4xl">📝</span>
         </div>
       )}
@@ -101,7 +101,7 @@ export default function PromptCard({ prompt, onLikeChange }: Props) {
         </div>
 
         {/* 제목 */}
-        <h3 className="font-bold text-gray-900 text-lg line-clamp-1">
+        <h3 className="font-bold text-card-foreground text-lg line-clamp-1">
           {prompt.title}
         </h3>
 
@@ -110,32 +110,32 @@ export default function PromptCard({ prompt, onLikeChange }: Props) {
           {prompt.tags && prompt.tags.slice(0, 3).map((tag, index) => (
             <span
               key={index}
-              className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full"
+              className="px-2 py-0.5 bg-muted text-muted-foreground text-xs rounded-full"
             >
               {tag}
             </span>
           ))}
           {prompt.tags && prompt.tags.length > 3 && (
-            <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs rounded-full font-medium">
+            <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full font-medium">
               +{prompt.tags.length - 3}
             </span>
           )}
         </div>
 
         {/* 설명 */}
-        <p className="text-gray-600 text-sm line-clamp-2">
+        <p className="text-muted-foreground text-sm line-clamp-2">
           {prompt.description}
         </p>
 
         {/* 푸터 */}
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-          <span className="text-xs text-gray-400">
+        <div className="flex items-center justify-between pt-2 border-t border-border">
+          <span className="text-xs text-muted-foreground">
             {formatTimeAgo(prompt.created_at)}
           </span>
           <button
             onClick={handleLike}
             disabled={isLiking}
-            className="flex items-center gap-1 text-gray-500 hover:text-red-500 transition-colors disabled:opacity-50"
+            className="flex items-center gap-1 text-muted-foreground hover:text-red-500 transition-colors disabled:opacity-50"
           >
             <Heart
               className={`w-4 h-4 transition-all ${isLiked ? 'fill-red-500 text-red-500' : ''}`}
