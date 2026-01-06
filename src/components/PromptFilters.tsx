@@ -10,8 +10,7 @@ interface PromptFiltersProps {
 }
 
 const MODELS = [
-  '전체', 'ChatGPT', 'Gemini', 'Claude', 'Grok', 'Copilot',
-  'Perplexity', 'Suno', 'Midjourney', 'DALL-E', 'Runway', 'Sora', 'Nanobanana'
+  '전체', 'ChatGPT', 'Gemini', 'Claude', 'Grok', 'Perplexity', 'Suno', 'Nanobanana'
 ];
 
 const CATEGORIES = [

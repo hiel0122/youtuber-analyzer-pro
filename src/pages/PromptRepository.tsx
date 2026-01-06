@@ -6,9 +6,19 @@ import PromptCard from '@/components/PromptCard';
 import { PromptFilters } from '@/components/PromptFilters';
 import { PromptCreateDialog } from '@/components/PromptCreateDialog';
 import type { Prompt, PromptFilters as Filters } from '@/types/prompt';
-import { getPrompts, getStats } from '@/lib/api/prompts';
+import { getPrompts, getStats, getModelCounts } from '@/lib/api/prompts';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+
+const MODEL_COLORS: Record<string, string> = {
+  'ChatGPT': 'bg-emerald-500',
+  'Claude': 'bg-amber-600',
+  'Grok': 'bg-blue-600',
+  'Gemini': 'bg-orange-500',
+  'Perplexity': 'bg-indigo-500',
+  'Suno': 'bg-pink-500',
+  'Nanobanana': 'bg-amber-500',
+};
 
 export default function PromptRepository() {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
@@ -21,8 +31,8 @@ export default function PromptRepository() {
   const [stats, setStats] = useState({
     totalPrompts: 0,
     categories: 0,
-    likes: 0,
   });
+  const [modelCounts, setModelCounts] = useState<Record<string, number>>({});
 
   const { toast } = useToast();
 
@@ -30,6 +40,7 @@ export default function PromptRepository() {
   useEffect(() => {
     loadPrompts();
     loadStats();
+    loadModelCounts();
   }, [selectedModel, selectedCategory, selectedForm, searchQuery, sortBy]);
 
   const loadPrompts = async () => {
@@ -62,6 +73,15 @@ export default function PromptRepository() {
       setStats(statsData);
     } catch (error) {
       console.error('Failed to load stats:', error);
+    }
+  };
+
+  const loadModelCounts = async () => {
+    try {
+      const counts = await getModelCounts();
+      setModelCounts(counts);
+    } catch (error) {
+      console.error('Failed to load model counts:', error);
     }
   };
 
@@ -107,11 +127,25 @@ export default function PromptRepository() {
               <p className="text-3xl font-bold text-green-600 dark:text-green-400">{stats.categories}</p>
               <p className="text-sm text-muted-foreground">카테고리</p>
             </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-red-500 dark:text-red-400">{stats.likes}</p>
-              <p className="text-sm text-muted-foreground">좋아요</p>
-            </div>
           </div>
+
+          {/* 모델별 프롬프트 */}
+          {Object.keys(modelCounts).length > 0 && (
+            <div className="flex flex-wrap justify-center gap-3 mb-8">
+              {Object.entries(modelCounts)
+                .sort((a, b) => b[1] - a[1])
+                .map(([model, count]) => (
+                  <div
+                    key={model}
+                    className="flex items-center gap-2 px-4 py-2 bg-card rounded-full border border-border"
+                  >
+                    <span className={cn("w-2 h-2 rounded-full", MODEL_COLORS[model] || 'bg-muted-foreground')} />
+                    <span className="text-sm font-medium text-foreground">{model}</span>
+                    <span className="text-sm text-muted-foreground">{count}개</span>
+                  </div>
+                ))}
+            </div>
+          )}
         </div>
 
         {/* 필터 섹션 */}
