@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/select';
 import { createPrompt } from '@/lib/api/prompts';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabase';
 
 const CATEGORIES = ['일반', '이미지', '코딩', '음악', '영상'];
 const MODELS = [
@@ -77,6 +78,19 @@ export function PromptCreateDialog({ onSuccess }: PromptCreateDialogProps) {
     setIsSubmitting(true);
 
     try {
+      // 현재 로그인한 사용자 ID 가져오기
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: '인증 오류',
+          description: '로그인이 필요합니다.',
+          variant: 'destructive',
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
       const tagsArray = formData.tags
         .split(',')
         .map(tag => tag.trim())
@@ -90,7 +104,7 @@ export function PromptCreateDialog({ onSuccess }: PromptCreateDialogProps) {
         description: formData.description || formData.title,
         content: formData.content,
         tags: tagsArray,
-        user_id: '', // Supabase RLS에서 처리
+        user_id: user.id,
       });
 
       toast({
