@@ -54,21 +54,6 @@ export function PromptFilters({
 
   return (
     <div className="bg-white rounded-2xl p-6 shadow-sm space-y-6">
-      {/* Model Filter */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-gray-900">Model</h3>
-        <div className="flex flex-wrap gap-2">
-          {MODELS.map((model) => (
-            <FilterButton
-              key={model}
-              label={model}
-              isSelected={selectedModel === model}
-              onClick={() => onModelChange(model)}
-            />
-          ))}
-        </div>
-      </div>
-
       {/* Category Filter */}
       <div className="space-y-3">
         <h3 className="text-sm font-semibold text-gray-900">Category</h3>
@@ -79,6 +64,21 @@ export function PromptFilters({
               label={category}
               isSelected={selectedCategory === category}
               onClick={() => onCategoryChange(category)}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Model Filter */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold text-gray-900">Model</h3>
+        <div className="flex flex-wrap gap-2">
+          {MODELS.map((model) => (
+            <FilterButton
+              key={model}
+              label={model}
+              isSelected={selectedModel === model}
+              onClick={() => onModelChange(model)}
             />
           ))}
         </div>
