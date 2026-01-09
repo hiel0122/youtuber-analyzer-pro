@@ -174,11 +174,11 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
         </Button>
       </div>
       <ResponsiveContainer width="100%" height={350}>
-        <LineChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+        <LineChart data={chartData} margin={{ top: 5, right: 60, left: 10, bottom: 5 }}>
           <defs>
             <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+              <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
+              <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
             </linearGradient>
             <linearGradient id="colorLikes" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
@@ -200,14 +200,31 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
             tickLine={{ stroke: theme === 'dark' ? '#374151' : '#e5e7eb' }}
           />
           
+          {/* 왼쪽 Y축 - 조회수 */}
           <YAxis 
-            stroke={theme === 'dark' ? '#9ca3af' : '#6b7280'}
-            tick={{ fill: theme === 'dark' ? '#9ca3af' : '#6b7280', fontSize: 11 }}
-            axisLine={{ stroke: theme === 'dark' ? '#374151' : '#e5e7eb' }}
-            tickLine={{ stroke: theme === 'dark' ? '#374151' : '#e5e7eb' }}
+            yAxisId="left"
+            stroke="#8b5cf6"
+            tick={{ fill: '#8b5cf6', fontSize: 11 }}
+            axisLine={{ stroke: '#8b5cf6' }}
+            tickLine={{ stroke: '#8b5cf6' }}
             tickFormatter={(value) => {
               if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
-              if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
+              if (value >= 1000) return `${(value / 1000).toFixed(0)}K`;
+              return value;
+            }}
+          />
+          
+          {/* 오른쪽 Y축 - 좋아요 */}
+          <YAxis 
+            yAxisId="right"
+            orientation="right"
+            stroke="#10b981"
+            tick={{ fill: '#10b981', fontSize: 11 }}
+            axisLine={{ stroke: '#10b981' }}
+            tickLine={{ stroke: '#10b981' }}
+            tickFormatter={(value) => {
+              if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+              if (value >= 1000) return `${(value / 1000).toFixed(0)}K`;
               return value;
             }}
           />
@@ -229,15 +246,21 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
               fontSize: '12px',
             }}
             iconType="line"
+            formatter={(value) => {
+              if (value === '조회수') return <span style={{ color: '#8b5cf6' }}>조회수 (좌)</span>;
+              if (value === '좋아요') return <span style={{ color: '#10b981' }}>좋아요 (우)</span>;
+              return value;
+            }}
           />
           
           <Line 
+            yAxisId="left"
             type="monotone" 
             dataKey="views" 
-            stroke="#3b82f6"
+            stroke="#8b5cf6"
             strokeWidth={3}
             dot={false}
-            activeDot={{ r: 6, fill: '#3b82f6', stroke: '#fff', strokeWidth: 2 }}
+            activeDot={{ r: 6, fill: '#8b5cf6', stroke: '#fff', strokeWidth: 2 }}
             fill="url(#colorViews)"
             name="조회수"
             animationDuration={1000}
@@ -247,6 +270,7 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
           />
           
           <Line 
+            yAxisId="right"
             type="monotone" 
             dataKey="likes" 
             stroke="#10b981"
