@@ -1,5 +1,4 @@
-import { formatDistanceToNow } from 'date-fns';
-import { ko } from 'date-fns/locale';
+import { format } from 'date-fns';
 
 interface CustomTooltipProps {
   active?: boolean;
@@ -34,12 +33,12 @@ export function CustomTooltip({ active, payload, videoData }: CustomTooltipProps
     return num.toLocaleString();
   };
 
-  // 날짜 포맷팅
+  // 날짜 포맷팅 (YYYY-MM-DD 형식)
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
     try {
       const date = new Date(dateString);
-      return formatDistanceToNow(date, { addSuffix: true, locale: ko });
+      return format(date, 'yyyy-MM-dd');
     } catch {
       return dateString;
     }
