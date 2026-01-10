@@ -57,7 +57,7 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
   
   if (loading) {
     return (
-      <div className="h-[350px] flex items-center justify-center">
+      <div className="h-[300px] flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
       </div>
     );
@@ -133,7 +133,7 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
             숏폼
           </Button>
         </div>
-        <div className="h-[350px] flex items-center justify-center">
+        <div className="h-[300px] flex items-center justify-center">
           <div className="text-center text-muted-foreground">
             <p className="text-lg">
               {videoFilter === 'short' && '숏폼 영상이 없습니다'}
@@ -173,7 +173,7 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
           숏폼
         </Button>
       </div>
-      <ResponsiveContainer width="100%" height={350}>
+      <ResponsiveContainer width="100%" height={300}>
         <LineChart data={chartData} margin={{ top: 5, right: 60, left: 10, bottom: 5 }}>
           <defs>
             <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
