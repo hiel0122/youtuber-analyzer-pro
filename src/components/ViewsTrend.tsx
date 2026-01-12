@@ -242,7 +242,7 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
           
           <Legend 
             wrapperStyle={{
-              paddingTop: '20px',
+              paddingTop: '8px',
               fontSize: '12px',
             }}
             iconType="line"
