@@ -174,7 +174,7 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
         </Button>
       </div>
       <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={chartData} margin={{ top: 5, right: 60, left: 10, bottom: 5 }}>
+        <LineChart data={chartData} margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
           <defs>
             <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
