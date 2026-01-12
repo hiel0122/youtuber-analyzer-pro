@@ -174,7 +174,7 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
         </Button>
       </div>
       <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={chartData} margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+        <LineChart data={chartData} margin={{ top: 5, right: 45, left: -20, bottom: 5 }}>
           <defs>
             <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
@@ -207,6 +207,7 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
             tick={{ fill: '#8b5cf6', fontSize: 11 }}
             axisLine={{ stroke: '#8b5cf6' }}
             tickLine={{ stroke: '#8b5cf6' }}
+            width={60}
             tickFormatter={(value) => {
               if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
               if (value >= 1000) return `${(value / 1000).toFixed(0)}K`;
@@ -222,6 +223,7 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
             tick={{ fill: '#10b981', fontSize: 11 }}
             axisLine={{ stroke: '#10b981' }}
             tickLine={{ stroke: '#10b981' }}
+            width={50}
             tickFormatter={(value) => {
               if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
               if (value >= 1000) return `${(value / 1000).toFixed(0)}K`;
