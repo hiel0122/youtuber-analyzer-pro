@@ -174,7 +174,7 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
         </Button>
       </div>
       <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+        <LineChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
           <defs>
             <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
@@ -219,7 +219,7 @@ export function ViewsTrend({ videos, loading, channelTotalViews }: ViewsTrendPro
             yAxisId="right"
             orientation="right"
             stroke="#10b981"
-            tick={{ fill: '#10b981', fontSize: 11 }}
+            tick={{ fill: '#10b981', fontSize: 10 }}
             axisLine={{ stroke: '#10b981' }}
             tickLine={{ stroke: '#10b981' }}
             tickFormatter={(value) => {
